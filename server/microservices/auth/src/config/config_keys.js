@@ -4,7 +4,9 @@ dotenv.config();
 
 const config = {
     mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/urbanpocket",
-    jwtSecret: process.env.JWT_SECRET
+    jwtSecret: process.env.JWT_SECRET,
+    nodeEnv: process.env.NODE_ENV || "development",
+    port: process.env.PORT || 3000,
 };
 
 Object.freeze(config);

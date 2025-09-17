@@ -1,0 +1,87 @@
+openapi: 3.0.0
+info:
+  title: Authentication Service API
+  version: 1.0.0
+  description: API for user authentication and registration.
+
+paths:
+  /api/auth/register:
+    post:
+      summary: Register a new user
+      description: Creates a new user account with the provided credentials.
+      tags:
+        - Authentication
+      
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - username
+                - email
+                - password
+              properties:
+                username:
+                  type: string
+                  description: The user's desired username. Must be unique.
+                  example: "johndoe"
+                email:
+                  type: string
+                  format: email
+                  description: The user's email address. Must be unique.
+                  example: "john.doe@example.com"
+                password:
+                  type: string
+                  format: password
+                  description: The user's password (min 8 characters).
+                  example: "strongPassword123"
+
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User registered successfully"
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "a3b8d4c1-9e6a-4f2b-8b0e-7d1a5c8e3f9g"
+                      username:
+                        type: string
+                        example: "johndoe"
+                      email:
+                        type: string
+                        format: email
+                        example: "john.doe@example.com"
+        
+        '400':
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Password must be at least 8 characters long"
+        
+        '409':
+          description: Conflict - User already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "A user with this email already exists"
