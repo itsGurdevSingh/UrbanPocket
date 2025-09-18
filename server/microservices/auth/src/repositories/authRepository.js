@@ -18,7 +18,35 @@ const createUser = async (userData) => {
     return newUser;
 };
 
+// get user by email
+const getUserByEmail = async (email) => {
+    return await userModel.findOne({ 'contactInfo.email': email });
+};
+
+// get user by username
+const getUserByUsername = async (username) => {
+    return await userModel.findOne({ username });
+};
+
+// find user for login (by email or username) and include password field
+export const findUserForLogin = async (identifier) => {
+
+  const isEmail = identifier.includes('@');
+
+  const query = isEmail 
+    ? { 'contactInfo.email': identifier }
+    : { username: identifier };
+
+  // Chain .select('+password') to the query to retrieve the hidden password field
+  const user = await userModel.findOne(query).select('+password');
+  
+  return user;
+};
+
 export default {
     isUserExistWithCredientials,
     createUser,
+    getUserByEmail,
+    getUserByUsername,
+    findUserForLogin
 };

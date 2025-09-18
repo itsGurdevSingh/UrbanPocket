@@ -9,7 +9,7 @@ export const errorHandler = (error, req, res, next) => {
   const message = error.message || 'An unexpected error occurred';
 
   // Log the error for debugging purposes (optional but recommended)
-  console.error(error);
+  // console.error(error);2
 
   // Send a standardized error response
   res.status(statusCode).json({

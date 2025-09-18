@@ -21,32 +21,87 @@ const registerNewUser = async (userData) => {
 
     // save user to database
 
-    const newUser = await authRepository.createUser({
+    const user = await authRepository.createUser({
         username,
         email,
         password: hashPassword,
     });
 
-    //create jwt token
-
-    const token = jwt.sign(
-        { userId: newUser._id, username: newUser.username, email: newUser.contactInfo.email },
+     // generate access token
+    const accessToken = jwt.sign(
+        { userId: user._id, username: user.username, email: user.contactInfo.email },
         getConfig('jwtSecret'),
-        { expiresIn: '10h' }
+        { expiresIn: '15m' } // Access token valid for 15 minutes
+    );
+
+    // generate refresh token
+    const refreshToken = jwt.sign(
+        { userId: user._id },
+        getConfig('jwtRefreshSecret'),
+        { expiresIn: '7d' } // Refresh token valid for 7 days
     );
 
     // return user data and token
     return {
         user: {
-            id: newUser._id,
-            username: newUser.username,
-            email: newUser.contactInfo.email,
+            id: user._id,
+            username: user.username,
+            email: user.contactInfo.email,
         },
-        token,
+        accessToken,
+        refreshToken
     };
 
 };
 
+const authenticateUser = async (credentials) => {
+
+    const { identifier, password } = credentials;
+
+    // get user by email or username
+    const user = await authRepository.findUserForLogin(identifier);
+       
+    if (!user) {
+        const error = new Error('Invalid credentials');
+        error.statusCode = 401; // Unauthorized
+        throw error;
+    }
+
+    // compare password
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+        const error = new Error('Invalid credentials');
+        error.statusCode = 401; // Unauthorized
+        throw error;
+    }
+
+    // generate access token
+    const accessToken = jwt.sign(
+        { userId: user._id, username: user.username, email: user.contactInfo.email },
+        getConfig('jwtSecret'),
+        { expiresIn: '15m' } // Access token valid for 15 minutes
+    );
+
+    // generate refresh token
+    const refreshToken = jwt.sign(
+        { userId: user._id },
+        getConfig('jwtRefreshSecret'),
+        { expiresIn: '7d' } // Refresh token valid for 7 days
+    );
+
+    return {
+        user: {
+            id: user._id,
+            username: user.username,
+            email: user.contactInfo.email,
+        },
+        accessToken,
+        refreshToken,
+    };
+};    
+
+
 export default {
     registerNewUser,
+    authenticateUser
 };

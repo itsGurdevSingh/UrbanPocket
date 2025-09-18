@@ -15,6 +15,30 @@ describe('POST /api/auth/register', () => {
     const response = await request(app).post('/api/auth/register').send(newUser);
     expect(response.statusCode).toBe(201);
     expect(response.body.user.email).toBe(newUser.email);
+
+    // Verify that the user is actually saved in the database
+    const savedUser = await User.findOne({ 'contactInfo.email': newUser.email });
+    expect(savedUser).not.toBeNull();
+    expect(savedUser.username).toBe(newUser.username);
+
+    // Verify that the password is hashed
+    expect(savedUser.password).not.toBe(newUser.password);
+
+    // Verify that the cookies were set in the response headers
+    const cookies = response.headers['set-cookie'];
+    expect(cookies).toBeDefined();
+    expect(cookies.length).toBe(2); // Expecting both accessToken and refreshToken
+
+    const accessTokenCookie = cookies.find(cookie => cookie.startsWith('accessToken='));
+    expect(accessTokenCookie).toBeDefined();
+    expect(accessTokenCookie).toContain('HttpOnly'); // Security check
+    expect(accessTokenCookie).toContain('Max-Age='); // Check for expiration
+
+    const refreshTokenCookie = cookies.find(cookie => cookie.startsWith('refreshToken='));
+    expect(refreshTokenCookie).toBeDefined();
+    expect(refreshTokenCookie).toContain('HttpOnly'); // Security check
+    expect(refreshTokenCookie).toContain('Max-Age='); // Check for expiration 
+
   });
 
   // Test Case 2: Bad Request
