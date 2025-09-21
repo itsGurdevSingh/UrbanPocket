@@ -1,0 +1,43 @@
+UserRegistration:
+  type: object
+  required:
+    - username
+    - email
+    - password
+  properties:
+    username:
+      type: string
+      example: "johndoe"
+    email:
+      type: string
+      format: email
+      example: "john.doe@example.com"
+    password:
+      type: string
+      format: password
+      description: "Minimum 8 characters"
+      example: "strongPassword123"
+
+UserPublicProfile:
+  type: object
+  properties:
+    id:
+      type: string
+      format: uuid
+      example: "a3b8d4c1-9e6a-4f2b-8b0e-7d1a5c8e3f9g"
+    username:
+      type: string
+      example: "johndoe"
+    email:
+      type: string
+      format: email
+      example: "john.doe@example.com"
+
+UserResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      example: "User registered successfully"
+    user:
+      $ref: '#/UserPublicProfile'

@@ -1,0 +1,30 @@
+openapi: 3.0.0
+info:
+  title: Authentication Service API
+  version: 1.0.0
+  description: API for user authentication, registration, and management.
+
+paths:
+  # Pulls in all paths from the auth.yaml file
+  $ref: './paths/auth.yaml'
+  # Pulls in the single path from the profile.yaml file
+  /api/auth/profile:
+    $ref: './paths/profile.yaml'
+
+components:
+  schemas:
+    UserRegistration:
+      $ref: './schemas/user.yaml#/UserRegistration'
+    UserPublicProfile:
+      $ref: './schemas/user.yaml#/UserPublicProfile'
+    UserResponse:
+      $ref: './schemas/user.yaml#/UserResponse'
+    ErrorResponse:
+      $ref: './schemas/error.yaml#/ErrorResponse'
+  
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT Access Token sent in an httpOnly cookie."

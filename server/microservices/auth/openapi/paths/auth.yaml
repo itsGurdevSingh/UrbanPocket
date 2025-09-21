@@ -1,0 +1,107 @@
+/api/auth/register:
+  post:
+    summary: Register a new user
+    tags: [Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/user.yaml#/UserRegistration'
+    responses:
+      '201':
+        description: User created successfully
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/user.yaml#/UserResponse'
+      '400':
+        description: Bad Request - Invalid input data
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/error.yaml#/ErrorResponse'
+      '409':
+        description: Conflict - User already exists
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/error.yaml#/ErrorResponse'
+
+/api/auth/login:
+  post:
+    summary: Log in a user
+    tags: [Authentication]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [identifier, password]
+            properties:
+              identifier:
+                type: string
+                description: The user's email or username.
+                example: "johndoe"
+              password:
+                type: string
+                format: password
+                example: "strongPassword123"
+    responses:
+      '200':
+        description: Login successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Logged in successfully"
+                user:
+                  $ref: '../schemas/user.yaml#/UserPublicProfile'
+      '401':
+        description: Unauthorized - Invalid credentials
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/error.yaml#/ErrorResponse'
+
+/api/auth/logout:
+  post:
+    summary: Log out a user
+    tags: [Authentication]
+    responses:
+      '200':
+        description: Logout successful
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Logged out successfully"
+
+/api/auth/refresh-token:
+  post:
+    summary: Refresh the access token
+    tags: [Authentication]
+    responses:
+      '200':
+        description: Access token refreshed successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+                  example: "Token refreshed successfully"
+      '401':
+        description: Unauthorized - No or invalid refresh token
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/error.yaml#/ErrorResponse'

@@ -7,7 +7,12 @@ const config = {
     jwtSecret: process.env.JWT_SECRET,
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     nodeEnv: process.env.NODE_ENV || "development",
-    port: process.env.PORT || 3000
+    port: process.env.PORT || 3000,
+
+    // redis setup
+    REDIS_HOST: process.env.REDIS_HOST,
+    REDIS_PORT: process.env.REDIS_PORT,
+    REDIS_PASSWORD: process.env.REDIS_PASSWORD
 };
 
 Object.freeze(config);

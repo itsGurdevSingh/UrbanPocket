@@ -2,6 +2,7 @@ import authRepository from '../repositories/authRepository.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import getConfig from '../config/config_keys.js';
+import redisClient from '../db/redis.js';
 
 
 const registerNewUser = async (userData) => {
@@ -27,7 +28,7 @@ const registerNewUser = async (userData) => {
         password: hashPassword,
     });
 
-     // generate access token
+    // generate access token
     const accessToken = jwt.sign(
         { userId: user._id, username: user.username, email: user.contactInfo.email },
         getConfig('jwtSecret'),
@@ -60,7 +61,7 @@ const authenticateUser = async (credentials) => {
 
     // get user by email or username
     const user = await authRepository.findUserForLogin(identifier);
-       
+
     if (!user) {
         const error = new Error('Invalid credentials');
         error.statusCode = 401; // Unauthorized
@@ -98,10 +99,50 @@ const authenticateUser = async (credentials) => {
         accessToken,
         refreshToken,
     };
-};    
+};
+
+const logoutUser = async (accessToken, refreshToken) => {
+
+    try {
+        // check access token is provided
+        if (accessToken) {
+            // 1. Get the expiration time from the token payloads
+            const accessTokenExp = jwt.decode(accessToken).exp;
+
+            // 2. Calculate the remaining time in seconds
+            const expiresInSeconds = accessTokenExp - Math.floor(Date.now() / 1000);
+
+            // 3. Only set the key if it hasn't already expired
+            if (expiresInSeconds > 0) {
+                // Use 'EX' followed by the number of seconds
+                await redisClient.set(`bl_${accessToken}`, 'true', 'EX', expiresInSeconds);
+            }
+        }
+
+        // check refresh token is provided
+        if (refreshToken) {
+            // 1. Get the expiration time from the token payloads
+            const refreshTokenExp = jwt.decode(refreshToken).exp;
+
+            // 2. Calculate the remaining time in seconds
+            const expiresInSeconds = refreshTokenExp - Math.floor(Date.now() / 1000);
+
+            // 3. Only set the key if it hasn't already expired
+            if (expiresInSeconds > 0) {
+                // Use 'EX' followed by the number of seconds
+                await redisClient.set(`bl_${refreshToken}`, 'true', 'EX', expiresInSeconds);
+            }
+        };
+
+    } catch (error) {
+        console.error('Error during logout:', error);
+        throw new Error('Logout failed');
+    }
+};
 
 
 export default {
     registerNewUser,
-    authenticateUser
+    authenticateUser,
+    logoutUser
 };

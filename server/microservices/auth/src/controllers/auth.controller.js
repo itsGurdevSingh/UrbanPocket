@@ -2,6 +2,7 @@ import getConfig from '../config/config_keys.js';
 import authService from '../services/authService.js';
 
 
+
 const registerUser = async (req, res, next) => {
   try {
     const { username, email, password } = req.body;
@@ -69,13 +70,26 @@ const loginUser = async (req, res, next) => {
   }
 };
 
+const logoutUser = async (req, res) => {
 
 
+// Get tokens from cookies  
+  const accessToken = req.cookies?.accessToken;
+  const refreshToken = req.cookies?.refreshToken;
+
+  await authService.logoutUser(accessToken, refreshToken);
 
 
+// Clear cookies with correct options to match test expectations
+res.cookie('accessToken', '', { httpOnly: true, sameSite: 'strict', maxAge: 0, path: '/' });
+res.cookie('refreshToken', '', { httpOnly: true, sameSite: 'strict', maxAge: 0, path: '/' });
 
+  // Send response
+  res.status(200).json({ message: 'Logged out successfully' });
+};
 
 export {
   registerUser,
-  loginUser
+  loginUser,
+  logoutUser
 };
