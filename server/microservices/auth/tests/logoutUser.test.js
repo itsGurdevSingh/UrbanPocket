@@ -67,11 +67,11 @@ describe('POST /api/auth/logout', () => {
       .set('Cookie', [`accessToken=${accessToken}`, `refreshToken=${refreshToken}`]);
 
     // Action: Attempt to access a protected route with the old token.
-    const profileResponse = await request(app)
-      .get('/api/auth/profile')
+    const protectedResponse = await request(app)
+      .get('/api/auth/protected')
       .set('Cookie', [`accessToken=${accessToken}`]);
 
     // Assert: The request should be unauthorized.
-    expect(profileResponse.statusCode).toBe(401);
+    expect(protectedResponse.statusCode).toBe(401);
   });
 });

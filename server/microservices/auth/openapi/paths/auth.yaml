@@ -100,8 +100,14 @@
                   type: string
                   example: "Token refreshed successfully"
       '401':
-        description: Unauthorized - No or invalid refresh token
+        description: Unauthorized invalid or expired refresh token
         content:
           application/json:
             schema:
               $ref: '../schemas/error.yaml#/ErrorResponse'
+      '400':
+        description: no refresh token
+        content:
+          application/json:
+            schema:
+              $ref: '../schemas/error.yaml#/ValidationErrorResponse'

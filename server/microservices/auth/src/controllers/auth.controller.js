@@ -88,8 +88,37 @@ res.cookie('refreshToken', '', { httpOnly: true, sameSite: 'strict', maxAge: 0, 
   res.status(200).json({ message: 'Logged out successfully' });
 };
 
+const refreshToken = async (req, res, next) => {
+  try {
+    const oldRefreshToken = req.cookies?.refreshToken;
+  
+    console.log('Old Refresh Token:', oldRefreshToken); // Debugging line
+
+    
+    const { accessToken, refreshToken } = await authService.refreshTokens(oldRefreshToken);
+    
+    res.cookie('accessToken', accessToken, {
+      httpOnly: true,
+      secure: getConfig('nodeEnv') === 'production',
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: getConfig('nodeEnv') === 'production',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
+    res.status(200).json({ message: 'Tokens refreshed successfully' });
+  } catch (error) {
+    // Clear cookies if refresh fails
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    next(error);
+  }
+};
+
 export {
   registerUser,
   loginUser,
-  logoutUser
+  logoutUser,
+  refreshToken
 };

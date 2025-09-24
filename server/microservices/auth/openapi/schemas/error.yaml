@@ -4,3 +4,21 @@ ErrorResponse:
     error:
       type: string
       example: "A user with this email already exists"
+
+# validation errors
+ValidationErrorResponse:
+  type: object
+  properties:
+    errors:
+        description: >
+          An array of validation error objects returned when the refresh token is missing or invalid in the request.
+        structure:
+          - msg: The error message describing the validation failure (e.g., "Refresh token is required in cookies").
+          - param: The name of the parameter that failed validation (e.g., "refreshToken").
+          - location: The location of the parameter in the request (e.g., "cookies").
+          - value: The value of the parameter that caused the validation error (may be undefined or empty).
+        example:
+          - msg: "Refresh token is required in cookies"
+            param: "refreshToken"
+            location: "cookies"
+            value: ""

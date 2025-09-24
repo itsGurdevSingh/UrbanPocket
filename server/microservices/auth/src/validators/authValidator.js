@@ -1,5 +1,5 @@
 // src/validators/authValidator.js
-import { body, validationResult } from 'express-validator';
+import { body, cookie, validationResult } from 'express-validator';
 
 export const validateRegistration = [
   // 1. Validation Rules
@@ -30,3 +30,15 @@ export const validateLogin = [
     next();
   }
 ];
+
+// validate refresh token presence in cookies
+export const validateRefreshToken = [
+  cookie('refreshToken').notEmpty().withMessage('Refresh token is required in cookies'),
+    (req, res, next) => {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+      }
+      next();
+    }
+]
