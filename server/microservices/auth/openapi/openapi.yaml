@@ -6,6 +6,7 @@ info:
 
 paths:
   # Pulls in all paths from the auth.yaml file
+  # /api/auth:
   $ref: './paths/auth.yaml'
   # Pulls in the single path from the profile.yaml file
   /api/auth/profile:

@@ -3,6 +3,8 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import getConfig from '../config/config_keys.js';
 import redisClient from '../db/redis.js';
+import { signTokens, blacklistToken, breachDetected } from '../utils/auth.utils.js';
+import { addUserSession, deleteUserSessions, replaceUserSession } from '../repositories/sessionRepository.js';
 
 
 const registerNewUser = async (userData) => {
@@ -28,19 +30,10 @@ const registerNewUser = async (userData) => {
         password: hashPassword,
     });
 
-    // generate access token
-    const accessToken = jwt.sign(
-        { userId: user._id, username: user.username, email: user.contactInfo.email },
-        getConfig('jwtSecret'),
-        { expiresIn: '15m' } // Access token valid for 15 minutes
-    );
+    const { accessToken, refreshToken } = signTokens(user);
 
-    // generate refresh token
-    const refreshToken = jwt.sign(
-        { userId: user._id },
-        getConfig('jwtRefreshSecret'),
-        { expiresIn: '7d' } // Refresh token valid for 7 days
-    );
+    // store session in db
+    await addUserSession(user._id, { refreshToken: refreshToken, accessToken: accessToken });
 
     // return user data and token
     return {
@@ -76,19 +69,11 @@ const authenticateUser = async (credentials) => {
         throw error;
     }
 
-    // generate access token
-    const accessToken = jwt.sign(
-        { userId: user._id, username: user.username, email: user.contactInfo.email },
-        getConfig('jwtSecret'),
-        { expiresIn: '15m' } // Access token valid for 15 minutes
-    );
+    // generate tokens
+    const { accessToken, refreshToken } = signTokens(user);
 
-    // generate refresh token
-    const refreshToken = jwt.sign(
-        { userId: user._id },
-        getConfig('jwtRefreshSecret'),
-        { expiresIn: '7d' } // Refresh token valid for 7 days
-    );
+    // store session in db
+    await addUserSession(user._id, { refreshToken: refreshToken, accessToken: accessToken });
 
     return {
         user: {
@@ -104,35 +89,23 @@ const authenticateUser = async (credentials) => {
 const logoutUser = async (accessToken, refreshToken) => {
 
     try {
-        // check access token is provided
+        // check access token is provided and blacklist it
         if (accessToken) {
-            // 1. Get the expiration time from the token payloads
-            const accessTokenExp = jwt.decode(accessToken).exp;
-
-            // 2. Calculate the remaining time in seconds
-            const expiresInSeconds = accessTokenExp - Math.floor(Date.now() / 1000);
-
-            // 3. Only set the key if it hasn't already expired
-            if (expiresInSeconds > 0) {
-                // Use 'EX' followed by the number of seconds
-                await redisClient.set(`bl_${accessToken}`, 'true', 'EX', expiresInSeconds);
-            }
+            await blacklistToken(accessToken);
         }
 
-        // check refresh token is provided
+        // check refresh token is provided and blacklist it
         if (refreshToken) {
-            // 1. Get the expiration time from the token payloads
-            const refreshTokenExp = jwt.decode(refreshToken).exp;
-
-            // 2. Calculate the remaining time in seconds
-            const expiresInSeconds = refreshTokenExp - Math.floor(Date.now() / 1000);
-
-            // 3. Only set the key if it hasn't already expired
-            if (expiresInSeconds > 0) {
-                // Use 'EX' followed by the number of seconds
-                await redisClient.set(`bl_${refreshToken}`, 'true', 'EX', expiresInSeconds);
-            }
+            await blacklistToken(refreshToken);
         };
+
+        //delete user sessions from db
+        if (refreshToken) {
+            const decoded = jwt.decode(refreshToken);
+            const userId = decoded.userId;
+            await deleteUserSessions(userId, refreshToken);
+        }
+        return;
 
     } catch (error) {
         console.error('Error during logout:', error);
@@ -140,9 +113,57 @@ const logoutUser = async (accessToken, refreshToken) => {
     }
 };
 
+const refreshTokens = async (oldRefreshToken) => {
+    try {
+        // check if token is blacklisted
+        const isBlacklisted = await redisClient.get(`bl_${oldRefreshToken}`);
+        if (isBlacklisted) {
+
+            //handle refresh token breach
+            breachDetected(oldRefreshToken);
+
+            // res client whit unauthorized error
+            const error = new Error('Refresh token is blacklisted. Please log in again.');
+            error.statusCode = 401; // Unauthorized
+            throw error;
+        }
+        // verify old refresh token
+        const { userId } = jwt.verify(oldRefreshToken, getConfig('jwtRefreshSecret'));
+
+        // find user in db
+        const user = await authRepository.findUserById(userId);
+
+        //check if user still exists
+        if (!user) {
+            const error = new Error('User not found. Please log in again.');
+            error.statusCode = 401; // Unauthorized
+            throw error;
+        };
+
+        // sign new tokens
+        const { accessToken, refreshToken } = signTokens(user);
+
+        // replace old session in db with new tokens ---- this function return the old session----
+        const oldSession = await replaceUserSession(user._id, oldRefreshToken, { refreshToken: refreshToken, accessToken: accessToken });
+
+        // blacklist old refresh token and access token (access token for imidiate action)
+        await blacklistToken(oldSession.refreshToken);
+        await blacklistToken(oldSession.accessToken);
+
+        // return new tokens
+        return { accessToken, refreshToken };
+
+    } catch (error) {
+        console.error('Error during token refresh:', error);
+        const err = new Error('Could not refresh tokens. Please log in again.');
+        err.statusCode = 401; // Unauthorized
+        throw err;
+    }
+};
 
 export default {
     registerNewUser,
     authenticateUser,
-    logoutUser
+    logoutUser,
+    refreshTokens
 };

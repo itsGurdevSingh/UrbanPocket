@@ -18,6 +18,11 @@ const createUser = async (userData) => {
     return newUser;
 };
 
+//findUserById
+const findUserById = async (userId) => {
+    return await userModel.findById(userId);
+};
+
 // get user by email
 const getUserByEmail = async (email) => {
     return await userModel.findOne({ 'contactInfo.email': email });
@@ -46,7 +51,8 @@ export const findUserForLogin = async (identifier) => {
 export default {
     isUserExistWithCredientials,
     createUser,
+    findUserById,
     getUserByEmail,
     getUserByUsername,
-    findUserForLogin
+    findUserForLogin,
 };
