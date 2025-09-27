@@ -9,7 +9,7 @@ import { getUserSessions, deleteUserAllSessions } from '../repositories/sessionR
 const signTokens = (user) => {
     // generate access token
     const accessToken = jwt.sign(
-        { userId: user._id, username: user.username, email: user.contactInfo.email },
+        { userId: user._id, username: user.username, email: user.contactInfo.email, role: user.role },
         getConfig('jwtSecret'),
         { expiresIn: '15m' } // Access token valid for 15 minutes
     );

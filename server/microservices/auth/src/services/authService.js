@@ -9,7 +9,7 @@ import { addUserSession, deleteUserSessions, replaceUserSession } from '../repos
 
 const registerNewUser = async (userData) => {
 
-    const { username, email, password } = userData;
+    const { username, email, password, ...optionalFields } = userData;
 
     // is user already exist 
     const userExists = await authRepository.isUserExistWithCredientials(username, email);
@@ -28,6 +28,7 @@ const registerNewUser = async (userData) => {
         username,
         email,
         password: hashPassword,
+        ...optionalFields
     });
 
     const { accessToken, refreshToken } = signTokens(user);
@@ -41,6 +42,7 @@ const registerNewUser = async (userData) => {
             id: user._id,
             username: user.username,
             email: user.contactInfo.email,
+            role: user.role
         },
         accessToken,
         refreshToken
@@ -80,6 +82,7 @@ const authenticateUser = async (credentials) => {
             id: user._id,
             username: user.username,
             email: user.contactInfo.email,
+            role: user.role
         },
         accessToken,
         refreshToken,
@@ -154,16 +157,49 @@ const refreshTokens = async (oldRefreshToken) => {
         return { accessToken, refreshToken };
 
     } catch (error) {
-        console.error('Error during token refresh:', error);
         const err = new Error('Could not refresh tokens. Please log in again.');
         err.statusCode = 401; // Unauthorized
         throw err;
     }
 };
 
+const getUserById = async (userId) => {
+    const user = await authRepository.findUserById(userId);
+    return user;
+};
+
+const addAddress = async(userId , address) =>{
+
+   const newAddress = await authRepository.addAddress(userId , address);
+   return newAddress;
+
+}
+
+const getAddressesByUserId = async(userId) => {
+    const addresses = await authRepository.findAddressesByUserId(userId);
+    return addresses || [];
+}
+
+const deleteAddress = async(userId , addressId) =>{
+
+    const user = await authRepository.deleteAddress(userId,addressId);
+    return user;
+
+ }
+    
+const updateAddress = async(userId , addressId, updatedAddress) =>{
+    const address = await authRepository.updateAddress(userId, addressId, updatedAddress);
+    return address;
+};
+
 export default {
     registerNewUser,
     authenticateUser,
     logoutUser,
-    refreshTokens
+    refreshTokens,
+    getUserById,
+    addAddress,
+    getAddressesByUserId,
+    deleteAddress,
+    updateAddress
 };
