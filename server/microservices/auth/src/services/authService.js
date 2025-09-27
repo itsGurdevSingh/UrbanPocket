@@ -3,7 +3,9 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import getConfig from '../config/config_keys.js';
 import redisClient from '../db/redis.js';
-import { signTokens, blacklistToken, breachDetected } from '../utils/auth.utils.js';
+import logger from '../utils/logger.js';
+import { ApiError } from '../utils/errors.js';
+import { signTokens, blacklistToken, breachDetected, tokenHash } from '../utils/auth.utils.js';
 import { addUserSession, deleteUserSessions, replaceUserSession } from '../repositories/sessionRepository.js';
 
 
@@ -102,36 +104,46 @@ const logoutUser = async (accessToken, refreshToken) => {
             await blacklistToken(refreshToken);
         };
 
-        //delete user sessions from db
+        // delete user sessions from db
         if (refreshToken) {
             const decoded = jwt.decode(refreshToken);
+            if (!decoded || !decoded.userId) {
+                // token malformed or tampered
+                throw new ApiError('Invalid refresh token', { statusCode: 401, code: 'INVALID_TOKEN' });
+            }
             const userId = decoded.userId;
             await deleteUserSessions(userId, refreshToken);
         }
         return;
 
     } catch (error) {
-        console.error('Error during logout:', error);
+        logger.error('Error during logout:', { error });
         throw new Error('Logout failed');
     }
 };
 
 const refreshTokens = async (oldRefreshToken) => {
     try {
-        // check if token is blacklisted
-        const isBlacklisted = await redisClient.get(`bl_${oldRefreshToken}`);
+        // check if token is blacklisted (use hashed key)
+        const key = tokenHash(oldRefreshToken);
+        const isBlacklisted = key ? await redisClient.get(`bl_${key}`) : null;
         if (isBlacklisted) {
 
-            //handle refresh token breach
+            // handle refresh token breach
             breachDetected(oldRefreshToken);
 
-            // res client whit unauthorized error
             const error = new Error('Refresh token is blacklisted. Please log in again.');
             error.statusCode = 401; // Unauthorized
             throw error;
         }
         // verify old refresh token
-        const { userId } = jwt.verify(oldRefreshToken, getConfig('jwtRefreshSecret'));
+        let verified;
+        try {
+            verified = jwt.verify(oldRefreshToken, getConfig('jwtRefreshSecret'));
+        } catch (err) {
+            throw new ApiError('Invalid or expired refresh token', { statusCode: 401, code: 'INVALID_REFRESH_TOKEN' });
+        }
+        const { userId } = verified;
 
         // find user in db
         const user = await authRepository.findUserById(userId);
@@ -149,7 +161,7 @@ const refreshTokens = async (oldRefreshToken) => {
         // replace old session in db with new tokens ---- this function return the old session----
         const oldSession = await replaceUserSession(user._id, oldRefreshToken, { refreshToken: refreshToken, accessToken: accessToken });
 
-        // blacklist old refresh token and access token (access token for imidiate action)
+        // blacklist old refresh token and access token (access token for immediate action)
         await blacklistToken(oldSession.refreshToken);
         await blacklistToken(oldSession.accessToken);
 
@@ -168,26 +180,26 @@ const getUserById = async (userId) => {
     return user;
 };
 
-const addAddress = async(userId , address) =>{
+const addAddress = async (userId, address) => {
 
-   const newAddress = await authRepository.addAddress(userId , address);
-   return newAddress;
+    const newAddress = await authRepository.addAddress(userId, address);
+    return newAddress;
 
 }
 
-const getAddressesByUserId = async(userId) => {
+const getAddressesByUserId = async (userId) => {
     const addresses = await authRepository.findAddressesByUserId(userId);
     return addresses || [];
 }
 
-const deleteAddress = async(userId , addressId) =>{
+const deleteAddress = async (userId, addressId) => {
 
-    const user = await authRepository.deleteAddress(userId,addressId);
+    const user = await authRepository.deleteAddress(userId, addressId);
     return user;
 
- }
-    
-const updateAddress = async(userId , addressId, updatedAddress) =>{
+}
+
+const updateAddress = async (userId, addressId, updatedAddress) => {
     const address = await authRepository.updateAddress(userId, addressId, updatedAddress);
     return address;
 };

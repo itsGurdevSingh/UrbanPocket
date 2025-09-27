@@ -50,8 +50,8 @@ describe('DELETE /api/auth/deleteAddress', () => {
             .send({ addressId });
 
         expect(res.statusCode).toBe(401);
-        expect(res.body).toHaveProperty('status', 'error');
-        expect(res.body).toHaveProperty('error');
+        expect(res.body.status).toBe('error');
+        expect(res.body.message).toBe('Invalid or expired access token');
     });
 
     it('should return 404 for non-existent address', async () => {
@@ -62,8 +62,8 @@ describe('DELETE /api/auth/deleteAddress', () => {
             .send({ addressId: fakeId });
 
         expect(res.statusCode).toBe(404);
-        expect(res.body).toHaveProperty('status', 'error');
-        expect(res.body.error).toMatch(/Address not found/i);
+        expect(res.body.status).toBe('error');
+        expect(res.body.message).toMatch(/Address not found/i);
     });
 
     it('should return 400 for missing addressId', async () => {

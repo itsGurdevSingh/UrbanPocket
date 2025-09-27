@@ -1,11 +1,13 @@
 // src/validators/authValidator.js
 import { body, cookie, validationResult } from 'express-validator';
+import { ApiError } from '../utils/errors.js';
 
 // 1. Create a reusable error handling function
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+    // Use ApiError so the global handler will format consistently
+    return next(new ApiError('Validation failed', { statusCode: 400, code: 'VALIDATION_ERROR', details: errors.array() }));
   }
   next();
 };

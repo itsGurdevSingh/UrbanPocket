@@ -121,7 +121,8 @@ const getUserProfile = async (req, res, next) => {
     const user = await authService.getUserById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      const { ApiError } = await import('../utils/errors.js');
+      throw new ApiError('User not found', { statusCode: 404, code: 'USER_NOT_FOUND' });
     }
     res.status(200).json({
       user: {
@@ -177,7 +178,7 @@ const deleteAddress = async (req, res, next) => {
     });
   } catch (error) {
     next(error);
-  } 
+  }
 };
 
 const updateAddress = async (req, res, next) => {
@@ -193,7 +194,7 @@ const updateAddress = async (req, res, next) => {
   catch (error) {
     next(error);
   }
-};  
+};
 
 
 export {

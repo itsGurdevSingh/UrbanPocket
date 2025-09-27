@@ -87,7 +87,8 @@ describe('POST /api/auth/login', () => {
       });
 
     expect(response.statusCode).toBe(401);
-    expect(response.body.error).toBe('Invalid credentials');
+    expect(response.body.status).toBe('error');
+    expect(response.body.message).toBe('Invalid credentials');
   });
 
   // Test Case 4: Bad Request - Missing Credentials (400 Bad Request)

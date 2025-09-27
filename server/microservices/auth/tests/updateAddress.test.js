@@ -55,8 +55,8 @@ describe('PATCH /api/auth/updateAddress', () => {
 
         // The global error handler returns { status: 'error', error: message }
         expect(res.statusCode).toBe(401);
-        expect(res.body).toHaveProperty('status', 'error');
-        expect(res.body).toHaveProperty('error');
+        expect(res.body.status).toBe('error');
+        expect(res.body.message).toBe('Invalid or expired access token');
     });
 
     it('should return 404 for a non-existent address', async () => {
@@ -68,8 +68,8 @@ describe('PATCH /api/auth/updateAddress', () => {
 
         expect(res.statusCode).toBe(404);
         // Error handler exposes message under 'error'
-        expect(res.body).toHaveProperty('status', 'error');
-        expect(res.body.error).toMatch(/Address not found/i);
+        expect(res.body.status).toBe('error');
+        expect(res.body.message).toMatch(/Address not found/i);
     });
 
     it('should return 400 for invalid address data (validation error)', async () => {
@@ -80,7 +80,6 @@ describe('PATCH /api/auth/updateAddress', () => {
             .send({ addressId, addressData: { street: '', city: 'Newtown', state: 'NY', zipCode: '67890', country: 'USA' } });
 
         expect(res.statusCode).toBe(400);
-        // validator returns { errors: [...] }
         expect(res.body).toHaveProperty('errors');
         expect(Array.isArray(res.body.errors)).toBe(true);
     });

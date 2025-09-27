@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import redisClient from '../db/redis.js';
 import getConfig from '../config/config_keys.js';
 import { getUserSessions, deleteUserAllSessions } from '../repositories/sessionRepository.js';
@@ -23,19 +24,31 @@ const signTokens = (user) => {
     return { accessToken, refreshToken };
 };
 
+// helper to create a stable hash for a token (avoids storing raw tokens in Redis keys)
+const tokenHash = (token) => {
+    if (!token) return null;
+    return crypto.createHash('sha256').update(token).digest('hex');
+};
+
 // util function to blacklist tokens
-const blacklistToken = async(token) =>{
+const blacklistToken = async (token) => {
+    if (!token) return;
 
-    if(!token) return;
+    // decode token safely
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.exp) return; // can't determine expiration
 
-    // get token expiration time
-    const tokenExp = jwt.decode(token).exp;
-    const expiresInSeconds = tokenExp -(Date.now()/1000);
+    const tokenExp = decoded.exp;
+    const expiresInSeconds = Math.floor(tokenExp - (Date.now() / 1000));
 
-    // store the token in redis with expiration time
-    if(expiresInSeconds > 0){
-        await redisClient.set(`bl_${token}`, 'true', 'EX', Math.floor(expiresInSeconds));
+    // store a hash of the token in redis with expiration time
+    if (expiresInSeconds > 0) {
+        const key = tokenHash(token);
+        if (key) {
+            await redisClient.set(`bl_${key}`, 'true', 'EX', Math.floor(expiresInSeconds));
+        }
     }
+
     return;
 };
 
@@ -66,5 +79,6 @@ const breachDetected = async (CompromisedrefreshToken) => {
 export {
     signTokens,
     blacklistToken,
-    breachDetected
+    breachDetected,
+    tokenHash
 };

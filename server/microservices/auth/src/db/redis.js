@@ -1,5 +1,6 @@
-import  Redis  from 'ioredis';
+import Redis from 'ioredis';
 import getConfig from '../config/config_keys.js';
+import logger from '../utils/logger.js';
 
 const redis = new Redis({
     host: getConfig('REDIS_HOST'),
@@ -8,11 +9,11 @@ const redis = new Redis({
 });
 
 redis.on('connect', () => {
-    console.log('Connected to Redis');
+    logger.info('Connected to Redis');
 });
 
 redis.on('error', (err) => {
-    console.error('Redis connection error:', err);
+    logger.error('Redis connection error:', { err });
 });
 
 export default redis;

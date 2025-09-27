@@ -57,7 +57,8 @@ describe('POST /api/auth/refresh-token', () => {
       .send();
 
     expect(res.statusCode).toBe(401);
-    expect(res.body.error).toContain('Could not refresh tokens');
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toContain('Could not refresh tokens');
   });
 
   it('should return 401 if no refresh token is provided', async () => {
@@ -79,6 +80,7 @@ describe('POST /api/auth/refresh-token', () => {
       .send();
 
     expect(res.statusCode).toBe(401);
-    expect(res.body.error).toContain('Could not refresh tokens');
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toContain('Could not refresh tokens');
   });
 });

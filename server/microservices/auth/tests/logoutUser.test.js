@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import Redis from 'ioredis'; // use mocked class
 import app from '../src/app.js';
 import User from '../src/models/userModel.js';
+import { tokenHash } from '../src/utils/auth.utils.js';
 
 const redisClient = new Redis(); // shared mock store instance
 
@@ -53,9 +54,13 @@ describe('POST /api/auth/logout', () => {
     expect(responseCookies.some(c => c.startsWith('accessToken=;') && c.includes('Max-Age=0'))).toBe(true);
     expect(responseCookies.some(c => c.startsWith('refreshToken=;') && c.includes('Max-Age=0'))).toBe(true);
 
+    //implement sha 256 hashing here for token before checking in redis
+    const hashedAccessToken = tokenHash(accessToken);
+    const hashedRefreshToken = tokenHash(refreshToken);
+    
     // Assert: Check that tokens are blacklisted in Redis.
-    const isAccessBlacklisted = await redisClient.get(`bl_${accessToken}`);
-    const isRefreshBlacklisted = await redisClient.get(`bl_${refreshToken}`);
+    const isAccessBlacklisted = await redisClient.get(`bl_${hashedAccessToken}`);
+    const isRefreshBlacklisted = await redisClient.get(`bl_${hashedRefreshToken}`);
     expect(isAccessBlacklisted).toBe('true');
     expect(isRefreshBlacklisted).toBe('true');
   });
