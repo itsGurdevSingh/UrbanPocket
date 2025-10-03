@@ -7,15 +7,35 @@ UserRegistration:
   properties:
     username:
       type: string
+      minLength: 3
+      description: "Unique username, minimum 3 characters"
       example: "johndoe"
     email:
       type: string
       format: email
+      description: "Valid email address"
       example: "john.doe@example.com"
     password:
       type: string
       format: password
-      description: "Minimum 8 characters"
+      minLength: 8
+      description: "Password with minimum 8 characters"
+      example: "strongPassword123"
+
+UserLoginRequest:
+  type: object
+  required:
+    - identifier
+    - password
+  properties:
+    identifier:
+      type: string
+      description: "Username or email address"
+      example: "johndoe"
+    password:
+      type: string
+      format: password
+      description: "User password"
       example: "strongPassword123"
 
 UserPublicProfile:
@@ -23,21 +43,149 @@ UserPublicProfile:
   properties:
     id:
       type: string
-      format: uuid
-      example: "a3b8d4c1-9e6a-4f2b-8b0e-7d1a5c8e3f9g"
+      description: "MongoDB ObjectId"
+      example: "507f1f77bcf86cd799439011"
     username:
       type: string
       example: "johndoe"
+    fullName:
+      type: string
+      nullable: true
+      description: "User's full name from personalInfo.fullName"
+      example: "John Doe"
     email:
       type: string
       format: email
+      description: "User's email from contactInfo.email"
       example: "john.doe@example.com"
+    role:
+      type: string
+      enum: ["user", "seller", "admin"]
+      default: "user"
+      example: "user"
 
 UserResponse:
   type: object
   properties:
     message:
       type: string
-      example: "User registered successfully"
+      examples:
+        registration: "User registered successfully"
+        login: "Logged in successfully"
     user:
-      $ref: '#/UserPublicProfile'
+      $ref: "#/UserPublicProfile"
+
+Address:
+  type: object
+  properties:
+    _id:
+      type: string
+      description: "MongoDB ObjectId for the address"
+      example: "507f1f77bcf86cd799439012"
+    street:
+      type: string
+      description: "Street address"
+      example: "123 Main Street"
+    city:
+      type: string
+      description: "City name"
+      example: "New York"
+    state:
+      type: string
+      description: "State or province"
+      example: "NY"
+    country:
+      type: string
+      description: "Country name"
+      example: "USA"
+    zipCode:
+      type: string
+      description: "Postal/ZIP code"
+      example: "10001"
+
+AddressRequest:
+  type: object
+  required:
+    - street
+    - city
+    - state
+    - country
+    - zipCode
+  properties:
+    street:
+      type: string
+      description: "Street address (required)"
+      example: "123 Main Street"
+    city:
+      type: string
+      description: "City name (required)"
+      example: "New York"
+    state:
+      type: string
+      description: "State or province (required)"
+      example: "NY"
+    country:
+      type: string
+      description: "Country name (required)"
+      example: "USA"
+    zipCode:
+      type: string
+      description: "Postal/ZIP code (required)"
+      example: "10001"
+
+AddressResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      examples:
+        add: "Address added successfully"
+        update: "Address updated successfully"
+    address:
+      $ref: "#/Address"
+
+UpdateAddressRequest:
+  type: object
+  required:
+    - addressId
+    - addressData
+  properties:
+    addressId:
+      type: string
+      description: "MongoDB ObjectId of the address to update"
+      example: "507f1f77bcf86cd799439012"
+    addressData:
+      type: object
+      description: "Address data to update (all fields optional)"
+      properties:
+        street:
+          type: string
+          description: "Street address"
+          example: "456 Oak Avenue"
+        city:
+          type: string
+          description: "City name"
+          example: "Boston"
+        state:
+          type: string
+          description: "State or province"
+          example: "MA"
+        country:
+          type: string
+          description: "Country name"
+          example: "USA"
+        zipCode:
+          type: string
+          description: "Postal/ZIP code"
+          example: "02101"
+
+DeleteAddressRequest:
+  type: object
+  required:
+    - addressId
+  properties:
+    addressId:
+      type: string
+      description: "MongoDB ObjectId of the address to delete"
+      pattern: "^[0-9a-fA-F]{24}$"
+      example: "507f1f77bcf86cd799439012"

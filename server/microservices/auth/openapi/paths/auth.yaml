@@ -1,96 +1,321 @@
 /api/auth/register:
   post:
     summary: Register a new user
+    description: Creates a new user account with username, email, and password. Sets httpOnly cookies for authentication tokens.
     tags: [Authentication]
     requestBody:
       required: true
       content:
         application/json:
           schema:
-            $ref: '../schemas/user.yaml#/UserRegistration'
+            $ref: "../schemas/user.yaml#/UserRegistration"
     responses:
-      '201':
-        description: User created successfully
+      "201":
+        description: User registered successfully
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
         content:
           application/json:
             schema:
-              $ref: '../schemas/user.yaml#/UserResponse'
-      '400':
-        description: Bad Request - Invalid input data
+              $ref: "../schemas/user.yaml#/UserResponse"
+      "400":
+        description: Validation failed - Invalid input data
         content:
           application/json:
             schema:
-              $ref: '../schemas/error.yaml#/ErrorResponse'
-      '409':
-        description: Conflict - User already exists
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "409":
+        description: Conflict - User already exists (duplicate username or email)
         content:
           application/json:
             schema:
-              $ref: '../schemas/error.yaml#/ErrorResponse'
+              $ref: "../schemas/error.yaml#/ErrorResponse"
 
 /api/auth/login:
   post:
     summary: Log in a user
+    description: Authenticates user with username/email and password. Sets httpOnly cookies for authentication tokens.
     tags: [Authentication]
     requestBody:
       required: true
       content:
         application/json:
           schema:
-            type: object
-            required: [identifier, password]
-            properties:
-              identifier:
-                type: string
-                description: The user's email or username.
-                example: "johndoe"
-              password:
-                type: string
-                format: password
-                example: "strongPassword123"
+            $ref: "../schemas/user.yaml#/UserLoginRequest"
     responses:
-      '200':
+      "200":
         description: Login successful
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: "Logged in successfully"
-                user:
-                  $ref: '../schemas/user.yaml#/UserPublicProfile'
-      '401':
+              $ref: "../schemas/user.yaml#/UserResponse"
+      "400":
+        description: Validation failed - Missing required fields
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "401":
         description: Unauthorized - Invalid credentials
         content:
           application/json:
             schema:
-              $ref: '../schemas/error.yaml#/ErrorResponse'
+              $ref: "../schemas/error.yaml#/ErrorResponse"
 
 /api/auth/logout:
   post:
     summary: Log out a user
+    description: Logs out the current user by invalidating tokens and clearing cookies.
     tags: [Authentication]
     responses:
-      '200':
+      "200":
         description: Logout successful
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: "accessToken=; HttpOnly; Path=/; Max-Age=0, refreshToken=; HttpOnly; Path=/; Max-Age=0"
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                message:
-                  type: string
-                  example: "Logged out successfully"
+              $ref: "../schemas/error.yaml#/SuccessResponse"
 
 /api/auth/refresh-token:
   post:
     summary: Refresh the access token
+    description: Refreshes the access token using the refresh token from cookies.
     tags: [Authentication]
     responses:
-      '200':
-        description: Access token refreshed successfully
+      "200":
+        description: Tokens refreshed successfully
+        headers:
+          Set-Cookie:
+            schema:
+              type: string
+              example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/SuccessResponse"
+      "400":
+        description: Validation failed - Missing refresh token in cookies
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "401":
+        description: Unauthorized - Invalid or expired refresh token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/me:
+  get:
+    summary: Get current user's profile
+    description: Retrieves the profile information of the currently authenticated user.
+    tags: [User Profile]
+    security:
+      - cookieAuth: []
+    responses:
+      "200":
+        description: Profile retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  $ref: "../schemas/user.yaml#/UserPublicProfile"
+      "401":
+        description: Unauthorized - Invalid or missing access token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+      "404":
+        description: User not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/getAddresses:
+  get:
+    summary: Get user's addresses
+    description: Retrieves all addresses associated with the authenticated user.
+    tags: [Address Management]
+    security:
+      - cookieAuth: []
+    responses:
+      "200":
+        description: Addresses retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                address:
+                  type: array
+                  items:
+                    $ref: "../schemas/user.yaml#/Address"
+                  example: []
+      "401":
+        description: Unauthorized - Invalid or missing access token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/addAddress:
+  post:
+    summary: Add a new address
+    description: Adds a new address to the authenticated user's profile.
+    tags: [Address Management]
+    security:
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/user.yaml#/AddressRequest"
+    responses:
+      "201":
+        description: Address added successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/user.yaml#/AddressResponse"
+      "400":
+        description: Validation failed - Invalid address data
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "401":
+        description: Unauthorized - Invalid or missing access token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/deleteAddress:
+  delete:
+    summary: Delete an address
+    description: Deletes a specific address from the authenticated user's profile.
+    tags: [Address Management]
+    security:
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/user.yaml#/DeleteAddressRequest"
+    responses:
+      "200":
+        description: Address deleted successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/SuccessResponse"
+      "400":
+        description: Validation failed - Invalid or missing address ID
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "401":
+        description: Unauthorized - Invalid or missing access token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+      "404":
+        description: Address not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/updateAddress:
+  patch:
+    summary: Update an address
+    description: Updates a specific address in the authenticated user's profile.
+    tags: [Address Management]
+    security:
+      - cookieAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/user.yaml#/UpdateAddressRequest"
+    responses:
+      "200":
+        description: Address updated successfully
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/user.yaml#/AddressResponse"
+      "400":
+        description: Validation failed - Invalid address data or ID
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ValidationErrorResponse"
+      "401":
+        description: Unauthorized - Invalid or missing access token
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+      "404":
+        description: Address not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+
+/api/auth/health:
+  get:
+    summary: Health check endpoint
+    description: Returns the health status of the authentication service.
+    tags: [System]
+    responses:
+      "200":
+        description: Service is running
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  example: "OK"
+                message:
+                  type: string
+                  example: "Auth service is running"
+
+/api/auth/protected:
+  get:
+    summary: Test protected route
+    description: A test endpoint to verify authentication is working correctly.
+    tags: [System]
+    security:
+      - cookieAuth: []
+    responses:
+      "200":
+        description: Successfully accessed protected route
         content:
           application/json:
             schema:
@@ -98,16 +323,12 @@
               properties:
                 message:
                   type: string
-                  example: "Token refreshed successfully"
-      '401':
-        description: Unauthorized invalid or expired refresh token
+                  example: "You have accessed a protected route"
+                user:
+                  $ref: "../schemas/user.yaml#/UserPublicProfile"
+      "401":
+        description: Unauthorized - Invalid or missing access token
         content:
           application/json:
             schema:
-              $ref: '../schemas/error.yaml#/ErrorResponse'
-      '400':
-        description: no refresh token
-        content:
-          application/json:
-            schema:
-              $ref: '../schemas/error.yaml#/ValidationErrorResponse'
+              $ref: "../schemas/error.yaml#/ErrorResponse"

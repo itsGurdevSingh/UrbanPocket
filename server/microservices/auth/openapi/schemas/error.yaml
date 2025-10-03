@@ -1,24 +1,116 @@
 ErrorResponse:
   type: object
   properties:
+    status:
+      type: string
+      enum: ["error"]
+      example: "error"
+    code:
+      type: string
+      description: "Machine-readable error code"
+      examples:
+        auth: "INVALID_CREDENTIALS"
+        duplicate: "DB_DUPLICATE"
+        notFound: "USER_NOT_FOUND"
+        token: "TOKEN_EXPIRED"
+    message:
+      type: string
+      description: "Human-readable error message"
+      examples:
+        auth: "Invalid username or password"
+        duplicate: "A user with this email already exists"
+        notFound: "User not found"
+        token: "Token expired"
     error:
       type: string
-      example: "A user with this email already exists"
+      description: "Error message (backward compatibility)"
+      example: "Invalid username or password"
+    details:
+      type: object
+      nullable: true
+      description: "Additional error details"
+      example: null
+    errorId:
+      type: string
+      description: "Unique error identifier for tracing"
+      example: "1k2j3l4-abc123"
+    stack:
+      type: string
+      description: "Error stack trace (only in development)"
+      example: "Error: Invalid credentials\n    at authService.authenticateUser..."
 
-# validation errors
 ValidationErrorResponse:
   type: object
   properties:
+    status:
+      type: string
+      enum: ["error"]
+      example: "error"
+    code:
+      type: string
+      enum: ["VALIDATION_ERROR"]
+      example: "VALIDATION_ERROR"
+    message:
+      type: string
+      example: "Validation failed"
+    error:
+      type: string
+      description: "Error message (backward compatibility)"
+      example: "Validation failed"
+    details:
+      type: array
+      description: "Array of validation error details"
+      items:
+        type: object
+        properties:
+          msg:
+            type: string
+            description: "Validation error message"
+            example: "Username must be at least 3 characters long"
+          param:
+            type: string
+            description: "Parameter that failed validation"
+            example: "username"
+          location:
+            type: string
+            description: "Location of the parameter"
+            enum: ["body", "query", "params", "cookies", "headers"]
+            example: "body"
+          value:
+            description: "Value that caused the validation error"
+            example: "ab"
     errors:
-        description: >
-          An array of validation error objects returned when the refresh token is missing or invalid in the request.
-        structure:
-          - msg: The error message describing the validation failure (e.g., "Refresh token is required in cookies").
-          - param: The name of the parameter that failed validation (e.g., "refreshToken").
-          - location: The location of the parameter in the request (e.g., "cookies").
-          - value: The value of the parameter that caused the validation error (may be undefined or empty).
-        example:
-          - msg: "Refresh token is required in cookies"
-            param: "refreshToken"
-            location: "cookies"
-            value: ""
+      type: array
+      description: "Array of validation errors (backward compatibility)"
+      items:
+        type: object
+        properties:
+          msg:
+            type: string
+            example: "Username must be at least 3 characters long"
+          param:
+            type: string
+            example: "username"
+          location:
+            type: string
+            example: "body"
+          value:
+            example: "ab"
+    errorId:
+      type: string
+      description: "Unique error identifier for tracing"
+      example: "1k2j3l4-abc123"
+    stack:
+      type: string
+      description: "Error stack trace (only in development)"
+      example: "Error: Validation failed..."
+
+SuccessResponse:
+  type: object
+  properties:
+    message:
+      type: string
+      examples:
+        logout: "Logged out successfully"
+        refresh: "Tokens refreshed successfully"
+        delete: "Address deleted successfully"
