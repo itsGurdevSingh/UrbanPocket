@@ -1,0 +1,61 @@
+import mongoose from "mongoose";
+
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 150,
+        text: true, // Enable text search on this field
+    },
+    description: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 2000,
+        text: true,
+    },
+    brand: {
+        type: String,
+        trim: true,
+        maxlength: 50,
+        text: true,
+        index: true,
+    },
+    // The ID of the seller (from your User service)
+    sellerId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+        index: true,
+    },
+    // Link to the Category model
+    categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Category',
+        required: true,
+        index: true,
+    },
+    // An array defining what makes the variants different, e.g., ["Size", "Color"]
+    // This is used by the frontend to generate option selectors.
+    attributes: [{
+        type: String,
+        required: true,
+    }],
+    // General images that apply to all variants of the product
+    baseImages: [{
+        url: { type: String, required: true },
+        altText: { type: String },
+    }],
+    isActive: {
+        type: Boolean,
+        default: true,
+        index: true,
+    },
+}, { timestamps: true });
+
+// Compound index for common filtering operations
+productSchema.index({ categoryId: 1, brand: 1 });
+
+const Product = mongoose.model('Product', productSchema);
+
+export default Product;
