@@ -1,0 +1,80 @@
+Sample:
+  type: object
+  properties:
+    _id:
+      type: string
+      format: uuid
+      description: "Unique identifier"
+      example: "60f1b2b4d5c6f7a8b9c0d1e2"
+    name:
+      type: string
+      description: "Sample name"
+      example: "Sample Name"
+      minLength: 2
+      maxLength: 100
+    description:
+      type: string
+      description: "Sample description"
+      example: "This is a sample description"
+      nullable: true
+    status:
+      type: string
+      enum: ["active", "inactive"]
+      description: "Sample status"
+      example: "active"
+    createdAt:
+      type: string
+      format: date-time
+      description: "Creation timestamp"
+      example: "2023-10-01T12:00:00.000Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: "Last update timestamp"
+      example: "2023-10-01T12:00:00.000Z"
+  required:
+    - name
+    - status
+
+CreateSampleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: "Sample name"
+      example: "New Sample"
+      minLength: 2
+      maxLength: 100
+    description:
+      type: string
+      description: "Sample description"
+      example: "This is a new sample"
+      nullable: true
+    status:
+      type: string
+      enum: ["active", "inactive"]
+      description: "Sample status"
+      example: "active"
+      default: "active"
+  required:
+    - name
+
+UpdateSampleRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      description: "Sample name"
+      example: "Updated Sample"
+      minLength: 2
+      maxLength: 100
+    description:
+      type: string
+      description: "Sample description"
+      example: "This is an updated sample"
+      nullable: true
+    status:
+      type: string
+      enum: ["active", "inactive"]
+      description: "Sample status"
+      example: "active"

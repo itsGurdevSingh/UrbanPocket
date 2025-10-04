@@ -1,0 +1,81 @@
+openapi: 3.0.0
+info:
+  title: Microservice API
+  version: 1.0.0
+  description: Generic microservice API template. Replace with your service-specific information.
+  contact:
+    name: API Support
+    url: https://example.com/support
+    email: support@example.com
+
+servers:
+  - url: http://localhost:3000
+    description: Development server
+  - url: https://api.example.com
+    description: Production server
+
+paths:
+  # Health check endpoint
+  /health:
+    get:
+      summary: Health check
+      description: Returns the health status of the service
+      tags: [Health]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "ok"
+                  timestamp:
+                    type: string
+                    format: date-time
+                    example: "2023-10-01T12:00:00.000Z"
+                  service:
+                    type: string
+                    example: "microservice-boilerplate"
+
+  # TODO: Add your API paths here
+  # Example path structure:
+  # /api/v1/samples:
+  #   $ref: './paths/samples.yaml'
+
+components:
+  schemas:
+    # Import common error schema
+    ErrorResponse:
+      $ref: "./schemas/error.yaml#/ErrorResponse"
+    SuccessResponse:
+      $ref: "./schemas/error.yaml#/SuccessResponse"
+
+    # TODO: Add your schemas here
+    # Example:
+    Sample:
+      $ref: "./schemas/sample.yaml#/Sample"
+    CreateSampleRequest:
+      $ref: "./schemas/sample.yaml#/CreateSampleRequest"
+    UpdateSampleRequest:
+      $ref: "./schemas/sample.yaml#/UpdateSampleRequest"
+
+  # TODO: Add your security schemes here if needed
+  # securitySchemes:
+  #   BearerAuth:
+  #     type: http
+  #     scheme: bearer
+  #     bearerFormat: JWT
+
+# TODO: Apply security globally or to specific paths
+# security:
+#   - BearerAuth: []
+
+tags:
+  - name: Health
+    description: Health check operations
+  # TODO: Add your tags here
+  # - name: Samples
+  #   description: Sample operations
