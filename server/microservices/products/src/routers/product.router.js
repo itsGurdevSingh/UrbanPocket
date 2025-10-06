@@ -1,9 +1,9 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
-import authenticateRole from '../middlewares/authenticateUser.js';
+import authenticateRole, { authenticate } from '../middlewares/authenticateUser.js';
 import { createProductValidation } from '../validators/product.validator.js';
 import { uploadProductImages } from '../middlewares/upload.js';
-import { parseJsonFields} from '../middlewares/reqLog.js';
+import { parseJsonFields } from '../middlewares/reqLog.js';
 
 const router = express.Router();
 
@@ -18,7 +18,15 @@ router.post(
     productController.createProduct
 );
 
-// router.get('/', productController.getAllProducts);
+
+// general routes for all roles 
+router.get(
+    '/getAll',
+    authenticate, // any authenticated user regardless of role
+    productController.getAllProducts
+);
+
+
 // router.get('/:id', productController.getProductById);
 // router.put('/:id', authenticateSeller, productController.updateProduct);
 // router.delete('/:id', authenticateSeller, productController.deleteProduct);

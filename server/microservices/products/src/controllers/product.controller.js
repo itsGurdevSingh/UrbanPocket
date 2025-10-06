@@ -24,6 +24,22 @@ class productController {
             return next(new ApiError('Failed to create product', { statusCode: 500, code: 'CREATE_PRODUCT_ERROR', details: error.message }));
         }
     }
+
+    async getAllProducts(req, res, next) {
+        try {
+            const products = await productService.getAllProducts();
+            res.status(200).json({
+                status: 'success',
+                products: products || []
+            });
+        } catch (error) {
+            // logger.error('Error fetching products:', error); //debug
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to fetch products', { statusCode: 500, code: 'FETCH_PRODUCTS_ERROR', details: error.message }));
+        }   
+    }
 }
 
 export default new productController();

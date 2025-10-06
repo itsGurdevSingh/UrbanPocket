@@ -132,6 +132,11 @@ export const updateProductValidation = [
     handleValidationErrors,
 ];
 
+export const getSellersProduct = [
+    param('sellerId').isMongoId().withMessage('Invalid seller ID format'),
+    handleValidationErrors,
+]
+
 export const getByIdValidation = [
     param('id').isMongoId().withMessage('Invalid ID format'),
     handleValidationErrors,

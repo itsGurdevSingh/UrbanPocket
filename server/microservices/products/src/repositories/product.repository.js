@@ -9,7 +9,7 @@ class productRepository {
     async findById(id) {
         const item = await product.findById(id);
         if (!item) {
-            throw new ApiError('Item not found', { statusCode: 404, code: 'NOT_FOUND' });
+            throw new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' });
         }
         return item;
     }
@@ -21,7 +21,7 @@ class productRepository {
     async updateById(id, data) {
         const item = await product.findByIdAndUpdate(id, data, { new: true, runValidators: true });
         if (!item) {
-            throw new ApiError('Item not found', { statusCode: 404, code: 'NOT_FOUND' });
+            throw new ApiError('product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' });
         }
         return item;
     }
@@ -29,7 +29,7 @@ class productRepository {
     async deleteById(id) {
         const item = await product.findByIdAndDelete(id);
         if (!item) {
-            throw new ApiError('Item not found', { statusCode: 404, code: 'NOT_FOUND' });
+            throw new ApiError('product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' });
         }
         return item;
     }

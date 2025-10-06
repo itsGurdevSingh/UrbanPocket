@@ -40,6 +40,21 @@ class productService {
             throw new ApiError('Failed to persist product', { statusCode: 500, code: 'PRODUCT_PERSIST_FAILED', details: error.message });
         }
     }
+
+    /**
+     * Fetch all products (basic details)
+     * @returns {Promise<Array>}
+     */
+     
+    async getAllProducts() {
+        try {
+            return productRepository.findAll();
+        } catch (error) {
+            // logger.error('Error in service layer while fetching products:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch products', { statusCode: 500, code: 'FETCH_PRODUCTS_FAILED', details: error.message });
+        }
+    }
 }
 
 export default new productService();
