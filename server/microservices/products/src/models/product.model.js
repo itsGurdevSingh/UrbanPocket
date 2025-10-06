@@ -6,6 +6,8 @@ const productSchema = new mongoose.Schema({
     required: true,
     trim: true,
     maxlength: 150,
+    unique: true,// Ensure product names are unique across the collection
+    index: true,
     text: true, // Enable text search on this field
   },
   description: {

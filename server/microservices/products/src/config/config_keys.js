@@ -15,6 +15,11 @@ const config = {
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
 
+    // imagekit.io keys
+    IMAGEKIT_PUBLIC_KEY: process.env.IMAGEKIT_PUBLIC_KEY,
+    IMAGEKIT_PRIVATE_KEY: process.env.IMAGEKIT_PRIVATE_KEY,
+    IMAGEKIT_URL_ENDPOINT: process.env.IMAGEKIT_URL_ENDPOINT,
+
     // microservice URLs
     authServiceUrl: process.env.AUTH_SERVICE_URL || "http://localhost:4000",
 };
@@ -28,6 +33,7 @@ Object.freeze(config);
  * @throws {ApiError} If key is not found
  */
 const getConfig = (key) => {
+    
     if (!(key in config)) {
         throw new ApiError(
             `Configuration key '${key}' not found`,

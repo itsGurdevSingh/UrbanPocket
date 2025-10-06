@@ -2,40 +2,6 @@ import { body, param, validationResult } from 'express-validator';
 import { ApiError } from '../utils/errors.js';
 
 /**
- * Sample validator template
- * Replace 'Sample' with your actual validator name
- */
-
-// Validation rules for creating a sample
-export const createSampleValidation = [
-    // TODO: Add your validation rules here
-    // Example:
-    // body('name')
-    //     .trim()
-    //     .isLength({ min: 2, max: 50 })
-    //     .withMessage('Name must be between 2 and 50 characters'),
-    // body('email')
-    //     .isEmail()
-    //     .withMessage('Please provide a valid email address')
-    //     .normalizeEmail(),
-];
-
-// Validation rules for updating a sample
-export const updateSampleValidation = [
-    param('id')
-        .isMongoId()
-        .withMessage('Invalid ID format'),
-    // TODO: Add your validation rules here (similar to create but make fields optional)
-];
-
-// Validation rules for getting by ID
-export const getByIdValidation = [
-    param('id')
-        .isMongoId()
-        .withMessage('Invalid ID format'),
-];
-
-/**
  * Middleware to handle validation results
  */
 export const handleValidationErrors = (req, res, next) => {
@@ -55,3 +21,118 @@ export const handleValidationErrors = (req, res, next) => {
     }
     next();
 };
+
+/**
+ * Product validators based on product model definition
+ * Required fields (logical/business): name, description, sellerId, categoryId, attributes[]
+ * Images (baseImages) will be derived from uploaded files in service layer; either files or baseImages must exist.
+ * Optional fields: brand, baseImages[].altText, isActive
+ */
+
+// Helper to ensure attributes array has at least one non-empty string
+const attributesValidation = body('attributes')
+    .isArray({ min: 1 }).withMessage('attributes must be a non-empty array of strings')
+    .bail()
+    .custom((arr) => arr.every(v => typeof v === 'string' && v.trim().length > 0))
+    .withMessage('Each attribute must be a non-empty string');
+
+// Helper for baseImages
+// Base images validation (used for update or if client supplies explicit URLs) - optional in create
+export const baseImagesValidation = body('baseImages')
+    .optional()
+    .isArray({ min: 1 }).withMessage('baseImages must be a non-empty array')
+    .bail()
+    .custom((arr) => arr.every(img => img && typeof img === 'object' && typeof img.url === 'string' && img.url.trim().length > 0))
+    .withMessage('Each base image must have a non-empty url string');
+
+export const createProductValidation = [
+    body('name')
+        .exists({ checkFalsy: true }).withMessage('name is required')
+        .isString().withMessage('name must be a string')
+        .trim()
+        .isLength({ min: 2, max: 150 }).withMessage('name must be between 2 and 150 characters'),
+    body('description')
+        .exists({ checkFalsy: true }).withMessage('description is required')
+        .isString().withMessage('description must be a string')
+        .trim()
+        .isLength({ min: 5, max: 2000 }).withMessage('description must be between 5 and 2000 characters'),
+    body('brand')
+        .optional({ nullable: true })
+        .isString().withMessage('brand must be a string')
+        .trim()
+        .isLength({ max: 50 }).withMessage('brand must be at most 50 characters'),
+    body('sellerId')
+        .exists({ checkFalsy: true }).withMessage('sellerId is required')
+        .isMongoId().withMessage('sellerId must be a valid Mongo ID'),
+    body('categoryId')
+        .exists({ checkFalsy: true }).withMessage('categoryId is required')
+        .isMongoId().withMessage('categoryId must be a valid Mongo ID'),
+    attributesValidation,
+    baseImagesValidation, // optional at create time now
+    body('isActive')
+        .optional()
+        .isBoolean().withMessage('isActive must be boolean')
+        .toBoolean(),
+
+    // validation errors are handled here
+    handleValidationErrors,
+];
+
+export const updateProductValidation = [
+    param('id')
+        .isMongoId().withMessage('Invalid product id'),
+    body('name')
+        .optional()
+        .isString().withMessage('name must be a string')
+        .trim()
+        .isLength({ min: 2, max: 150 }).withMessage('name must be between 2 and 150 characters'),
+    body('description')
+        .optional()
+        .isString().withMessage('description must be a string')
+        .trim()
+        .isLength({ min: 5, max: 2000 }).withMessage('description must be between 5 and 2000 characters'),
+    body('brand')
+        .optional({ nullable: true })
+        .isString().withMessage('brand must be a string')
+        .trim()
+        .isLength({ max: 50 }).withMessage('brand must be at most 50 characters'),
+    body('sellerId')
+        .optional()
+        .isMongoId().withMessage('sellerId must be a valid Mongo ID'),
+    body('categoryId')
+        .optional()
+        .isMongoId().withMessage('categoryId must be a valid Mongo ID'),
+    body('attributes')
+        .optional()
+        .isArray({ min: 1 }).withMessage('attributes must be a non-empty array of strings')
+        .bail()
+        .custom((arr) => arr.every(v => typeof v === 'string' && v.trim().length > 0))
+        .withMessage('Each attribute must be a non-empty string'),
+    body('baseImages')
+        .optional()
+        .isArray({ min: 1 }).withMessage('baseImages must be a non-empty array')
+        .bail()
+        .custom((arr) => arr.every(img => img && typeof img === 'object' && typeof img.url === 'string' && img.url.trim().length > 0))
+        .withMessage('Each base image must have a non-empty url string'),
+    body('baseImages.*.url')
+        .optional()
+        .isString().withMessage('baseImages.url must be a string')
+        .trim()
+        .notEmpty().withMessage('baseImages.url cannot be empty'),
+    body('baseImages.*.altText')
+        .optional({ nullable: true })
+        .isString().withMessage('baseImages.altText must be a string')
+        .trim()
+        .isLength({ max: 150 }).withMessage('baseImages.altText must be at most 150 characters'),
+    body('isActive')
+        .optional()
+        .isBoolean().withMessage('isActive must be boolean')
+        .toBoolean(),
+
+    handleValidationErrors,
+];
+
+export const getByIdValidation = [
+    param('id').isMongoId().withMessage('Invalid ID format'),
+    handleValidationErrors,
+];

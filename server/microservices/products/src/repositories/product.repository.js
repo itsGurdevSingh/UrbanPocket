@@ -38,6 +38,10 @@ class productRepository {
     async findByCustomField(value) {
         return await product.find({ customField: value });
     }
+
+    async findByName(name) {
+        return await product.findOne({ name: name });
+    } 
 }
 
 export default new productRepository();
