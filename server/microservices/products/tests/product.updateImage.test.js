@@ -77,13 +77,13 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
         expect(res.body.code).toBe('VALIDATION_ERROR');
     });
 
-    test('not found: product does not exist (controller returns IMAGE_NOT_FOUND)', async () => {
+    test('not found: product does not exist', async () => {
         const fakeId = new mongoose.Types.ObjectId();
         const res = await request(app)
             .put(`/api/product/${fakeId}/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(404);
-        expect(['PRODUCT_NOT_FOUND', 'IMAGE_NOT_FOUND']).toContain(res.body.code);
+        expect(res.body.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     test('not found: image fileId not in product', async () => {
