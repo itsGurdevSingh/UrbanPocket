@@ -209,6 +209,79 @@ OpenAPI 3.0 specification is included:
 | `LOG_LEVEL`          | Logging level             | `info`                                   |
 | `CLIENT_URL`         | Client URL for CORS       | `http://localhost:3000`                  |
 
+## Product API – Filtering & Pagination (GET /api/product/getAll)
+
+Enhanced endpoint supporting rich querying, pagination, sorting, selective fields and text search.
+
+### Query Parameters
+
+| Param                       | Type                 | Default      | Description                                                                                         |
+| --------------------------- | -------------------- | ------------ | --------------------------------------------------------------------------------------------------- |
+| `page`                      | number               | 1            | 1-based page index                                                                                  |
+| `limit`                     | number               | 20           | Page size (1–100)                                                                                   |
+| `categoryId`                | ObjectId             | –            | Filter by category                                                                                  |
+| `sellerId`                  | ObjectId             | –            | Filter by seller                                                                                    |
+| `brand`                     | string               | –            | Exact brand match (indexed)                                                                         |
+| `isActive`                  | boolean              | true/false   | Filter by active state                                                                              |
+| `ids`                       | comma list(ObjectId) | –            | Return only these product IDs                                                                       |
+| `q`                         | string               | –            | Full-text search (name, description, brand)                                                         |
+| `sort`                      | string               | `-createdAt` | Comma list of fields (prefix `-` for desc). Allowed: createdAt, updatedAt, name, brand              |
+| `fields`                    | string               | –            | Comma list of fields to include (name, brand, sellerId, categoryId, isActive, createdAt, updatedAt) |
+| `createdFrom` / `createdTo` | ISO date             | –            | Created date range                                                                                  |
+| `updatedFrom` / `updatedTo` | ISO date             | –            | Updated date range                                                                                  |
+
+### Text Search Notes
+
+Providing `q` triggers a Mongo `$text` query. If no explicit `sort` is provided, results are sorted by text score then newest (`createdAt` desc). If `sort` is specified, it overrides the score ordering.
+
+### Sample Requests
+
+```http
+GET /api/product/getAll?limit=10&page=2&brand=EvenBrand
+GET /api/product/getAll?ids=64fa0e...,64fa1a...&fields=name,brand
+GET /api/product/getAll?q=organic fertilizer&sort=-updatedAt
+GET /api/product/getAll?isActive=false&createdFrom=2025-01-01&createdTo=2025-02-01
+```
+
+### Response Shape
+
+```json
+{
+  "status": "success",
+  "products": [{ "_id": "...", "name": "...", "brand": "..." }],
+  "meta": {
+    "page": 1,
+    "limit": 20,
+    "total": 137,
+    "totalPages": 7,
+    "hasNextPage": true,
+    "hasPrevPage": false
+  },
+  "count": 20 // deprecated alias (will be removed later)
+}
+```
+
+### Validation Rules
+
+- Invalid ObjectIds -> 400 `VALIDATION_ERROR`
+- `sort` only allows approved fields (with optional `-` prefix)
+- `fields` must be from the whitelist (others rejected)
+- Date range validation enforces `from <= to`
+- `ids` must be a non-empty comma list of valid ObjectIds
+
+### Performance Considerations
+
+- Indexes used: `name`/`description`/`brand` (text), `brand`, `sellerId`, `categoryId`, `isActive`, compound `{ categoryId, brand }`.
+- For large datasets consider adding: `{ isActive: 1, createdAt: -1 }` for frequent active/newest queries.
+- Future enhancement: cursor-based pagination when deep offset pages become expensive.
+
+### Roadmap Enhancements (Optional)
+
+- Add `cursor` parameter for stable pagination.
+- Add caching layer (Redis) for common filter combos.
+- Expose `includeVariants=true` to aggregate variant summaries.
+- Offer fuzzy search fallback when `$text` returns no hits.
+
 ## Contributing
 
 1. Update the service-specific files

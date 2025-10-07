@@ -71,6 +71,29 @@ class UploadService {
             throw err; // Propagate original error so caller can classify
         }
     }
+
+    /**
+     * Delete images by fileIds (best-effort, logs failures)
+     * @param {Array<string>} fileIds
+     * @returns {Promise<void>}
+     * Note: This does not throw if some/all deletions fail, just logs.
+     */
+
+    async deleteImages(fileIds = []) {
+        if (!fileIds || fileIds.length === 0) return;
+        const tasks = fileIds.map(id => deleteFromImageKit(id)
+            .then(() => ({ status: 'fulfilled', fileId: id }))
+            .catch(error => ({ status: 'rejected', fileId: id, error }))
+        );  
+        const results = await Promise.all(tasks);
+        const failures = results.filter(r => r.status === 'rejected');
+        if (failures.length > 0) {
+            logger.error('UploadService: some image deletions failed', {
+                failureCount: failures.length,
+                failures: failures.map(f => ({ fileId: f.fileId, error: f.error.message }))
+            });
+        }
+    }
 }
 
 export default new UploadService();

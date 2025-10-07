@@ -1,16 +1,9 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
-
-// Mock MUST be declared before importing app/router
-jest.mock('../src/middlewares/authenticateUser.js', () => ({
-    __esModule: true,
-    authenticate: (req, res, next) => { req.user = { id: 'u1', role: 'user' }; next(); },
-    default: () => (req, res, next) => { req.user = { id: 'u1', role: 'user' }; next(); }
-}));
-
 import app from '../src/app.js';
 import Product from '../src/models/product.model.js';
-import productRepository from '../src/repositories/product.repository.js';
+// Adjusted: mock the service layer instead of repository internal method for error case
+import productService from '../src/services/product.service.js';
 
 describe('GET /api/product/getAll', () => {
     afterEach(async () => {
@@ -36,10 +29,11 @@ describe('GET /api/product/getAll', () => {
         expect(names).toEqual(['Prod A', 'Prod B']);
     });
 
-    it('handles repository/service errors gracefully', async () => {
-        jest.spyOn(productRepository, 'findAll').mockRejectedValue(new Error('Simulated DB failure'));
+    it('handles service errors gracefully', async () => {
+        jest.spyOn(productService, 'getAllProducts').mockRejectedValue(new Error('Simulated DB failure'));
         const res = await request(app).get('/api/product/getAll').expect(500);
         expect(res.body).toHaveProperty('status', 'error');
+        // Controller-level code now may produce FETCH_PRODUCTS_ERROR if generic error is thrown
         expect(['FETCH_PRODUCTS_FAILED', 'FETCH_PRODUCTS_ERROR']).toContain(res.body.code);
     });
 });

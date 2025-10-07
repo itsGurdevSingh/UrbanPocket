@@ -4,7 +4,8 @@ module.exports = {
     setupFilesAfterEnv: [
         './tests/setups/setup.js',
         './tests/setups/redis-setup.js',
-        './tests/setups/imagekit-setup.js'
+        './tests/setups/imagekit-setup.js',
+        './tests/setups/auth-setup.js'
     ],
     testEnvironment: 'node',
 };

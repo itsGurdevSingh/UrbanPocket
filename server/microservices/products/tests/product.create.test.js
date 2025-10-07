@@ -4,16 +4,6 @@ import mongoose from 'mongoose';
 import Product from '../src/models/product.model.js';
 import productRepository from '../src/repositories/product.repository.js';
 
-// Mock authenticateUser to bypass external auth dependency
-jest.mock('../src/middlewares/authenticateUser.js', () => ({
-    __esModule: true,
-    authenticate: () => (req, res, next) => { req.user = { id: 'test-user', role: 'user' }; next(); },
-    default: jest.fn((roles = []) => (req, res, next) => {
-        req.user = { id: 'test-user', role: roles[0] || 'seller' };
-        next();
-    })
-}));
-
 const createPayload = (overrides = {}) => ({
     name: 'Test Product',
     description: 'A great product',
@@ -35,6 +25,10 @@ const attachImages = (req, count = 2, failIndex = -1) => {
 };
 
 describe('POST /api/product/create', () => {
+    beforeEach(() => {
+        // Ensure role appropriate for creation (seller)
+        if (global.setTestAuthRole) global.setTestAuthRole('seller');
+    });
     afterEach(async () => {
         await Product.deleteMany({});
     });

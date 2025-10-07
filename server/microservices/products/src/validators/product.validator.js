@@ -1,4 +1,4 @@
-import { body, param, validationResult } from 'express-validator';
+import { body, param, query, validationResult } from 'express-validator';
 import { ApiError } from '../utils/errors.js';
 
 /**
@@ -132,12 +132,64 @@ export const updateProductValidation = [
     handleValidationErrors,
 ];
 
-export const getSellersProduct = [
+export const getSellersProductValidation = [
     param('sellerId').isMongoId().withMessage('Invalid seller ID format'),
     handleValidationErrors,
 ]
 
 export const getByIdValidation = [
     param('id').isMongoId().withMessage('Invalid ID format'),
+    handleValidationErrors,
+];
+
+export const deleteProductValidation = [
+    param('id').isMongoId().withMessage('Invalid product ID format'),
+    handleValidationErrors,
+];
+
+// Validation for GET /getAll with pagination & filtering
+export const getAllProductsValidation = [
+    query('page').optional().isInt({ min: 1 }).withMessage('page must be an integer >= 1').toInt(),
+    query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100').toInt(),
+    query('categoryId').optional().isMongoId().withMessage('categoryId must be a valid Mongo ID'),
+    query('sellerId').optional().isMongoId().withMessage('sellerId must be a valid Mongo ID'),
+    query('brand').optional().isString().trim().isLength({ min: 1, max: 50 }).withMessage('brand must be 1-50 chars'),
+    query('isActive').optional().isBoolean().withMessage('isActive must be boolean').toBoolean(),
+    query('ids').optional().custom(value => {
+        const parts = value.split(',').map(v => v.trim()).filter(Boolean);
+        if (!parts.length) throw new Error('ids cannot be empty');
+        const mongoIdRegex = /^[a-fA-F0-9]{24}$/;
+        if (!parts.every(p => mongoIdRegex.test(p))) throw new Error('ids must be valid Mongo IDs');
+        return true;
+    }),
+    query('q').optional().isString().trim().isLength({ min: 1, max: 100 }).withMessage('q must be 1-100 chars'),
+    query('sort').optional().custom(val => {
+        const allowed = new Set(['createdAt', 'updatedAt', 'name', 'brand', '-createdAt', '-updatedAt', '-name', '-brand']);
+        const parts = val.split(',');
+        if (!parts.every(p => allowed.has(p))) throw new Error('Invalid sort field');
+        return true;
+    }),
+    query('fields').optional().custom(val => {
+        const allowed = new Set(['name', 'brand', 'sellerId', 'categoryId', 'isActive', 'createdAt', 'updatedAt']);
+        const parts = val.split(',');
+        if (!parts.every(p => allowed.has(p))) throw new Error('Invalid fields selection');
+        return true;
+    }),
+    // date ranges
+    query('createdFrom').optional().isISO8601().toDate(),
+    query('createdTo').optional().isISO8601().toDate(),
+    query('updatedFrom').optional().isISO8601().toDate(),
+    query('updatedTo').optional().isISO8601().toDate(),
+    // cross-field validation
+    (req, _res, next) => {
+        const { createdFrom, createdTo, updatedFrom, updatedTo } = req.query;
+        if (createdFrom && createdTo && createdFrom > createdTo) {
+            return next(new ApiError('createdFrom must be <= createdTo', { statusCode: 400, code: 'VALIDATION_ERROR', details: [{ field: 'createdFrom', message: 'createdFrom must be <= createdTo' }] }));
+        }
+        if (updatedFrom && updatedTo && updatedFrom > updatedTo) {
+            return next(new ApiError('updatedFrom must be <= updatedTo', { statusCode: 400, code: 'VALIDATION_ERROR', details: [{ field: 'updatedFrom', message: 'updatedFrom must be <= updatedTo' }] }));
+        }
+        next();
+    },
     handleValidationErrors,
 ];

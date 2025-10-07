@@ -2,6 +2,9 @@ import product from '../models/product.model.js';
 import { ApiError } from '../utils/errors.js';
 
 class productRepository {
+    constructor() {
+        this.model = product;
+    }
     async findAll() {
         return await product.find({});
     }
@@ -41,7 +44,7 @@ class productRepository {
 
     async findByName(name) {
         return await product.findOne({ name: name });
-    } 
+    }
 }
 
 export default new productRepository();

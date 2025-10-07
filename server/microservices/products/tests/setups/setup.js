@@ -17,7 +17,7 @@ afterAll(async () => {
     await mongoServer.stop();
 });
 
-// Runs before each test
+// Clear all collections before each test to ensure isolation.
 beforeEach(async () => {
     const collections = mongoose.connection.collections;
     for (const key in collections) {
