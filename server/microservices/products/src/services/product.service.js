@@ -173,13 +173,21 @@ class productService {
      * @throws {ApiError} on failure
      * Note: associated images are also deleted in this implementation
      */
-    async deleteProduct(productId) {
+    async deleteProduct(productId, currentUser) {
         try {
             // 1. Fetch product to get associated images
             const product = await productRepository.findById(productId);
             if (!product) {
                 return false; // not found
             }
+            // Ownership / authorization check: only seller who owns it OR admin can delete.
+            if (currentUser && currentUser.role === 'seller') {
+                if (product.sellerId.toString() !== currentUser.id) {
+                    throw new ApiError('Unauthorized to delete this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_DELETE' });
+                }
+            }
+
+            // Prepare images for deletion
             const imagesToDelete = product.baseImages || [];
             const imageFileIds = imagesToDelete.map(img => img.fileId);
             // 2. Delete product from DB

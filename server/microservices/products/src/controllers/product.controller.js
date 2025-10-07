@@ -65,7 +65,7 @@ class productController {
     async deleteProduct(req, res, next) {
         try {
             const productId = req.params.id;
-            const deleted = await productService.deleteProduct(productId);
+            const deleted = await productService.deleteProduct(productId, req.user);
 
             if (!deleted) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
