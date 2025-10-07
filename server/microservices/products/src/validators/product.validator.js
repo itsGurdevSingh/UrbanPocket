@@ -132,6 +132,22 @@ export const updateProductValidation = [
     handleValidationErrors,
 ];
 
+export const updateProductImageValidation = [
+    param('id')
+        .isMongoId().withMessage('Invalid product id'),
+    param('fileId')
+        .isString().withMessage('Invalid fileId'),
+    // single image file must be present in req.file (upload.single)
+    (req, _res, next) => {
+        if (!req.file) {
+            return next(new ApiError('An image file must be uploaded', { statusCode: 400, code: 'VALIDATION_ERROR', details: [{ field: 'image', message: 'No image file uploaded' }] }));
+        }
+        next();
+    },
+    handleValidationErrors,
+];
+
+
 export const getSellersProductValidation = [
     param('sellerId').isMongoId().withMessage('Invalid seller ID format'),
     handleValidationErrors,

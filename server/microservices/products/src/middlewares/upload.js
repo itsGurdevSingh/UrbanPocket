@@ -30,5 +30,10 @@ const upload = multer({
 // Expect field name 'images' (frontend should send images[])
 export const uploadProductImages = upload.array('images', 10);
 
+// Expect field name 'images' (frontend should send images:single file)
+export const uploadSingleProductImage = upload.single('image');
+
+
+
 
 // Upload to ImageKit moved to dedicated upload.service.js invoked from product.service

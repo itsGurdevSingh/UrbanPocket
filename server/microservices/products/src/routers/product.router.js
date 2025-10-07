@@ -1,8 +1,8 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
 import authenticateRole, { authenticate } from '../middlewares/authenticateUser.js';
-import { createProductValidation, deleteProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation } from '../validators/product.validator.js';
-import { uploadProductImages } from '../middlewares/upload.js';
+import { createProductValidation, deleteProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation, updateProductImageValidation } from '../validators/product.validator.js';
+import { uploadProductImages, uploadSingleProductImage } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
 
 const router = express.Router();
@@ -20,6 +20,7 @@ router.post(
     productController.createProduct
 );
 
+// update full product - only seller or admin can update
 router.put(
     '/:id',
     uploadProductImages, // multer memory storage
@@ -28,6 +29,17 @@ router.put(
     updateProductValidation,
     productController.updateProduct
 );
+
+// update single image for product - only seller or admin can update
+// /prductid/fileID 
+router.put(
+    '/:id/:fileId/',
+    uploadSingleProductImage, // multer memory storage
+    updateProductImageValidation,
+    authenticateRole(['seller', 'admin']),
+    productController.updateProductImage
+);
+
 
 router.delete(
     '/:id',

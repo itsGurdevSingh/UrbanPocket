@@ -45,6 +45,7 @@ const productSchema = new mongoose.Schema({
   }],
   // General images that apply to all variants of the product
   baseImages: [{
+    fileId: { type: String, index: true }, // external image provider identifier
     url: { type: String, required: true },
     altText: { type: String },
   }],

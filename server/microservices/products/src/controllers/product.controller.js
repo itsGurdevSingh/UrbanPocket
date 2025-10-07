@@ -85,6 +85,29 @@ class productController {
         }
     }
 
+    async updateProductImage(req, res, next) {
+        try {
+            const productId = req.params.id;
+            const fileId = req.params.fileId;
+            const updatedImage = await productService.updateProductImage(productId,fileId, req.file, req.user);
+            if (!updatedImage) {
+                return next(new ApiError('image for product not found', { statusCode: 404, code: 'IMAGE_NOT_FOUND' }));
+            }
+            res.status(200).json({
+                status: 'success',
+                message: 'Product image updated successfully',
+                product: updatedImage
+            });
+        }
+        catch (error) {
+            logger.error('Error updating product image:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to update product image', { statusCode: 500, code: 'UPDATE_PRODUCT_IMAGE_ERROR', details: error.message }));
+        }
+    }
+
     async deleteProduct(req, res, next) {
         try {
             const productId = req.params.id;

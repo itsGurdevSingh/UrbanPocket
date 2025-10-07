@@ -226,6 +226,62 @@ class productService {
     }
 
     /**
+     * Update a specific product image by fileId
+     * @param {string} productId
+     * @param {string} fileId - ID of the image file to update
+     * @param {Multer.File} file - new image file (memory storage)
+     * @param {object} currentUser - user performing the update (for authorization)
+     * @returns {Promise<object|null>} - updated product or null if not found
+     */
+    async updateProductImage(productId, fileId, file, currentUser) {
+        try {
+            // 1. Fetch existing product
+            const existing = await productRepository.findById(productId);
+            if (!existing) {
+                return null; // not found
+            }
+            // Ownership / authorization check: only seller who owns it OR admin can update.
+            if (currentUser && currentUser.role === 'seller') {
+                if (existing.sellerId.toString() !== currentUser.id) {
+                    throw new ApiError('Unauthorized to update this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_UPDATE' });
+                }
+            }
+            // 2. Find the image to update
+            const imgIndex = (existing.baseImages || []).findIndex(img => img.fileId === fileId);
+            if (imgIndex === -1) {
+                throw new ApiError('Image not found in product', { statusCode: 404, code: 'PRODUCT_IMAGE_NOT_FOUND' });
+            }
+            const oldImage = existing.baseImages[imgIndex];
+            // 3. Upload new image
+            const [uploadedImage] = await uploadService.uploadProductImages([file]);
+            if (!uploadedImage) {
+                throw new ApiError('Failed to upload new image', { statusCode: 500, code: 'IMAGE_UPLOAD_FAILED' });
+            }
+            // 4. Replace the image in baseImages array
+            const newBaseImages = [...existing.baseImages];
+            newBaseImages[imgIndex] = uploadedImage;
+            // 5. Persist update
+            const updateDoc = { baseImages: newBaseImages, updatedAt: new Date() };
+            const updated = await productRepository.updateById(productId, updateDoc);
+            // 6. After successful DB update, attempt to delete old image (best-effort)
+            if (oldImage && oldImage.fileId) {
+                try {
+                    await uploadService.deleteImages([oldImage.fileId], { logCode: 'OLD_IMAGE_DELETE_FAIL' });
+                } catch (delErr) {
+                    logger.error('Failed to delete old replaced image:', delErr);
+                }
+            }
+            return updated.baseImages[imgIndex];
+        } catch (error) {
+            logger.error('Error in service layer while updating product image:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to update product image', { statusCode: 500, code: 'UPDATE_PRODUCT_IMAGE_FAILED', details: error.message });
+        }
+
+    }
+
+
+    /**
      * Delete product by ID
      * @param {string} productId
      * @returns {Promise<boolean>} - true if deleted, false if not found
