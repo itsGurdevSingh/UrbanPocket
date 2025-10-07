@@ -1,7 +1,7 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
 import authenticateRole, { authenticate } from '../middlewares/authenticateUser.js';
-import { createProductValidation, deleteProductValidation, getByIdValidation, getAllProductsValidation } from '../validators/product.validator.js';
+import { createProductValidation, deleteProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation } from '../validators/product.validator.js';
 import { uploadProductImages } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
 
@@ -18,6 +18,15 @@ router.post(
     authenticateRole(['seller', 'admin']),
     createProductValidation,
     productController.createProduct
+);
+
+router.put(
+    '/:id',
+    uploadProductImages, // multer memory storage
+    parseJsonFields, //parse JSON fields like attributes, baseImages from postman/form-data
+    authenticateRole(['seller', 'admin']),
+    updateProductValidation,
+    productController.updateProduct
 );
 
 router.delete(

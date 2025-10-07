@@ -167,6 +167,65 @@ class productService {
     }
 
     /**
+     * Update product by ID (with optional new images)
+     * @param {string} productId
+     * @param {object} updateData - validated body (may or may not include baseImages)
+     * @param {Array<Multer.File>} files - uploaded image files (memory storage)
+     * @param {object} currentUser - user performing the update (for authorization)
+     * @returns {Promise<object|null>} - updated product or null if not found
+     * @throws {ApiError} on failure
+     */
+    async updateProduct(productId, updateData, files = [], currentUser) {
+        try {
+            // 1. Fetch existing product
+            const existing = await productRepository.findById(productId);
+            if (!existing) {
+                return null; // not found
+            }
+            // Ownership / authorization check: only seller who owns it OR admin can update.
+            if (currentUser && currentUser.role === 'seller') {
+                if (existing.sellerId.toString() !== currentUser.id) {
+                    throw new ApiError('Unauthorized to update this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_UPDATE' });
+                }
+            }
+            // 2. If name is changing, ensure uniqueness
+            if (updateData.name && updateData.name !== existing.name) {
+                const nameConflict = await productRepository.findByName(updateData.name);
+                if (nameConflict) {
+                    throw new ApiError('Product name must be unique', { statusCode: 400, code: 'DUPLICATE_PRODUCT_NAME' });
+                }
+            }
+            // 3. Resolve / upload new images if any
+            let newBaseImages = existing.baseImages || [];
+            if (files && files.length > 0) {
+                const uploadedImages = await uploadService.uploadProductImages(files);
+                newBaseImages = newBaseImages.concat(uploadedImages);
+            }
+            if (Array.isArray(updateData.baseImages) && updateData.baseImages.length > 0) {
+                // Merge existing images with new ones from updateData
+                const existingImageIds = new Set(newBaseImages.map(img => img.fileId));
+                updateData.baseImages.forEach(img => {
+                    if (img.fileId && !existingImageIds.has(img.fileId)) {
+                        newBaseImages.push(img);
+                    }
+                });
+            }
+            if (newBaseImages.length === 0) {
+                throw new ApiError('At least one product image is required', { statusCode: 400, code: 'NO_IMAGES' });
+            }
+            // 4. Prepare update document
+            const updateDoc = { ...updateData, baseImages: newBaseImages, updatedAt: new Date() };
+            // 5. Persist update
+            const updated = await productRepository.updateById(productId, updateDoc);
+            return updated;
+        } catch (error) {
+            logger.error('Error in service layer while updating product:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to update product', { statusCode: 500, code: 'UPDATE_PRODUCT_FAILED', details: error.message });
+        }
+    }
+
+    /**
      * Delete product by ID
      * @param {string} productId
      * @returns {Promise<boolean>} - true if deleted, false if not found
