@@ -7,7 +7,7 @@ class productController {
     async createProduct(req, res, next) {
         try {
             // Pass body and uploaded files to service (service will upload images after uniqueness check)
-            const product = await productService.createProduct(req.body, req.files || []);
+            const product = await productService.createProduct(req.body, req.files || [],req.user);
 
             res.status(201).json({
                 status: 'success',
@@ -89,9 +89,10 @@ class productController {
         try {
             const productId = req.params.id;
             const fileId = req.params.fileId;
-            const updatedImage = await productService.updateProductImage(productId,fileId, req.file, req.user);
+            const updatedImage = await productService.updateProductImage(productId, fileId, req.file, req.user);
+            // Service returns null only when product not found; distinguish vs missing image (handled by service throwing PRODUCT_IMAGE_NOT_FOUND)
             if (!updatedImage) {
-                return next(new ApiError('image for product not found', { statusCode: 404, code: 'IMAGE_NOT_FOUND' }));
+                return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
             res.status(200).json({
                 status: 'success',
@@ -127,6 +128,46 @@ class productController {
                 return next(error);
             }
             return next(new ApiError('Failed to delete product', { statusCode: 500, code: 'DELETE_PRODUCT_ERROR', details: error.message }));
+        }
+    }
+
+    async disableProduct(req, res, next) {
+        try {
+            const productId = req.params.id;
+            const disabled = await productService.disableProduct(productId, req.user);
+            if (!disabled) {
+                return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
+            }
+            res.status(200).json({
+                status: 'success',
+                message: 'Product disabled successfully'
+            });
+        } catch (error) {
+            logger.error('Error disabling product:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to disable product', { statusCode: 500, code: 'DISABLE_PRODUCT_ERROR', details: error.message }));
+        }
+    }
+
+    async enableProduct(req, res, next) {
+        try {
+            const productId = req.params.id;
+            const enabled = await productService.enableProduct(productId, req.user);
+            if (!enabled) {
+                return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
+            }
+            res.status(200).json({
+                status: 'success',
+                message: 'Product enabled successfully'
+            });
+        } catch (error) {
+            logger.error('Error enabling product:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to enable product', { statusCode: 500, code: 'ENABLE_PRODUCT_ERROR', details: error.message }));
         }
     }
 }

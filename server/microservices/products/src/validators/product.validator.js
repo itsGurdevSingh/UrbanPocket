@@ -62,6 +62,7 @@ export const createProductValidation = [
         .trim()
         .isLength({ max: 50 }).withMessage('brand must be at most 50 characters'),
     body('sellerId')
+        .optional() // make optional to allow server to set from auth context
         .exists({ checkFalsy: true }).withMessage('sellerId is required')
         .isMongoId().withMessage('sellerId must be a valid Mongo ID'),
     body('categoryId')
@@ -158,7 +159,7 @@ export const getByIdValidation = [
     handleValidationErrors,
 ];
 
-export const deleteProductValidation = [
+export const productIdValidation = [
     param('id').isMongoId().withMessage('Invalid product ID format'),
     handleValidationErrors,
 ];

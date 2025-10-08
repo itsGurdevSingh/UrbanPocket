@@ -10,8 +10,20 @@ class productService {
      * @param {object} productData - validated body (may or may not include baseImages)
      * @param {Array<Multer.File>} files - uploaded image files (memory storage)
      */
-    async createProduct(productData, files = []) {
+    async createProduct(productData, files = [], currentUser) {
         try {
+            // Ownership enforcement:
+            // If a seller is creating a product, force sellerId to their own id (ignore any provided value).
+            if (currentUser && currentUser.role === 'seller') {
+                productData.sellerId = currentUser.id;
+            }
+            // If an admin is creating a product and no sellerId provided, require it.
+            if (currentUser && currentUser.role === 'admin') {
+                if (!productData.sellerId) {
+                    throw new ApiError('sellerId is required when admin creates a product', { statusCode: 400, code: 'SELLER_ID_REQUIRED' });
+                }
+            }
+            // (Future) Other roles could be restricted here
             // 1. Uniqueness check first
             const existing = await productRepository.findByName(productData.name);
             if (existing) {
@@ -324,6 +336,70 @@ class productService {
             throw new ApiError('Failed to delete product', { statusCode: 500, code: 'DELETE_PRODUCT_FAILED', details: error.message });
         }
     }
+
+    /**
+     * Disable (soft delete) a product by ID
+     * @param {string} productId
+     * @param {object} currentUser - user performing the disable (for authorization)
+     * @returns {Promise<boolean>} - true if disabled, false if not found
+     * @throws {ApiError} on failure
+     * Note: associated images are NOT deleted in this implementation
+     */
+    async disableProduct(productId, currentUser) {
+        try {
+            // 1. Fetch product to check existence and ownership
+            const product = await productRepository.findById(productId);
+            if (!product) {
+                return false; // not found
+            }
+            // Ownership / authorization check: only seller who owns it OR admin can disable.
+            if (currentUser && currentUser.role === 'seller') {
+                if (product.sellerId.toString() !== currentUser.id) {
+                    throw new ApiError('Unauthorized to disable this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_DISABLE' });
+                }
+            }
+            // 2. Update isActive to false
+            await productRepository.updateById(productId, { isActive: false, updatedAt: new Date() });
+            return true;
+        } catch (error) {
+            logger.error('Error in service layer while disabling product:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to disable product', { statusCode: 500, code: 'DISABLE_PRODUCT_FAILED', details: error.message });
+        }
+    }
+
+    /**
+     * Enable (reactivate) a product by ID
+     * @param {string} productId
+     * @param {object} currentUser - user performing the enable (for authorization)
+     * @returns {Promise<boolean>} - true if enabled, false if not found
+     * @throws {ApiError} on failure
+     * Note: associated images are NOT modified in this implementation
+     */
+    async enableProduct(productId, currentUser) {
+        try {
+            // 1. Fetch product to check existence and ownership
+            const product = await productRepository.findById(productId);
+            if (!product) {
+                return false; // not found
+            }
+            // Ownership / authorization check: only seller who owns it OR admin can enable.
+            if (currentUser && currentUser.role === 'seller') {
+                if (product.sellerId.toString() !== currentUser.id) {
+                    throw new ApiError('Unauthorized to enable this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_ENABLE' });
+                }
+            }
+            // 2. Update isActive to true
+            await productRepository.updateById(productId, { isActive: true, updatedAt: new Date() });
+            return true;
+        }
+        catch (error) {
+            logger.error('Error in service layer while enabling product:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to enable product', { statusCode: 500, code: 'ENABLE_PRODUCT_FAILED', details: error.message });
+        }
+    };
+
 }
 
 export default new productService();

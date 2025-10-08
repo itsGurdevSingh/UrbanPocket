@@ -1,7 +1,7 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
 import authenticateRole, { authenticate } from '../middlewares/authenticateUser.js';
-import { createProductValidation, deleteProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation, updateProductImageValidation } from '../validators/product.validator.js';
+import { createProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation, updateProductImageValidation, productIdValidation } from '../validators/product.validator.js';
 import { uploadProductImages, uploadSingleProductImage } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
 
@@ -39,23 +39,40 @@ router.put(
     authenticateRole(['seller', 'admin']),
     productController.updateProductImage
 );
-
-
+// delete product - only seller or admin can delete
 router.delete(
     '/:id',
-    deleteProductValidation,
+    productIdValidation,
     authenticateRole(['seller', 'admin']),
     productController.deleteProduct
 );
 
+// disable product - only seller or admin can disable (soft delete)
+router.patch(
+    '/:id/disable',
+    productIdValidation, // verify is valid id
+    authenticateRole(['seller', 'admin']),
+    productController.disableProduct
+);
+
+// enable product - only seller or admin can enable (soft undelete)
+router.patch(
+    '/:id/enable',
+    productIdValidation, // verify is valid id
+    authenticateRole(['seller', 'admin']),
+    productController.enableProduct
+);
+
 // general routes for all roles 
+
+// get all products - any authenticated user
 router.get(
     '/getAll',
     authenticate, // any authenticated user regardless of role
     getAllProductsValidation,
     productController.getAllProducts
 );
-
+// get products by id - any authenticated user
 router.get(
     '/:id',
     getByIdValidation, // validate first so we save costly authentication from other service .

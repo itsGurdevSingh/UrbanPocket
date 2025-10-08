@@ -26,28 +26,32 @@ const attachImages = (req, count = 2, failIndex = -1) => {
 
 describe('POST /api/product/create', () => {
     beforeEach(() => {
-        // Ensure role appropriate for creation (seller)
+        // Ensure role appropriate for creation (seller) and provide valid ObjectId for seller override
         if (global.setTestAuthRole) global.setTestAuthRole('seller');
+        if (global.setTestAuthUserId) global.setTestAuthUserId(new mongoose.Types.ObjectId().toString());
     });
     afterEach(async () => {
         await Product.deleteMany({});
     });
 
-    it('creates a product with uploaded images (success path)', async () => {
-        const payload = createPayload();
+    it('creates a product with uploaded images (seller ownership enforced)', async () => {
+        // Auth mock set seller role in beforeEach; override user id to known value
+        const authSellerId = new mongoose.Types.ObjectId().toString();
+        if (global.setTestAuthUserId) global.setTestAuthUserId(authSellerId);
+        const payload = createPayload({ sellerId: new mongoose.Types.ObjectId().toString() }); // will be ignored
         const res = await attachImages(request(app)
             .post('/api/product/create')
             .field('name', payload.name)
             .field('description', payload.description)
             .field('brand', payload.brand)
-            .field('sellerId', payload.sellerId)
+            .field('sellerId', payload.sellerId) // should be overridden
             .field('categoryId', payload.categoryId)
             .field('attributes', JSON.stringify(payload.attributes))
             , 2).expect(201);
 
         expect(res.body).toHaveProperty('status', 'success');
-        expect(res.body).toHaveProperty('product');
-        expect(res.body.product).toHaveProperty('baseImages');
+        expect(res.body.product).toHaveProperty('sellerId');
+        expect(res.body.product.sellerId).toBe(authSellerId); // enforced ownership
         expect(res.body.product.baseImages.length).toBe(2);
     });
 
@@ -99,6 +103,37 @@ describe('POST /api/product/create', () => {
             .expect(400);
 
         expect(res.body).toHaveProperty('code', 'NO_IMAGES');
+    });
+
+    it('admin creation requires sellerId (missing -> error)', async () => {
+        if (global.setTestAuthRole) global.setTestAuthRole('admin');
+        const payload = createPayload();
+        const res = await attachImages(request(app)
+            .post('/api/product/create')
+            .field('name', payload.name)
+            .field('description', payload.description)
+            .field('brand', payload.brand)
+            // intentionally omit sellerId
+            .field('categoryId', payload.categoryId)
+            .field('attributes', JSON.stringify(payload.attributes))
+            , 1).expect(400);
+        expect(res.body.code).toBe('SELLER_ID_REQUIRED');
+    });
+
+    it('admin can create product for specified sellerId', async () => {
+        if (global.setTestAuthRole) global.setTestAuthRole('admin');
+        const sellerForProduct = new mongoose.Types.ObjectId().toString();
+        const payload = createPayload({ sellerId: sellerForProduct });
+        const res = await attachImages(request(app)
+            .post('/api/product/create')
+            .field('name', payload.name)
+            .field('description', payload.description)
+            .field('brand', payload.brand)
+            .field('sellerId', sellerForProduct)
+            .field('categoryId', payload.categoryId)
+            .field('attributes', JSON.stringify(payload.attributes))
+            , 1).expect(201);
+        expect(res.body.product.sellerId).toBe(sellerForProduct);
     });
 
     it('rolls back when any image upload fails (trigger via FAIL filename)', async () => {
