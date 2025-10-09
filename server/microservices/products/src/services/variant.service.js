@@ -203,6 +203,47 @@ class VariantService {
             throw new ApiError('Failed to update variant image', { statusCode: 500, code: 'UPDATE_VARIANT_IMAGE_ERROR', details: error.message });
         }
     }
+
+    /**
+     * permantently delete a variant by id
+     * return true of false
+     */
+    async deleteVariant(variantId, currentUser) {
+        try {
+            if (!currentUser) {
+                throw new ApiError('Authentication required', { statusCode: 401, code: 'UNAUTHORIZED' });
+            }
+            // Fetch existing variant (repository throws ApiError if not found)
+            const variant = await variantRepository.findById(variantId);
+            // Fetch parent product
+            const product = await productRepository.findById(variant.productId);
+            // Ownership / role: seller must own product; admin allowed
+            if (currentUser.role === 'seller') {
+                if (product.sellerId?.toString() !== currentUser.id) {
+                    throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
+                }
+            } else if (!['admin'].includes(currentUser.role)) {
+                throw new ApiError('Insufficient permissions to delete variant', { statusCode: 403, code: 'FORBIDDEN' });
+            }
+            // If product is inactive, cannot delete variant
+            if (product.isActive === false) {
+                throw new ApiError('Cannot delete variant of an inactive product', { statusCode: 400, code: 'PRODUCT_INACTIVE' });
+            }
+            // Delete variant
+            const deleted = await variantRepository.deleteById(variant.id);
+            if (deleted && Array.isArray(variant.variantImages) && variant.variantImages.length > 0) {
+                // Best-effort deletion of images from cloud storage
+                const fileIds = variant.variantImages.map(img => img.fileId).filter(Boolean);
+                if (fileIds.length > 0) {
+                    await uploadService.deleteImages(fileIds);
+                }
+            }
+            return deleted;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to delete variant', { statusCode: 500, code: 'DELETE_VARIANT_ERROR', details: error.message });
+        }
+    }
 }
 
 export default new VariantService();

@@ -61,6 +61,23 @@ class variantsController {
         }
     }
 
+    async deleteVariant(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            await variantService.deleteVariant(variantId, req.user);
+            res.status(200).json({
+                status: 'success',
+                message: 'Variant deleted successfully'
+            });
+        } catch (error) {
+            logger.error('Error deleting variant:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to delete variant', { statusCode: 500, code: 'DELETE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+
 }
 
 export default new variantsController();

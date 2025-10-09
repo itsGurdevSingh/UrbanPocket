@@ -4,6 +4,7 @@ import { parseJsonFields } from '../middlewares/reqLog.js';
 import authenticateRole from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
 import { createVariantValidation, updateVariantValidation, updateVariantImageValidation } from '../validators/variant.validator.js';
+import { mongoIdValidation } from '../validators/utils.js';
 
 const router = express.Router();
 
@@ -37,6 +38,14 @@ router.put(
     updateVariantImageValidation,
     uploadSingleVariantImages, // use single file upload middleware, field name 'image'
     variantController.updateVariantImage
+);
+
+// delete variant - only seller or admin can delete
+router.delete(
+    '/:id',
+    authenticateRole(['seller', 'admin']),
+    mongoIdValidation,
+    variantController.deleteVariant
 );
 
 
