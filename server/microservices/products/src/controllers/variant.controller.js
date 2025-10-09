@@ -1,0 +1,46 @@
+import variantService from "../services/variant.service.js";
+import { ApiError } from "../utils/errors.js";
+import logger from "../utils/logger.js";
+
+class variantsController {
+
+    async createVariant(req, res, next) {
+        try {
+            const variantData = req.body;
+            const newVariant = await variantService.createVariant(variantData, req.files || [], req.user);
+            res.status(201).json({
+                status: 'success',
+                message: 'Variant created successfully',
+                variant: newVariant
+            });
+        } catch (error) {
+            logger.error('Error creating variant:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to create variant', { statusCode: 500, code: 'CREATE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+
+    async updateVariant(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            const updateData = req.body;
+            const updatedVariant = await variantService.updateVariant(variantId, updateData, req.files || [], req.user);
+            res.status(200).json({
+                status: 'success',
+                message: 'Variant updated successfully',
+                variant: updatedVariant
+            });
+        } catch (error) {
+            logger.error('Error updating variant:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to update variant', { statusCode: 500, code: 'UPDATE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+    
+}
+
+export default new variantsController();

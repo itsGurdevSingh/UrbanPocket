@@ -3,6 +3,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
 import productRouter from './routers/product.router.js';
+import variantRouter from './routers/variant.router.js';
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/product', productRouter);
+app.use('/api/variant', variantRouter); 
 
 // Health check endpoint
 app.get('/health', (req, res) => {

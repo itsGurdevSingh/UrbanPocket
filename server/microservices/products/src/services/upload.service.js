@@ -13,7 +13,7 @@ class UploadService {
      * @param {Array<Multer.File>} files
      * @returns {Promise<Array<{url:string, altText?:string, fileId?:string}>>}
      */
-    async uploadProductImages(files = []) {
+    async uploadImagesToCloud(files = []) {
         if (!files || files.length === 0) return [];
 
         // Build upload promises in parallel

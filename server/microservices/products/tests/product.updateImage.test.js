@@ -8,7 +8,7 @@ import uploadService from '../src/services/upload.service.js';
 jest.mock('../src/services/upload.service.js', () => ({
     __esModule: true,
     default: {
-        uploadProductImages: jest.fn(async (files) => files.map((f, idx) => ({
+        uploadImagesToCloud: jest.fn(async (files) => files.map((f, idx) => ({
             fileId: `new-file-${Date.now()}-${idx}`,
             url: `https://cdn.example.com/new-file-${idx}.jpg`,
             name: f.originalname || 'image.jpg'
@@ -114,7 +114,7 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
 
     test('upload failure: simulate upload service error', async () => {
         // force upload to throw
-        uploadService.uploadProductImages.mockImplementationOnce(async () => { throw new Error('upload fail'); });
+        uploadService.uploadImagesToCloud.mockImplementationOnce(async () => { throw new Error('upload fail'); });
         const res = await request(app)
             .put(`/api/product/${product._id}/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');

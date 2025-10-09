@@ -33,6 +33,11 @@ export const uploadProductImages = upload.array('images', 10);
 // Expect field name 'images' (frontend should send images:single file)
 export const uploadSingleProductImage = upload.single('image');
 
+// Expect field name 'images' (frontend should send images[])
+export const uploadVariantImages = upload.array('images', 10);
+
+// Expect field name 'images' (frontend should send images:single file)
+export const uploadSingleVariantImages = upload.single('image');
 
 
 

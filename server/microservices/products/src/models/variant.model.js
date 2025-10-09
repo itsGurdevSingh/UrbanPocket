@@ -11,17 +11,39 @@ const variantSchema = new mongoose.Schema({
   // A unique identifier for this specific variant, e.g., "TSHIRT-RED-M"
   sku: {
     type: String,
-    unique: true,
-    required: true,
+    required: false, // will be auto-generated if not supplied
     trim: true,
-    index: true,
   },
-  // The specific values for the attributes defined in the parent Product.
-  // Example: { "Color": "Red", "Size": "Medium" }
+  // The specific option choices for this variant e.g. { Color: 'Red', Size: 'M' }.
+  // Kept flexible as a Map to allow dynamic attribute sets per product.
   options: {
     type: Map,
     of: String,
     required: true,
+  },
+  // Commercial data
+  price: {
+    type: Number,
+    required: true,
+    min: 0,
+  },
+  // ISO 4217 currency code for the price (default INR)
+  currency: {
+    type: String,
+    required: true,
+    default: 'INR',
+    uppercase: true,
+    trim: true,
+    minlength: 3,
+    maxlength: 3,
+    // Basic pattern for alphabetic 3-letter code
+    match: /^[A-Z]{3}$/,
+  },
+  stock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0,
   },
   // --- Unit of Measure (UoM) System ---
   // The smallest unit for inventory tracking (e.g., 'kg', 'g', 'ml', 'unit').
@@ -33,6 +55,7 @@ const variantSchema = new mongoose.Schema({
   variantImages: [{
     url: { type: String, required: true },
     altText: { type: String },
+    fileId: { type: String }, // For tracking uploaded image ID if using an external service
   }],
   isActive: {
     type: Boolean,
@@ -40,6 +63,21 @@ const variantSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Compound index to enforce SKU uniqueness per product rather than globally.
+// NOTE: If deploying to an environment with existing data that relied on the previous
+// global unique sku constraint, ensure to drop the old unique index manually:
+// db.variants.dropIndex('<oldIndexName>') then let this build.
+variantSchema.index({ productId: 1, sku: 1 }, { unique: true });
+
 const variant = mongoose.model('variant', variantSchema);
+
+// Auto-generate SKU if absent: pattern PRODID-SHORT-<random>
+variantSchema.pre('validate', function (next) {
+  if (!this.sku) {
+    const shortId = this._id?.toString().slice(-6) || Math.random().toString(36).slice(2, 8).toUpperCase();
+    this.sku = `${this.productId.toString().slice(-6)}-${shortId}`.toUpperCase();
+  }
+  next();
+});
 
 export default variant;

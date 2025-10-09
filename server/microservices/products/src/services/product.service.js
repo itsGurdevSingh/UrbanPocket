@@ -33,7 +33,7 @@ class productService {
             // 2. Resolve / upload images
             let baseImages = [];
             if (files && files.length > 0) {
-                baseImages = await uploadService.uploadProductImages(files);
+                baseImages = await uploadService.uploadImagesToCloud(files);
             } else if (Array.isArray(productData.baseImages) && productData.baseImages.length > 0) {
                 baseImages = productData.baseImages;
             }
@@ -210,7 +210,7 @@ class productService {
             // 3. Resolve / upload new images if any
             let newBaseImages = existing.baseImages || [];
             if (files && files.length > 0) {
-                const uploadedImages = await uploadService.uploadProductImages(files);
+                const uploadedImages = await uploadService.uploadImagesToCloud(files);
                 newBaseImages = newBaseImages.concat(uploadedImages);
             }
             if (Array.isArray(updateData.baseImages) && updateData.baseImages.length > 0) {
@@ -265,7 +265,7 @@ class productService {
             }
             const oldImage = existing.baseImages[imgIndex];
             // 3. Upload new image
-            const [uploadedImage] = await uploadService.uploadProductImages([file]);
+            const [uploadedImage] = await uploadService.uploadImagesToCloud([file]);
             if (!uploadedImage) {
                 throw new ApiError('Failed to upload new image', { statusCode: 500, code: 'IMAGE_UPLOAD_FAILED' });
             }
