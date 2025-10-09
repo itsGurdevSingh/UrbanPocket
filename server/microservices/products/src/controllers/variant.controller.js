@@ -78,6 +78,44 @@ class variantsController {
         }
     }
 
+    async disableVariant(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            const disabledVariant = await variantService.disableVariant(variantId, req.user);
+            res.status(200).json({
+                status: 'success',
+                message: 'Variant disabled successfully',
+                variant: disabledVariant
+            });
+        }
+        catch (error) {
+            logger.error('Error disabling variant:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to disable variant', { statusCode: 500, code: 'DISABLE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+
+    async enableVariant(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            const enabledVariant = await variantService.enableVariant(variantId, req.user);
+            res.status(200).json({
+                status: 'success',
+                message: 'Variant enabled successfully',
+                variant: enabledVariant
+            });
+        }
+        catch (error) {
+            logger.error('Error enabling variant:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to enable variant', { statusCode: 500, code: 'ENABLE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+
 }
 
 export default new variantsController();

@@ -48,6 +48,22 @@ router.delete(
     variantController.deleteVariant
 );
 
+// disable variant - only seller or admin can disable (soft delete)
+router.patch(
+    '/:id/disable',
+    authenticateRole(['seller', 'admin']),
+    mongoIdValidation,
+    variantController.disableVariant
+);
+
+// enable variant - only seller or admin can enable (soft undelete)
+router.patch(
+    '/:id/enable',
+    authenticateRole(['seller', 'admin']),
+    mongoIdValidation,
+    variantController.enableVariant
+);
+
 
 
 export default router;

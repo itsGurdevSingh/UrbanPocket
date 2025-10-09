@@ -244,6 +244,77 @@ class VariantService {
             throw new ApiError('Failed to delete variant', { statusCode: 500, code: 'DELETE_VARIANT_ERROR', details: error.message });
         }
     }
+
+    /**
+     * disable (soft delete) a variant by id
+     * return flag indicating success
+     */
+    async disableVariant(variantId, currentUser) {
+        try {
+            if (!currentUser) {
+                throw new ApiError('Authentication required', { statusCode: 401, code: 'UNAUTHORIZED' });
+            }
+            // Fetch existing variant (repository throws ApiError if not found)
+            const variant = await variantRepository.findById(variantId);
+            // Fetch parent product
+            const product = await productRepository.findById(variant.productId);
+            // Ownership / role: seller must own product; admin allowed
+            if (currentUser.role === 'seller') {
+                if (product.sellerId?.toString() !== currentUser.id) {
+                    throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
+                }
+            } else if (!['admin'].includes(currentUser.role)) {
+                throw new ApiError('Insufficient permissions to disable variant', { statusCode: 403, code: 'FORBIDDEN' });
+            }
+            // If product is inactive, cannot disable variant
+            if (product.isActive === false) {
+                throw new ApiError('Cannot disable variant of an inactive product', { statusCode: 400, code: 'PRODUCT_INACTIVE' });
+            }
+            if (variant.isActive === false) {
+                return variant; // already disabled
+            }
+            const disabled = await variantRepository.updateById(variant.id, { isActive: false });
+            return disabled;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to disable variant', { statusCode: 500, code: 'DISABLE_VARIANT_ERROR', details: error.message });
+        }
+    }
+
+    /**
+     * enable (undo soft delete) a variant by id
+     * return flag indicating success
+     */
+    async enableVariant(variantId, currentUser) {
+        try {
+            if (!currentUser) {
+                throw new ApiError('Authentication required', { statusCode: 401, code: 'UNAUTHORIZED' });
+            }
+            // Fetch existing variant (repository throws ApiError if not found)
+            const variant = await variantRepository.findById(variantId);
+            // Fetch parent product
+            const product = await productRepository.findById(variant.productId);
+            // Ownership / role: seller must own product; admin allowed
+            if (currentUser.role === 'seller') {
+                if (product.sellerId?.toString() !== currentUser.id) {
+                    throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
+                }
+            }
+            else if (!['admin'].includes(currentUser.role)) {
+                throw new ApiError('Insufficient permissions to enable variant', { statusCode: 403, code: 'FORBIDDEN' });
+            }
+            if (variant.isActive === true) {
+                return variant; // already enabled
+            }
+            const enabled = await variantRepository.updateById(variant.id, { isActive: true });
+            return enabled;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to enable variant', { statusCode: 500, code: 'ENABLE_VARIANT_ERROR', details: error.message });
+        }
+
+    }
+
 }
 
 export default new VariantService();
