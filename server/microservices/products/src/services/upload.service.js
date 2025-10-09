@@ -94,6 +94,20 @@ class UploadService {
             });
         }
     }
+
+    // delete single image by fileIds, throws if any deletion fails
+    async deleteImageFromCloud(fileIds) {
+        if(!fileIds){
+            throw new ApiError('fileId is required', { statusCode: 400, code: 'FILE_ID_REQUIRED' });
+        }
+        try {
+            await deleteFromImageKit(fileIds);
+        } catch (error) {
+            logger.error('UploadService: image deletion failed', { fileId: fileIds, error: error.message });
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to delete image', { statusCode: 500, code: 'IMAGE_DELETION_FAILED', details: error.message });
+        }
+    }
 }
 
 export default new UploadService();

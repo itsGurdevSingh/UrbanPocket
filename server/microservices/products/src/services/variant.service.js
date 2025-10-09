@@ -143,6 +143,66 @@ class VariantService {
         }
     }
 
+    /**
+     * update a single variant image identified by fileId
+     * currentUser: { id, role }
+     * returns updated image object { url, altText, fileId }
+     */
+    async updateVariantImage(variantId, fileId, file, currentUser) {
+        try {
+            if (!currentUser) {
+                throw new ApiError('Authentication required', { statusCode: 401, code: 'UNAUTHORIZED' });
+            }
+            if (!file) {
+                throw new ApiError('Image file is required', { statusCode: 400, code: 'NO_FILE' });
+            }
+            // Fetch existing variant (repository throws ApiError if not found)
+            const variant = await variantRepository.findById(variantId);
+            // Fetch parent product
+            const product = await productRepository.findById(variant.productId);
+            // Ownership / role: seller must own product; admin allowed
+            if (currentUser.role === 'seller') {
+                if (product.sellerId?.toString() !== currentUser.id) {
+                    throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
+                }
+            } else if (!['admin'].includes(currentUser.role)) {
+                throw new ApiError('Insufficient permissions to update variant image', { statusCode: 403, code: 'FORBIDDEN' });
+            }
+            // If product is inactive, cannot update variant
+            if (product.isActive === false) {
+                throw new ApiError('Cannot update variant image of an inactive product', { statusCode: 400, code: 'PRODUCT_INACTIVE' });
+            }
+            // Find existing image by fileId
+            const existingImages = Array.isArray(variant.variantImages) ? variant.variantImages : [];
+            const imgIndex = existingImages.findIndex(img => img.fileId === fileId);
+            if (imgIndex === -1) {
+                throw new ApiError('No variant image found with the provided fileId', { statusCode: 404, code: 'VARIANT_IMAGE_NOT_FOUND' });
+            }
+            // Upload new image
+            const [uploadedImage] = await uploadService.uploadImagesToCloud([file]);
+            if (!uploadedImage) {
+                throw new ApiError('Image upload failed', { statusCode: 500, code: 'IMAGE_UPLOAD_FAILED' });
+            }
+            // Replace the image at imgIndex with the newly uploaded one
+            const oldImage = existingImages[imgIndex];
+            const newVariantImages = [...existingImages];
+            newVariantImages[imgIndex] = uploadedImage;
+            // Update variant document
+            const updatedVariant = await uploadService.executeWithUploadRollback([uploadedImage], async () => {
+                return variantRepository.updateById(variant.id, { variantImages: newVariantImages });
+            }, { rollbackLogCode: 'VARIANT_IMAGE_UPDATE_ROLLBACK' });
+
+            // delete old image from cloud storage (best-effort)
+            if (oldImage?.fileId) {
+                await uploadService.deleteImages([oldImage.fileId]);
+            }
+
+            return updatedVariant.variantImages[imgIndex];
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to update variant image', { statusCode: 500, code: 'UPDATE_VARIANT_IMAGE_ERROR', details: error.message });
+        }
+    }
 }
 
 export default new VariantService();

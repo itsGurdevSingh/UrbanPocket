@@ -1,4 +1,4 @@
-import { validationResult } from "express-validator";
+import { validationResult, param } from "express-validator";
 import { ApiError } from "../utils/errors.js";
 
 /**
@@ -21,3 +21,8 @@ export const handleValidationErrors = (req, res, next) => {
     }
     next();
 };
+
+export const mongoIdValidation = [
+    param('id').isMongoId().withMessage('Invalid product ID format'),
+    handleValidationErrors,
+];

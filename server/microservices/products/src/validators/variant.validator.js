@@ -53,3 +53,12 @@ export const deleteVariantValidation = [
     handleValidationErrors,
 ];
 
+
+// Validate params for single image update
+export const updateVariantImageValidation = [
+    param('id').isMongoId().withMessage('Invalid variant ID format'),
+    // fileId typically comes from external provider (e.g., ImageKit), so just ensure non-empty string
+    param('fileId').isString().trim().notEmpty().withMessage('fileId is required'),
+    handleValidationErrors,
+];
+

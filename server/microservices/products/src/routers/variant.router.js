@@ -1,9 +1,9 @@
 import express from 'express';
-import { uploadVariantImages } from '../middlewares/upload.js';
+import { uploadVariantImages, uploadSingleVariantImages } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
 import authenticateRole from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
-import { createVariantValidation, updateVariantValidation } from '../validators/variant.validator.js';
+import { createVariantValidation, updateVariantValidation, updateVariantImageValidation } from '../validators/variant.validator.js';
 
 const router = express.Router();
 
@@ -27,6 +27,16 @@ router.put(
     parseJsonFields, // parse JSON fields (e.g. options) from multipart/form-data
     updateVariantValidation,
     variantController.updateVariant
+);
+
+// update single image for variant - only seller or admin can update
+// /variantid/fileID
+router.put(
+    '/:id/:fileId',
+    authenticateRole(['seller', 'admin']),
+    updateVariantImageValidation,
+    uploadSingleVariantImages, // use single file upload middleware, field name 'image'
+    variantController.updateVariantImage
 );
 
 

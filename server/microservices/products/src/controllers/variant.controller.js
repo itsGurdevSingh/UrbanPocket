@@ -40,7 +40,27 @@ class variantsController {
             return next(new ApiError('Failed to update variant', { statusCode: 500, code: 'UPDATE_VARIANT_ERROR', details: error.message }));
         }
     }
-    
+ 
+    // PUT /api/variants/:id/:fileId this can return only updated image object with url,alt text,fileId
+    async updateVariantImage(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            const fileId = req.params.fileId;
+            const updatedImage = await variantService.updateVariantImage(variantId, fileId, req.file, req.user);
+            res.status(200).json({
+                status: 'success',
+                message: 'Variant image updated successfully',
+                updatedImage: updatedImage
+            });
+        } catch (error) {
+            logger.error('Error updating variant image:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to update variant image', { statusCode: 500, code: 'UPDATE_VARIANT_IMAGE_ERROR', details: error.message }));
+        }
+    }
+
 }
 
 export default new variantsController();
