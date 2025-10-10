@@ -41,6 +41,10 @@ class VariantRepository {
     async findBySkuWithinProduct(productId, sku) {
         return this.model.findOne({ productId, sku });
     }
+
+    async findByProductId(productId) {
+        return this.model.find({ productId });
+    }
 }
 
 export default new VariantRepository();

@@ -40,7 +40,7 @@ class variantsController {
             return next(new ApiError('Failed to update variant', { statusCode: 500, code: 'UPDATE_VARIANT_ERROR', details: error.message }));
         }
     }
- 
+
     // PUT /api/variants/:id/:fileId this can return only updated image object with url,alt text,fileId
     async updateVariantImage(req, res, next) {
         try {
@@ -113,6 +113,40 @@ class variantsController {
                 return next(error);
             }
             return next(new ApiError('Failed to enable variant', { statusCode: 500, code: 'ENABLE_VARIANT_ERROR', details: error.message }));
+        }
+    }
+
+    async getVariantById(req, res, next) {
+        try {
+            const variantId = req.params.id;
+            const variant = await variantService.getVariantById(variantId);
+            res.status(200).json({
+                status: 'success',
+                variant: variant
+            });
+        } catch (error) {
+            logger.error('Error fetching variant by ID:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to fetch variant', { statusCode: 500, code: 'FETCH_VARIANT_ERROR', details: error.message }));
+        }
+    }
+    
+    async getVariantsByProductId(req, res, next) {
+        try {
+            const productId = req.params.productId;
+            const variants = await variantService.getVariantsByProductId(productId);
+            res.status(200).json({
+                status: 'success',
+                variants: variants
+            });
+        } catch (error) {
+            logger.error('Error fetching variants by product ID:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to fetch variants', { statusCode: 500, code: 'FETCH_VARIANTS_ERROR', details: error.message }));
         }
     }
 

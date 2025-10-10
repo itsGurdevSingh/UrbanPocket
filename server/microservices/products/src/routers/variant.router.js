@@ -3,8 +3,8 @@ import { uploadVariantImages, uploadSingleVariantImages } from '../middlewares/u
 import { parseJsonFields } from '../middlewares/reqLog.js';
 import authenticateRole from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
-import { createVariantValidation, updateVariantValidation, updateVariantImageValidation } from '../validators/variant.validator.js';
-import { mongoIdValidation } from '../validators/utils.js';
+import { createVariantValidation, updateVariantValidation, updateVariantImageValidation, getVariantByIdValidation } from '../validators/variant.validator.js';
+import { mongoIdValidation, mongoProductIdValidation } from '../validators/utils.js';
 
 const router = express.Router();
 
@@ -63,6 +63,25 @@ router.patch(
     mongoIdValidation,
     variantController.enableVariant
 );
+
+// general routes for all roles
+
+// get variant by id - all roles including unauthenticated can access
+router.get(
+    '/:id',
+    getVariantByIdValidation,
+    variantController.getVariantById
+);
+
+// get all variants for a product - all roles including unauthenticated can access
+router.get(
+    '/product/:productId',
+    // reuse product id validation from utils since variant.validator doesn't export one
+    // If needed, we can add getVariantsByProductIdValidation in variant.validator later
+    mongoProductIdValidation,
+    variantController.getVariantsByProductId
+);
+
 
 
 

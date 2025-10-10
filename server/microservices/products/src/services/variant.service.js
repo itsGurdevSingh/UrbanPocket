@@ -315,6 +315,33 @@ class VariantService {
 
     }
 
+    /**
+     * get variant by id
+     * returns variant object
+     */
+    async getVariantById(variantId) {
+        try {
+            const variant = await variantRepository.findById(variantId);
+            return variant;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch variant', { statusCode: 500, code: 'FETCH_VARIANT_ERROR', details: error.message });
+        }
+    }
+    /**
+     * get all variants for a product id
+     * returns array of variant objects
+     */
+    async getVariantsByProductId(productId) {
+        try {
+            const variants = await variantRepository.findByProductId(productId);
+            return variants;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch variants', { statusCode: 500, code: 'FETCH_VARIANTS_ERROR', details: error.message });
+        }
+    }
+
 }
 
 export default new VariantService();

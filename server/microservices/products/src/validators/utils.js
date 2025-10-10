@@ -26,3 +26,8 @@ export const mongoIdValidation = [
     param('id').isMongoId().withMessage('Invalid product ID format'),
     handleValidationErrors,
 ];
+
+export const mongoProductIdValidation = [
+    param('productId').isMongoId().withMessage('Invalid product ID format'),
+    handleValidationErrors,
+];
