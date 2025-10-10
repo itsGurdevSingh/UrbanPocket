@@ -132,7 +132,7 @@ class variantsController {
             return next(new ApiError('Failed to fetch variant', { statusCode: 500, code: 'FETCH_VARIANT_ERROR', details: error.message }));
         }
     }
-    
+
     async getVariantsByProductId(req, res, next) {
         try {
             const productId = req.params.productId;
@@ -143,6 +143,24 @@ class variantsController {
             });
         } catch (error) {
             logger.error('Error fetching variants by product ID:', error);
+            if (error instanceof ApiError) {
+                return next(error);
+            }
+            return next(new ApiError('Failed to fetch variants', { statusCode: 500, code: 'FETCH_VARIANTS_ERROR', details: error.message }));
+        }
+    }
+
+    async getAllVariants(req, res, next) {
+        try {
+            const result = await variantService.getAllVariants(req.query || {});
+            res.status(200).json({
+                status: 'success',
+                variants: result.data || [],
+                meta: result.meta,
+                count: result.count,
+            });
+        } catch (error) {
+            logger.error('Error fetching variants:', error);
             if (error instanceof ApiError) {
                 return next(error);
             }

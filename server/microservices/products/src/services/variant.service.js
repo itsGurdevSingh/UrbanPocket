@@ -2,6 +2,7 @@ import productRepository from "../repositories/product.repository.js";
 import variantRepository from "../repositories/variant.repository.js";
 import { ApiError } from "../utils/errors.js";
 import uploadService from "./upload.service.js";
+import mongoose from 'mongoose';
 
 class VariantService {
     /**
@@ -336,6 +337,123 @@ class VariantService {
         try {
             const variants = await variantRepository.findByProductId(productId);
             return variants;
+        } catch (error) {
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch variants', { statusCode: 500, code: 'FETCH_VARIANTS_ERROR', details: error.message });
+        }
+    }
+
+    /**
+     * Get all variants with pagination and filtering.
+     * Supports variant-field filters and basic ranges. Product-level filters can be added later via aggregation.
+     */
+    async getAllVariants(query = {}) {
+        try {
+            const {
+                page = 1,
+                limit = 20,
+                productId,
+                sku,
+                currency,
+                baseUnit,
+                isActive,
+                ids,
+                q,
+                sort,
+                fields,
+                createdFrom,
+                createdTo,
+                updatedFrom,
+                updatedTo,
+                priceMin,
+                priceMax,
+                stockMin,
+                stockMax,
+                // product-linked filters (reserved for later): sellerId, categoryId, brand, productIsActive
+            } = query;
+
+            const filter = {};
+
+            if (productId) filter.productId = productId;
+            if (sku) filter.sku = sku;
+            if (currency) filter.currency = currency;
+            if (baseUnit) filter.baseUnit = baseUnit;
+            if (isActive !== undefined) {
+                if (isActive === true || isActive === 'true') filter.isActive = true;
+                else if (isActive === false || isActive === 'false') filter.isActive = false;
+            }
+            if (ids) {
+                const idArray = ids.split(',').map(v => v.trim()).filter(Boolean);
+                if (idArray.length) {
+                    filter._id = { $in: idArray.map(id => new mongoose.Types.ObjectId(id)) };
+                }
+            }
+            // numeric ranges
+            if (priceMin != null || priceMax != null) {
+                filter.price = {};
+                if (priceMin != null) filter.price.$gte = Number(priceMin);
+                if (priceMax != null) filter.price.$lte = Number(priceMax);
+            }
+            if (stockMin != null || stockMax != null) {
+                filter.stock = {};
+                if (stockMin != null) filter.stock.$gte = Number(stockMin);
+                if (stockMax != null) filter.stock.$lte = Number(stockMax);
+            }
+            // date ranges
+            if (createdFrom || createdTo) {
+                filter.createdAt = {};
+                if (createdFrom) filter.createdAt.$gte = createdFrom;
+                if (createdTo) filter.createdAt.$lte = createdTo;
+            }
+            if (updatedFrom || updatedTo) {
+                filter.updatedAt = {};
+                if (updatedFrom) filter.updatedAt.$gte = updatedFrom;
+                if (updatedTo) filter.updatedAt.$lte = updatedTo;
+            }
+            // free text: simple regex on sku
+            if (q) {
+                filter.$or = [
+                    { sku: { $regex: new RegExp(q, 'i') } },
+                ];
+            }
+
+            // projection
+            let projection = undefined;
+            if (fields) {
+                projection = fields.split(',').reduce((acc, f) => { acc[f] = 1; return acc; }, { _id: 1 });
+            }
+
+            // sort
+            let sortObj = { createdAt: -1 };
+            if (sort) {
+                sortObj = {};
+                sort.split(',').forEach(part => {
+                    if (part.startsWith('-')) sortObj[part.slice(1)] = -1; else sortObj[part] = 1;
+                });
+            }
+
+            const pageNum = Number(page) || 1;
+            const limitNum = Number(limit) || 20;
+            const skip = (pageNum - 1) * limitNum;
+
+            const [items, total] = await Promise.all([
+                variantRepository.model.find(filter).select(projection).sort(sortObj).skip(skip).limit(limitNum).lean(),
+                variantRepository.model.countDocuments(filter)
+            ]);
+
+            const totalPages = Math.ceil(total / limitNum) || 1;
+            return {
+                data: items,
+                meta: {
+                    page: pageNum,
+                    limit: limitNum,
+                    total,
+                    totalPages,
+                    hasNextPage: pageNum < totalPages,
+                    hasPrevPage: pageNum > 1,
+                },
+                count: items.length,
+            };
         } catch (error) {
             if (error instanceof ApiError) throw error;
             throw new ApiError('Failed to fetch variants', { statusCode: 500, code: 'FETCH_VARIANTS_ERROR', details: error.message });

@@ -3,7 +3,7 @@ import { uploadVariantImages, uploadSingleVariantImages } from '../middlewares/u
 import { parseJsonFields } from '../middlewares/reqLog.js';
 import authenticateRole from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
-import { createVariantValidation, updateVariantValidation, updateVariantImageValidation, getVariantByIdValidation } from '../validators/variant.validator.js';
+import { createVariantValidation, updateVariantValidation, updateVariantImageValidation, getVariantByIdValidation, getAllVariantsValidation } from '../validators/variant.validator.js';
 import { mongoIdValidation, mongoProductIdValidation } from '../validators/utils.js';
 
 const router = express.Router();
@@ -82,6 +82,13 @@ router.get(
     variantController.getVariantsByProductId
 );
 
+// get all variants (with pagination and filters) - all roles including unauthenticated can access
+
+router.get(
+    '/getAll',
+    getAllVariantsValidation,
+    variantController.getAllVariants
+);
 
 
 
