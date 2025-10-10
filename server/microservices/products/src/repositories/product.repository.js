@@ -9,6 +9,10 @@ class productRepository {
         return await product.find({});
     }
 
+    async findOne(filter) {
+        return await product.findOne(filter);
+    }
+
     async findById(id) {
         const item = await product.findById(id);
         if (!item) {
@@ -42,9 +46,6 @@ class productRepository {
         return await product.find({ customField: value });
     }
 
-    async findByName(name) {
-        return await product.findOne({ name: name });
-    }
 }
 
 export default new productRepository();

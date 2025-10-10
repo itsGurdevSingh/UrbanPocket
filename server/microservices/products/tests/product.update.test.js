@@ -64,12 +64,23 @@ describe('PUT /api/product/:id', () => {
         expect(res.body.product).toHaveProperty('brand', 'BrandY');
     });
 
-    it('prevents duplicate product name', async () => {
+    it('prevents duplicate product name within the same seller context', async () => {
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
-        const p1 = await Product.create(buildProduct({ name: 'DupName' }));
-        const p2 = await Product.create(buildProduct({ name: 'OtherName' }));
+        const seller = new mongoose.Types.ObjectId();
+        const p1 = await Product.create(buildProduct({ name: 'DupName', sellerId: seller }));
+        const p2 = await Product.create(buildProduct({ name: 'OtherName', sellerId: seller }));
         const res = await sendUpdate(p2._id.toString(), { name: 'DupName' }).expect(400);
         expect(res.body.code).toBe('DUPLICATE_PRODUCT_NAME');
+    });
+
+    it('allows duplicate product name across different sellers', async () => {
+        if (global.setTestAuthRole) global.setTestAuthRole('admin');
+        const sellerA = new mongoose.Types.ObjectId();
+        const sellerB = new mongoose.Types.ObjectId();
+        const p1 = await Product.create(buildProduct({ name: 'SharedName', sellerId: sellerA }));
+        const p2 = await Product.create(buildProduct({ name: 'OtherName', sellerId: sellerB }));
+        const res = await sendUpdate(p2._id.toString(), { name: 'SharedName' }).expect(200);
+        expect(res.body.product.name).toBe('SharedName');
     });
 
     it('returns 403 when seller updates another seller\'s product', async () => {

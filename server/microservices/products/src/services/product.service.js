@@ -24,8 +24,8 @@ class productService {
                 }
             }
             // (Future) Other roles could be restricted here
-            // 1. Uniqueness check first
-            const existing = await productRepository.findByName(productData.name);
+            // 1. Uniqueness of name in context of seller
+            const existing = await productRepository.findOne({name:productData.name, sellerId: productData.sellerId});
             if (existing) {
                 throw new ApiError('Product name must be unique', { statusCode: 400, code: 'DUPLICATE_PRODUCT_NAME' });
             }
@@ -200,9 +200,9 @@ class productService {
                     throw new ApiError('Unauthorized to update this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_UPDATE' });
                 }
             }
-            // 2. If name is changing, ensure uniqueness
+            // 2. If name is changing, ensure uniquenessin context of seller
             if (updateData.name && updateData.name !== existing.name) {
-                const nameConflict = await productRepository.findByName(updateData.name);
+                const nameConflict = await productRepository.findOne({name:updateData.name, sellerId: existing.sellerId});
                 if (nameConflict) {
                     throw new ApiError('Product name must be unique', { statusCode: 400, code: 'DUPLICATE_PRODUCT_NAME' });
                 }

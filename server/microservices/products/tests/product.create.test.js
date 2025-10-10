@@ -55,7 +55,7 @@ describe('POST /api/product/create', () => {
         expect(res.body.product.baseImages.length).toBe(2);
     });
 
-    it('rejects duplicate product name', async () => {
+    it('rejects duplicate product name for the same seller', async () => {
         const payload = createPayload();
         await attachImages(request(app)
             .post('/api/product/create')
@@ -78,6 +78,40 @@ describe('POST /api/product/create', () => {
             , 1).expect(400);
 
         expect(res.body).toHaveProperty('code', 'DUPLICATE_PRODUCT_NAME');
+    });
+
+    it('allows same product name for different sellers', async () => {
+        // as admin we can set seller ids
+        if (global.setTestAuthRole) global.setTestAuthRole('admin');
+        const commonName = 'SameName';
+        const sellerA = new mongoose.Types.ObjectId().toString();
+        const sellerB = new mongoose.Types.ObjectId().toString();
+
+        // create for seller A
+        await attachImages(request(app)
+            .post('/api/product/create')
+            .field('name', commonName)
+            .field('description', 'valid desc')
+            .field('brand', 'BrandX')
+            .field('sellerId', sellerA)
+            .field('categoryId', new mongoose.Types.ObjectId().toString())
+            .field('attributes', JSON.stringify(['Size']))
+            , 1).expect(201);
+
+        // create for seller B with same name
+        const res = await attachImages(request(app)
+            .post('/api/product/create')
+            .field('name', commonName)
+            .field('description', 'another valid desc')
+            .field('brand', 'BrandY')
+            .field('sellerId', sellerB)
+            .field('categoryId', new mongoose.Types.ObjectId().toString())
+            .field('attributes', JSON.stringify(['Size']))
+            , 1).expect(201);
+
+        expect(res.body.status).toBe('success');
+        expect(res.body.product.name).toBe(commonName);
+        expect(res.body.product.sellerId).toBe(sellerB);
     });
 
     it('fails when required fields missing (validation)', async () => {
