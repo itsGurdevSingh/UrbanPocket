@@ -69,14 +69,14 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Red', Size: 'M' },
-            price: 499.5,
+            price: { amount: 499.5 },
             stock: 10,
             baseUnit: 'unit'
         });
         expect(res.status).toBe(201);
         expect(res.body.variant).toBeDefined();
         expect(res.body.variant.productId).toBe(String(product._id));
-        expect(res.body.variant.currency).toBe('INR');
+        expect(res.body.variant.price.currency).toBe('INR');
         expect(res.body.variant.variantImages.length).toBe(1);
     });
 
@@ -86,13 +86,12 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Blue', Size: 'L' },
-            price: 899.99,
-            currency: 'usd',
+            price: { amount: 899.99, currency: 'usd' },
             stock: 5,
             baseUnit: 'unit'
         });
         expect(res.status).toBe(201);
-        expect(res.body.variant.currency).toBe('USD');
+        expect(res.body.variant.price.currency).toBe('USD');
     });
 
     test('error: unauthorized seller creating variant for product they do not own', async () => {
@@ -101,7 +100,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Green', Size: 'S' },
-            price: 100,
+            price: { amount: 100 },
             stock: 2,
             baseUnit: 'unit'
         });
@@ -114,7 +113,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Black', Size: 'L' },
-            price: 150,
+            price: { amount: 150 },
             stock: 1,
             baseUnit: 'unit'
         });
@@ -129,7 +128,7 @@ describe('POST /api/variant/create - create variant', () => {
             productId: product._id.toString(),
             sku: 'SKU-RED-M',
             options: { Color: 'Red', Size: 'M' },
-            price: 200,
+            price: { amount: 200 },
             stock: 3,
             baseUnit: 'unit'
         });
@@ -138,7 +137,7 @@ describe('POST /api/variant/create - create variant', () => {
             productId: product._id.toString(),
             sku: 'SKU-RED-M',
             options: { Color: 'Red', Size: 'L' },
-            price: 210,
+            price: { amount: 210 },
             stock: 2,
             baseUnit: 'unit'
         });
@@ -150,7 +149,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: 'bad-id',
             options: { Color: 'Red', Size: 'M' },
-            price: 100,
+            price: { amount: 100 },
             stock: 2,
             baseUnit: 'unit'
         });
@@ -163,7 +162,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Red', Size: 'M' },
-            price: -10,
+            price: { amount: -10 },
             stock: 2,
             baseUnit: 'unit'
         });
@@ -178,7 +177,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await req
             .field('productId', product._id.toString())
             .field('options', JSON.stringify({ Color: 'Red', Size: 'M' }))
-            .field('price', '100')
+            .field('price', JSON.stringify({ amount: 100 }))
             .field('stock', '2')
             .field('baseUnit', 'unit');
         expect(res.status).toBe(400);
@@ -192,7 +191,7 @@ describe('POST /api/variant/create - create variant', () => {
             .attach('images', createImageBuffer('one'), 'one.jpg')
             .field('productId', product._id.toString())
             .field('options', '[]') // array instead of object
-            .field('price', '100')
+            .field('price', JSON.stringify({ amount: 100 }))
             .field('stock', '2')
             .field('baseUnit', 'unit');
         expect(res.status).toBe(400);
@@ -204,8 +203,7 @@ describe('POST /api/variant/create - create variant', () => {
         const res = await postVariant({
             productId: product._id.toString(),
             options: { Color: 'Red', Size: 'M' },
-            price: 100,
-            currency: 'RUPEE',
+            price: { amount: 100, currency: 'RUPEE' },
             stock: 2,
             baseUnit: 'unit'
         });

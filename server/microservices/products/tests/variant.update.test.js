@@ -42,8 +42,7 @@ async function createVariant(productId, overrides = {}) {
         productId,
         sku: 'SKU-ORIG',
         options: { Color: 'Red', Size: 'M' },
-        price: 100,
-        currency: 'INR',
+        price: { amount: 100, currency: 'INR' },
         stock: 5,
         baseUnit: 'unit',
         variantImages: [{ url: 'https://cdn.example.com/variant-orig.jpg', fileId: 'file-orig' }],
@@ -76,9 +75,9 @@ describe('PUT /api/variant/:id - update variant', () => {
         const product = await createProductForSeller(sellerId);
         const variant = await createVariant(product._id);
 
-        const res = await putVariant(variant._id, { price: 150 }, ['new']);
+        const res = await putVariant(variant._id, { price: { amount: 150 } }, ['new']);
         expect(res.status).toBe(200);
-        expect(res.body.variant.price).toBe(150);
+        expect(res.body.variant.price.amount).toBe(150);
         expect(res.body.variant.variantImages.length).toBe(2);
     });
 
@@ -87,9 +86,9 @@ describe('PUT /api/variant/:id - update variant', () => {
         const variant = await createVariant(product._id);
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
 
-        const res = await putVariant(variant._id, { currency: 'usd' });
+        const res = await putVariant(variant._id, { price: { currency: 'usd' } });
         expect(res.status).toBe(200);
-        expect(res.body.variant.currency).toBe('USD');
+        expect(res.body.variant.price.currency).toBe('USD');
     });
 
     test('error: seller not owner of product', async () => {
@@ -97,7 +96,7 @@ describe('PUT /api/variant/:id - update variant', () => {
         const product = await createProductForSeller(otherSeller);
         const variant = await createVariant(product._id);
 
-        const res = await putVariant(variant._id, { price: 120 });
+        const res = await putVariant(variant._id, { price: { amount: 120 } });
         expect(res.status).toBe(403);
         expect(res.body.code).toBe('FORBIDDEN_NOT_OWNER');
     });
@@ -106,7 +105,7 @@ describe('PUT /api/variant/:id - update variant', () => {
         const product = await createProductForSeller(sellerId, { isActive: false });
         const variant = await createVariant(product._id);
 
-        const res = await putVariant(variant._id, { price: 120 });
+        const res = await putVariant(variant._id, { price: { amount: 120 } });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('PRODUCT_INACTIVE');
     });
@@ -122,7 +121,7 @@ describe('PUT /api/variant/:id - update variant', () => {
     });
 
     test('validation: bad id format', async () => {
-        const res = await putVariant('bad-id', { price: 120 });
+        const res = await putVariant('bad-id', { price: { amount: 120 } });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('VALIDATION_ERROR');
     });
@@ -130,7 +129,7 @@ describe('PUT /api/variant/:id - update variant', () => {
     test('validation: negative price rejected', async () => {
         const product = await createProductForSeller(sellerId);
         const variant = await createVariant(product._id);
-        const res = await putVariant(variant._id, { price: -10 });
+        const res = await putVariant(variant._id, { price: { amount: -10 } });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('VALIDATION_ERROR');
     });
@@ -146,7 +145,7 @@ describe('PUT /api/variant/:id - update variant', () => {
     test('error: cannot remove all images (no files and no variantImages, existing still present -> allowed)', async () => {
         const product = await createProductForSeller(sellerId);
         const variant = await createVariant(product._id);
-        const res = await putVariant(variant._id, { price: 130 });
+        const res = await putVariant(variant._id, { price: { amount: 130 } });
         expect(res.status).toBe(200);
         expect(res.body.variant.variantImages.length).toBeGreaterThan(0);
     });
@@ -154,7 +153,7 @@ describe('PUT /api/variant/:id - update variant', () => {
     test('error: no images at all if starting variant had none and none provided', async () => {
         const product = await createProductForSeller(sellerId);
         const variant = await createVariant(product._id, { variantImages: [] });
-        const res = await putVariant(variant._id, { price: 130 });
+        const res = await putVariant(variant._id, { price: { amount: 130 } });
         expect(res.status).toBe(400);
         expect(res.body.code).toBe('NO_IMAGES');
     });

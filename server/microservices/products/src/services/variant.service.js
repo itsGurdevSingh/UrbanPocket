@@ -6,7 +6,7 @@ import mongoose from 'mongoose';
 
 class VariantService {
     /**
-     * variantData expected shape: { productId, sku?, options, price, stock, baseUnit, variantImages? }
+     * variantData expected shape: { productId, sku?, options, price: { amount, currency? }, stock, baseUnit, variantImages? }
      * files: multer memory files (images)
      * currentUser: { id, role }
      */
@@ -52,12 +52,18 @@ class VariantService {
                 }
             }
 
+            // Normalize nested price
+            const incomingPrice = typeof variantData.price === 'object' ? variantData.price : { amount: variantData.price };
+            const price = {
+                amount: Number(incomingPrice.amount),
+                currency: (incomingPrice.currency || 'INR').toUpperCase(),
+            };
+
             const doc = {
                 productId: product.id,
                 sku: variantData.sku,
                 options: variantData.options,
-                price: variantData.price,
-                currency: (variantData.currency || 'INR').toUpperCase(),
+                price,
                 stock: variantData.stock,
                 baseUnit: variantData.baseUnit,
                 variantImages,
@@ -76,7 +82,7 @@ class VariantService {
     }
 
     /**
-     * updateData can include: { sku?, options?, price?, stock?, baseUnit?, isActive?, variantImages? }
+     * updateData can include: { sku?, options?, price?: { amount?, currency? }, stock?, baseUnit?, isActive?, variantImages? }
      * files: multer memory files (images)
      * currentUser: { id, role }
      * */
@@ -122,16 +128,25 @@ class VariantService {
             if (newVariantImages.length === 0) {
                 throw new ApiError('At least one variant image is required', { statusCode: 400, code: 'NO_IMAGES' });
             }
+            // Build updated fields, handling nested price patching
             const updatedFields = {
                 sku: updateData.sku !== undefined ? updateData.sku : variant.sku,
                 options: updateData.options !== undefined ? updateData.options : variant.options,
-                price: updateData.price !== undefined ? updateData.price : variant.price,
-                currency: updateData.currency !== undefined ? updateData.currency.toUpperCase() : variant.currency,
                 stock: updateData.stock !== undefined ? updateData.stock : variant.stock,
                 baseUnit: updateData.baseUnit !== undefined ? updateData.baseUnit : variant.baseUnit,
                 variantImages: newVariantImages,
                 isActive: updateData.isActive !== undefined ? updateData.isActive : variant.isActive,
             };
+
+            if (updateData.price !== undefined) {
+                const incomingPrice = typeof updateData.price === 'object' ? updateData.price : { amount: updateData.price };
+                updatedFields.price = {
+                    amount: incomingPrice.amount !== undefined ? Number(incomingPrice.amount) : variant.price?.amount,
+                    currency: incomingPrice.currency !== undefined ? String(incomingPrice.currency).toUpperCase() : variant.price?.currency,
+                };
+            } else {
+                updatedFields.price = variant.price;
+            }
             // Only rollback images that were newly uploaded in this request
             const updated = await uploadService.executeWithUploadRollback(uploadedImages, async () => {
                 return variantRepository.updateById(variant.id, updatedFields);
@@ -376,7 +391,7 @@ class VariantService {
 
             if (productId) filter.productId = productId;
             if (sku) filter.sku = sku;
-            if (currency) filter.currency = currency;
+            if (currency) filter['price.currency'] = currency;
             if (baseUnit) filter.baseUnit = baseUnit;
             if (isActive !== undefined) {
                 if (isActive === true || isActive === 'true') filter.isActive = true;
@@ -390,9 +405,9 @@ class VariantService {
             }
             // numeric ranges
             if (priceMin != null || priceMax != null) {
-                filter.price = {};
-                if (priceMin != null) filter.price.$gte = Number(priceMin);
-                if (priceMax != null) filter.price.$lte = Number(priceMax);
+                filter['price.amount'] = {};
+                if (priceMin != null) filter['price.amount'].$gte = Number(priceMin);
+                if (priceMax != null) filter['price.amount'].$lte = Number(priceMax);
             }
             if (stockMin != null || stockMax != null) {
                 filter.stock = {};

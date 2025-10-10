@@ -41,8 +41,7 @@ async function createVariant(productId, overrides = {}) {
         productId,
         sku: 'SKU-ORIG',
         options: { Color: 'Red', Size: 'M' },
-        price: 100,
-        currency: 'INR',
+        price: { amount: 100, currency: 'INR' },
         stock: 5,
         baseUnit: 'unit',
         variantImages: [

@@ -14,9 +14,21 @@ export const createVariantValidation = [
     body('productId').isMongoId().withMessage('Invalid product ID format'),
     body('sku').optional().isString().trim().isLength({ max: 120 }).withMessage('SKU must be at most 120 characters'),
     optionsValidator,
-    body('price').isFloat({ gt: 0 }).withMessage('price must be > 0'),
-    body('currency').optional().isString().trim().isLength({ min: 3, max: 3 }).withMessage('currency must be a 3-letter code')
-        .matches(/^[A-Za-z]{3}$/).withMessage('currency must contain only letters')
+    // Price as nested object: allow JSON string in multipart and coerce
+    body('price')
+        .customSanitizer(val => {
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch { /* ignore */ }
+            }
+            return val;
+        })
+        .custom(val => {
+            if (!val || typeof val !== 'object' || Array.isArray(val)) return false;
+            return true;
+        }).withMessage('price must be an object with amount and optional currency'),
+    body('price.amount').isFloat({ gt: 0 }).withMessage('price.amount must be > 0').toFloat(),
+    body('price.currency').optional().isString().trim().isLength({ min: 3, max: 3 }).withMessage('price.currency must be a 3-letter code')
+        .matches(/^[A-Za-z]{3}$/).withMessage('price.currency must contain only letters')
         .customSanitizer(v => (v || 'INR').toUpperCase()),
     body('stock').isInt({ min: 0 }).withMessage('stock must be a non-negative integer'),
     body('baseUnit').isString().trim().notEmpty().withMessage('baseUnit is required'),
@@ -30,9 +42,23 @@ export const createVariantValidation = [
 export const updateVariantValidation = [
     param('id').isMongoId().withMessage('Invalid variant ID format'),
     body('sku').optional().isString().trim().isLength({ max: 120 }).withMessage('SKU must be at most 120 characters'),
-    body('price').optional().isFloat({ gt: 0 }).withMessage('price must be > 0'),
-    body('currency').optional().isString().trim().isLength({ min: 3, max: 3 }).withMessage('currency must be a 3-letter code')
-        .matches(/^[A-Za-z]{3}$/).withMessage('currency must contain only letters')
+    // Nested price updates: allow partial updates and JSON string
+    body('price')
+        .optional()
+        .customSanitizer(val => {
+            if (typeof val === 'string') {
+                try { return JSON.parse(val); } catch { /* ignore */ }
+            }
+            return val;
+        })
+        .custom(val => {
+            if (val === undefined) return true;
+            if (typeof val !== 'object' || Array.isArray(val)) return false;
+            return true;
+        }).withMessage('price must be an object when provided'),
+    body('price.amount').optional().isFloat({ gt: 0 }).withMessage('price.amount must be > 0').toFloat(),
+    body('price.currency').optional().isString().trim().isLength({ min: 3, max: 3 }).withMessage('price.currency must be a 3-letter code')
+        .matches(/^[A-Za-z]{3}$/).withMessage('price.currency must contain only letters')
         .customSanitizer(v => (v || 'INR').toUpperCase()),
     body('stock').optional().isInt({ min: 0 }).withMessage('stock must be a non-negative integer'),
     optionsValidator.optional(),
@@ -72,6 +98,7 @@ export const getAllVariantsValidation = [
     // direct variant field filters
     query('productId').optional().isMongoId().withMessage('productId must be a valid Mongo ID'),
     query('sku').optional().isString().trim().isLength({ min: 1, max: 120 }).withMessage('sku must be 1-120 chars'),
+    // currency filter still flat in query; applies to price.currency under the hood
     query('currency')
         .optional()
         .isString().trim().isLength({ min: 3, max: 3 }).withMessage('currency must be a 3-letter code')
@@ -101,8 +128,8 @@ export const getAllVariantsValidation = [
     // projection & sorting
     query('sort').optional().custom(val => {
         const allowed = new Set([
-            'createdAt', 'updatedAt', 'price', 'stock', 'sku', 'currency', 'isActive',
-            '-createdAt', '-updatedAt', '-price', '-stock', '-sku', '-currency', '-isActive',
+            'createdAt', 'updatedAt', 'price', 'price.amount', 'price.currency', 'stock', 'sku', 'currency', 'isActive',
+            '-createdAt', '-updatedAt', '-price', '-price.amount', '-price.currency', '-stock', '-sku', '-currency', '-isActive',
         ]);
         const parts = val.split(',');
         if (!parts.every(p => allowed.has(p))) throw new Error('Invalid sort field');
@@ -110,7 +137,8 @@ export const getAllVariantsValidation = [
     }),
     query('fields').optional().custom(val => {
         const allowed = new Set([
-            'productId', 'sku', 'options', 'price', 'currency', 'stock', 'baseUnit', 'isActive', 'createdAt', 'updatedAt', 'variantImages',
+            // Allow both top-level price and nested price fields for projection
+            'productId', 'sku', 'options', 'price', 'price.amount', 'price.currency', 'currency', 'stock', 'baseUnit', 'isActive', 'createdAt', 'updatedAt', 'variantImages',
         ]);
         const parts = val.split(',');
         if (!parts.every(p => allowed.has(p))) throw new Error('Invalid fields selection');

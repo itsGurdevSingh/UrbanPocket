@@ -23,22 +23,25 @@ const variantSchema = new mongoose.Schema({
   },
   // Commercial data
   price: {
-    type: Number,
-    required: true,
-    min: 0,
+    amount: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+    // ISO 4217 currency code for the price (default INR)
+    currency: {
+      type: String,
+      required: true,
+      default: 'INR',
+      uppercase: true,
+      trim: true,
+      minlength: 3,
+      maxlength: 3,
+      // Basic pattern for alphabetic 3-letter code
+      match: /^[A-Z]{3}$/,
+    },
   },
-  // ISO 4217 currency code for the price (default INR)
-  currency: {
-    type: String,
-    required: true,
-    default: 'INR',
-    uppercase: true,
-    trim: true,
-    minlength: 3,
-    maxlength: 3,
-    // Basic pattern for alphabetic 3-letter code
-    match: /^[A-Z]{3}$/,
-  },
+
   stock: {
     type: Number,
     required: true,
