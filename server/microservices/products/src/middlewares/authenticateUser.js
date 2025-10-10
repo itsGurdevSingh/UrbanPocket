@@ -1,74 +1,42 @@
-import getConfig from '../config/config_keys.js';
+// src/middlewares/authenticateUser.js
+import jwt from 'jsonwebtoken';
 import { ApiError } from '../utils/errors.js';
-import axios from 'axios';
+import getConfig from '../config/config_keys.js';
 
-// --- Internal shared logic -------------------------------------------------
-async function verifyAndAttachUser(req) {
-  const cookie = req.headers.cookie;
-  if (!cookie) {
-    throw new ApiError('Authentication failed: Missing credentials', { statusCode: 401, code: 'MISSING_CREDENTIALS' });
+// Generic authentication.
+export const authenticate = (req, res, next) => {
+  try {
+    const token = req.cookies.accessToken;
+    if (!token) {
+      throw new ApiError('Unauthorized: Missing credentials', { statusCode: 401 });
+    }
+
+    // Verify the token locally. It's fast and synchronous.
+    const decoded = jwt.verify(token, getConfig('jwtSecret'));
+    req.user = decoded; // Attach the payload
+    next();
+  } catch (error) {
+    // This will catch missing tokens, expired tokens, and invalid signatures.
+    next(new ApiError('Unauthorized: Invalid or expired token', { statusCode: 401 }));
   }
-  const authServiceUrl = getConfig('authServiceUrl');
-  const response = await axios.get(`${authServiceUrl}/api/auth/verify`, {
-    headers: { Cookie: cookie },
-  });
-  // Attach user object for downstream handlers
-  req.user = response.data.user;
-  return req.user;
-}
-
-// --- Public middlewares ----------------------------------------------------
-
-// Generic authentication (no role enforcement). Ensures request is from any authenticated user.
-export const authenticate = async (req, res, next) => {
-    try {
-      await verifyAndAttachUser(req);
-      next();
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        return next(new ApiError('Authentication failed', {
-          statusCode: 401,
-          code: 'AUTHENTICATION_FAILED',
-          details: error.response.data,
-        }));
-      }
-      if (error instanceof ApiError) return next(error);
-      return next(new ApiError('An unexpected authentication error occurred', {
-        statusCode: 500,
-        code: 'INTERNAL_AUTH_ERROR',
-        details: error.message,
-      }));
-    }
-  };
-
-
-// Role-based authentication builds on generic authenticate
-const authenticateRole = (allowedRoles = ['user']) => {
-  return async (req, res, next) => {
-    try {
-      const user = req.user || await verifyAndAttachUser(req);
-      if (allowedRoles.includes(user.role)) {
-        return next();
-      }
-      const allowedRolesString = allowedRoles.join(', ');
-      return next(new ApiError(`Forbidden: Only roles [${allowedRolesString}] are allowed`, { statusCode: 403, code: 'FORBIDDEN_ROLE' }));
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response) {
-        return next(new ApiError('Authentication failed', {
-          statusCode: 401,
-          code: 'AUTHENTICATION_FAILED',
-          details: error.response.data,
-        }));
-      }
-      if (error instanceof ApiError) return next(error);
-      return next(new ApiError('An unexpected authentication error occurred', {
-        statusCode: 500,
-        code: 'INTERNAL_AUTH_ERROR',
-        details: error.message,
-      }));
-    }
-  };
 };
 
-export { authenticateRole };
-export default authenticateRole;
+// Role-based authentication.
+export const authenticateRole = (allowedRoles = []) => {
+  // Return a middleware function
+  return (req, res, next) => {
+    // First, run the basic authentication logic
+    authenticate(req, res, (err) => {
+      if (err) {
+        return next(err); // If basic authentication fails, stop here.
+      }
+
+      // If authentication succeeds, check the role.
+      if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
+        return next(new ApiError('Forbidden: Insufficient permissions', { statusCode: 403 }));
+      }
+
+      next(); // Success
+    });
+  };
+};
