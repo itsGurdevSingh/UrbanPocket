@@ -72,7 +72,7 @@ const variantSchema = new mongoose.Schema({
 // db.variants.dropIndex('<oldIndexName>') then let this build.
 variantSchema.index({ productId: 1, sku: 1 }, { unique: true });
 
-const variant = mongoose.model('variant', variantSchema);
+const ProductVariant = mongoose.model('ProductVariant', variantSchema);
 
 // Auto-generate SKU if absent: pattern PRODID-SHORT-<random>
 variantSchema.pre('validate', function (next) {
@@ -83,4 +83,4 @@ variantSchema.pre('validate', function (next) {
   next();
 });
 
-export default variant;
+export default ProductVariant;

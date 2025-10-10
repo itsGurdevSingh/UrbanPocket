@@ -1,9 +1,9 @@
-import variant from '../models/variant.model.js';
+import ProductVariant from '../models/variant.model.js';
 import { ApiError } from '../utils/errors.js';
 
 class VariantRepository {
     constructor() {
-        this.model = variant;
+        this.model = ProductVariant;
     }
 
     async findAll(filter = {}) {

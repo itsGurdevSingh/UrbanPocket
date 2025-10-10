@@ -39,7 +39,7 @@ const inventorySchema = new mongoose.Schema({
   // Tax and other location-specific details (important for India)
   hsnCode: { type: String, trim: true },
   gstPercentage: { type: Number, min: 0, max: 100, default: 18 },
-  
+
   isActive: {
     type: Boolean,
     default: true,
@@ -49,6 +49,6 @@ const inventorySchema = new mongoose.Schema({
 // A compound index to ensure each batch for a variant is unique.
 inventorySchema.index({ variantId: 1, batchNumber: 1 }, { unique: true });
 
-const inventory = mongoose.model('inventory', inventorySchema);
+const InventoryItem = mongoose.model('InventoryItem', inventorySchema);
 
-export default inventory;
+export default InventoryItem;
