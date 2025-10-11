@@ -75,7 +75,7 @@ variantSchema.index({ productId: 1, sku: 1 }, { unique: true });
 const ProductVariant = mongoose.model('ProductVariant', variantSchema);
 
 // Auto-generate SKU if absent: pattern PRODID-SHORT-<random>
-variantSchema.pre('validate', function (next) {
+variantSchema.pre('save', function (next) {
   if (!this.sku) {
     const shortId = this._id?.toString().slice(-6) || Math.random().toString(36).slice(2, 8).toUpperCase();
     this.sku = `${this.productId.toString().slice(-6)}-${shortId}`.toUpperCase();

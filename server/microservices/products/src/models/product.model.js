@@ -42,6 +42,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     required: true,
   }],
+
+  // rating updated via reviews
+  rating: {
+    average: { type: Number, min: 0, max: 5, default: 0 },
+    count: { type: Number, min: 0, default: 0 },
+  },
+
   // General images that apply to all variants of the product
   baseImages: [{
     fileId: { type: String, index: true }, // external image provider identifier
