@@ -54,7 +54,7 @@ describe('PUT /api/product/:id', () => {
     });
 
     it('updates product basic fields (name, description, brand)', async () => {
-        // Since ownership check compares sellerId to currentUser.id ('test-user' in mock), set product sellerId to arbitrary (mismatch) will cause 403.
+        // Since ownership check compares sellerId to currentUser.userId ('test-user' in mock), set product sellerId to arbitrary (mismatch) will cause 403.
         // So we create as admin to bypass or set role to admin.
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
         const doc = await Product.create(buildProduct());

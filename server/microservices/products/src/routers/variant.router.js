@@ -1,7 +1,7 @@
 import express from 'express';
 import { uploadVariantImages, uploadSingleVariantImages } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
-import authenticateRole from '../middlewares/authenticateUser.js';
+import {authenticateRole} from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
 import { createVariantValidation, updateVariantValidation, updateVariantImageValidation, getVariantByIdValidation, getAllVariantsValidation } from '../validators/variant.validator.js';
 import { mongoIdValidation, mongoProductIdValidation } from '../validators/utils.js';

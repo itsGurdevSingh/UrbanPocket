@@ -8,17 +8,20 @@ jest.mock('../../src/middlewares/authenticateUser.js', () => {
     // expose setters globally for tests
     global.setTestAuthRole = (role) => { mockRole = role; };
     global.setTestAuthUserId = (id) => { mockUserId = id; };
-    const buildUser = () => ({ id: mockUserId, role: mockRole });
+    const buildUser = () => ({ userId: mockUserId, role: mockRole });
+    const authenticate = (req, _res, next) => { req.user = buildUser(); next(); };
+    const authenticateRole = (roles = []) => (req, res, next) => {
+        if (roles.length && !roles.includes(mockRole)) {
+            return res.status(403).json({ status: 'error', code: 'FORBIDDEN_ROLE', message: 'Forbidden in test mock' });
+        }
+        req.user = buildUser();
+        next();
+    };
     return {
         __esModule: true,
-        authenticate: (req, _res, next) => { req.user = buildUser(); next(); },
-        default: (roles = []) => (req, res, next) => {
-            if (roles.length && !roles.includes(mockRole)) {
-                return res.status(403).json({ status: 'error', code: 'FORBIDDEN_ROLE', message: 'Forbidden in test mock' });
-            }
-            req.user = buildUser();
-            next();
-        }
+        authenticate,
+        authenticateRole,
+        default: authenticateRole, // backward compatibility if default is imported
     };
 });
 

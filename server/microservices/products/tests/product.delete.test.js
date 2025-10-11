@@ -41,7 +41,7 @@ describe('DELETE /api/product/:id', () => {
         // override auth user id via header simulation if middleware uses req.user already set by global mock
         // our global mock sets id fixed; simulate by temporarily patching product.sellerId to match test user id not feasible here
         // Instead, adapt: treat global mock user id as 'test-user' (string) so make product.sellerId string version
-        // Simpler approach: since ownership check compares product.sellerId to currentUser.id, ensure product sellerId equals 'test-user'
+        // Simpler approach: since ownership check compares product.sellerId to currentUser.userId, ensure product sellerId equals 'test-user'
     });
 
     it('returns 403 when seller tries to delete another seller\'s product', async () => {

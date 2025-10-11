@@ -4,6 +4,7 @@ export const reqLog = (req, res, next) => {
   console.log(`[Request] ${req.method} ${req.originalUrl} - Body:`, req.body, ' - Files:', req.files);
   // return res.send('check log for debugging ');
   next();
+  
 }
 
 // middleware/parseJsonFields.js

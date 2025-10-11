@@ -15,7 +15,7 @@ class productService {
             // Ownership enforcement:
             // If a seller is creating a product, force sellerId to their own id (ignore any provided value).
             if (currentUser && currentUser.role === 'seller') {
-                productData.sellerId = currentUser.id;
+                productData.sellerId = currentUser.userId; // enforce ownership
             }
             // If an admin is creating a product and no sellerId provided, require it.
             if (currentUser && currentUser.role === 'admin') {
@@ -43,6 +43,11 @@ class productService {
 
             // 3. Persist with rollback safety using uploadService helper
             const doc = { ...productData, baseImages };
+
+            // // add some linebreaks for better logging readability
+            console.log('\n\n');
+            console.log('Creating product with doc:', doc);
+            console.log('\n\n');
             const product = await uploadService.executeWithUploadRollback(baseImages, async () => {
                 return productRepository.create(doc);
             }, { rollbackLogCode: 'PRODUCT_CREATE_ROLLBACK' });
@@ -196,7 +201,7 @@ class productService {
             }
             // Ownership / authorization check: only seller who owns it OR admin can update.
             if (currentUser && currentUser.role === 'seller') {
-                if (existing.sellerId.toString() !== currentUser.id) {
+                if (existing.sellerId.toString() !== currentUser.userId) {
                     throw new ApiError('Unauthorized to update this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_UPDATE' });
                 }
             }
@@ -254,7 +259,7 @@ class productService {
             }
             // Ownership / authorization check: only seller who owns it OR admin can update.
             if (currentUser && currentUser.role === 'seller') {
-                if (existing.sellerId.toString() !== currentUser.id) {
+                if (existing.sellerId.toString() !== currentUser.userId) {
                     throw new ApiError('Unauthorized to update this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_UPDATE' });
                 }
             }
@@ -309,7 +314,7 @@ class productService {
             }
             // Ownership / authorization check: only seller who owns it OR admin can delete.
             if (currentUser && currentUser.role === 'seller') {
-                if (product.sellerId.toString() !== currentUser.id) {
+                if (product.sellerId.toString() !== currentUser.userId) {
                     throw new ApiError('Unauthorized to delete this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_DELETE' });
                 }
             }
@@ -354,7 +359,7 @@ class productService {
             }
             // Ownership / authorization check: only seller who owns it OR admin can disable.
             if (currentUser && currentUser.role === 'seller') {
-                if (product.sellerId.toString() !== currentUser.id) {
+                if (product.sellerId.toString() !== currentUser.userId) {
                     throw new ApiError('Unauthorized to disable this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_DISABLE' });
                 }
             }
@@ -385,7 +390,7 @@ class productService {
             }
             // Ownership / authorization check: only seller who owns it OR admin can enable.
             if (currentUser && currentUser.role === 'seller') {
-                if (product.sellerId.toString() !== currentUser.id) {
+                if (product.sellerId.toString() !== currentUser.userId) {
                     throw new ApiError('Unauthorized to enable this product', { statusCode: 403, code: 'UNAUTHORIZED_PRODUCT_ENABLE' });
                 }
             }

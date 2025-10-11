@@ -26,7 +26,7 @@ class VariantService {
 
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             } else if (!['admin'].includes(currentUser.role)) {
@@ -97,7 +97,7 @@ class VariantService {
             const product = await productRepository.findById(variant.productId);
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             } else if (!['admin'].includes(currentUser.role)) {
@@ -178,7 +178,7 @@ class VariantService {
             const product = await productRepository.findById(variant.productId);
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             } else if (!['admin'].includes(currentUser.role)) {
@@ -235,7 +235,7 @@ class VariantService {
             const product = await productRepository.findById(variant.productId);
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             } else if (!['admin'].includes(currentUser.role)) {
@@ -276,7 +276,7 @@ class VariantService {
             const product = await productRepository.findById(variant.productId);
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             } else if (!['admin'].includes(currentUser.role)) {
@@ -312,7 +312,7 @@ class VariantService {
             const product = await productRepository.findById(variant.productId);
             // Ownership / role: seller must own product; admin allowed
             if (currentUser.role === 'seller') {
-                if (product.sellerId?.toString() !== currentUser.id) {
+                if (product.sellerId?.toString() !== currentUser.userId) {
                     throw new ApiError('You do not own this product', { statusCode: 403, code: 'FORBIDDEN_NOT_OWNER' });
                 }
             }

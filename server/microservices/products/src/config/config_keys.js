@@ -8,7 +8,7 @@ const config = {
     jwtSecret: process.env.JWT_SECRET,
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     nodeEnv: process.env.NODE_ENV || "development",
-    port: process.env.PORT || 3001,
+    port: process.env.PRODUCT_SERVICE_PORT || 3001,
 
     // Redis setup
     REDIS_HOST: process.env.REDIS_HOST,

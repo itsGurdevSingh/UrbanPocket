@@ -1,9 +1,9 @@
 import express from 'express';
 import productController from '../controllers/product.controller.js';
-import authenticateRole, { authenticate } from '../middlewares/authenticateUser.js';
+import {authenticateRole,  authenticate } from '../middlewares/authenticateUser.js';
 import { createProductValidation, getByIdValidation, getAllProductsValidation, updateProductValidation, updateProductImageValidation, productIdValidation } from '../validators/product.validator.js';
 import { uploadProductImages, uploadSingleProductImage } from '../middlewares/upload.js';
-import { parseJsonFields } from '../middlewares/reqLog.js';
+import { reqLog, parseJsonFields } from '../middlewares/reqLog.js';
 
 const router = express.Router();
 
@@ -14,6 +14,7 @@ const router = express.Router();
 router.post(
     '/create',
     uploadProductImages, // multer memory storage
+    reqLog, // log request for debugging
     parseJsonFields, //parse JSON fields like attributes, baseImages from postman/form-data
     authenticateRole(['seller', 'admin']),
     createProductValidation,
