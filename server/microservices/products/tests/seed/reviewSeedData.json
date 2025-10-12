@@ -1,0 +1,110 @@
+[
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e01" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c01" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0a" },
+    "rating": 5,
+    "comment": "Absolutely phenomenal camera and the display is out of this world. Best smartphone I have ever owned. Battery life is also a huge improvement.",
+    "createdAt": { "$date": "2025-10-15T11:00:00Z" },
+    "updatedAt": { "$date": "2025-10-15T11:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e02" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c01" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0b" },
+    "rating": 4,
+    "comment": "Great phone, very powerful. It's a bit heavy, but you get used to it. The camera zoom is incredible.",
+    "createdAt": { "$date": "2025-10-16T14:20:00Z" },
+    "updatedAt": { "$date": "2025-10-16T14:20:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e03" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c02" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0c" },
+    "rating": 5,
+    "comment": "A beast of a machine. Compiles code in seconds and handles 4K video editing without breaking a sweat. Worth every penny for a professional.",
+    "createdAt": { "$date": "2025-10-14T09:00:00Z" },
+    "updatedAt": { "$date": "2025-10-14T09:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e04" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c02" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0d" },
+    "rating": 5,
+    "comment": "Finally upgraded from my old Intel MacBook and the difference is night and day. It's silent, cool, and unbelievably fast.",
+    "createdAt": { "$date": "2025-10-15T18:00:00Z" },
+    "updatedAt": { "$date": "2025-10-15T18:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e05" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c03" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0e" },
+    "rating": 4,
+    "comment": "Good quality cotton and the print is nice. Fits as expected. Would buy again in another color.",
+    "createdAt": { "$date": "2025-10-13T12:00:00Z" },
+    "updatedAt": { "$date": "2025-10-13T12:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e06" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c05" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0f" },
+    "rating": 5,
+    "comment": "Very powerful motor. Grinds spices to a fine powder in seconds. The build quality feels solid.",
+    "createdAt": { "$date": "2025-10-08T08:30:00Z" },
+    "updatedAt": { "$date": "2025-10-08T08:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e07" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c05" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c10" },
+    "rating": 3,
+    "comment": "It's a bit loud, and the lid for the smallest jar is hard to clean properly. But it gets the job done.",
+    "createdAt": { "$date": "2025-10-09T20:00:00Z" },
+    "updatedAt": { "$date": "2025-10-09T20:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e08" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c12" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0a" },
+    "rating": 5,
+    "comment": "This book genuinely changed my perspective on productivity and personal growth. A must-read.",
+    "createdAt": { "$date": "2025-07-01T10:00:00Z" },
+    "updatedAt": { "$date": "2025-07-01T10:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e09" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c12" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0c" },
+    "rating": 5,
+    "comment": "I've read it twice. The concepts are simple but incredibly powerful if you apply them. Highly recommended.",
+    "createdAt": { "$date": "2025-07-05T15:00:00Z" },
+    "updatedAt": { "$date": "2025-07-05T15:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e10" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c08" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0b" },
+    "rating": 4,
+    "comment": "Great laptop for creative work. The screen is gorgeous. It does get a bit warm under heavy load, but that's expected.",
+    "createdAt": { "$date": "2025-10-02T19:00:00Z" },
+    "updatedAt": { "$date": "2025-10-02T19:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e11" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c07" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0d" },
+    "rating": 5,
+    "comment": "Wore this to a party and got so many compliments! It's very comfortable and the fabric is high quality.",
+    "createdAt": { "$date": "2025-10-10T21:00:00Z" },
+    "updatedAt": { "$date": "2025-10-10T21:00:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724e111a1a8c3a5e8a71e12" },
+    "product": { "$oid": "6724c111a1a8c3a5e8a71c11" },
+    "userId": { "$oid": "6724c444a1a8c3a5e8a71c0e" },
+    "rating": 4,
+    "comment": "Solid leather shoes, good for office wear. A bit stiff at first but they break in nicely.",
+    "createdAt": { "$date": "2025-08-01T13:00:00Z" },
+    "updatedAt": { "$date": "2025-08-01T13:00:00Z" }
+  }
+]

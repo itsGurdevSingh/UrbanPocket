@@ -44,10 +44,6 @@ class productService {
             // 3. Persist with rollback safety using uploadService helper
             const doc = { ...productData, baseImages };
 
-            // // add some linebreaks for better logging readability
-            console.log('\n\n');
-            console.log('Creating product with doc:', doc);
-            console.log('\n\n');
             const product = await uploadService.executeWithUploadRollback(baseImages, async () => {
                 return productRepository.create(doc);
             }, { rollbackLogCode: 'PRODUCT_CREATE_ROLLBACK' });

@@ -7,20 +7,19 @@ const productSchema = new mongoose.Schema({
     trim: true,
     maxlength: 150,
     index: true,
-    text: true, // Enable text search on this field
+    // Text index is defined below via schema.index
   },
   description: {
     type: String,
     required: true,
     trim: true,
     maxlength: 2000,
-    text: true,
+    // Text index is defined below via schema.index
   },
   brand: {
     type: String,
     trim: true,
     maxlength: 50,
-    text: true,
     index: true,
   },
   // The ID of the seller (from your User service)
@@ -64,6 +63,13 @@ const productSchema = new mongoose.Schema({
 
 // Compound index for common filtering operations
 productSchema.index({ categoryId: 1, brand: 1 });
+
+// Text index for full-text search across key fields
+// Weights prioritize name > brand > description for relevance sorting
+productSchema.index(
+  { name: 'text', brand: 'text', description: 'text' },
+  { weights: { name: 10, brand: 5, description: 3 } }
+);
 
 const Product = mongoose.model('Product', productSchema);
 
