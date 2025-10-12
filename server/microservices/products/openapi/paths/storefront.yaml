@@ -1,0 +1,127 @@
+# Storefront paths
+search:
+  get:
+    summary: Search products for storefront
+    description: Public search with filters, sorting, pagination
+    tags: [Storefront]
+    parameters:
+      - in: query
+        name: search
+        schema:
+          type: string
+        description: Full-text search across name, brand, description
+      - in: query
+        name: category
+        schema:
+          type: string
+        description: Comma-separated categoryIds (ObjectId)
+      - in: query
+        name: brand
+        schema:
+          type: string
+        description: Comma-separated brand names
+      - in: query
+        name: sellerId
+        schema:
+          type: string
+        description: Filter by seller ObjectId
+      - in: query
+        name: minPrice
+        schema:
+          type: number
+        description: Minimum price per base unit
+      - in: query
+        name: maxPrice
+        schema:
+          type: number
+        description: Maximum price per base unit
+      - in: query
+        name: minRating
+        schema:
+          type: number
+          minimum: 0
+          maximum: 5
+        description: Minimum average rating (0-5)
+      - in: query
+        name: sortBy
+        schema:
+          type: string
+          enum: [relevance, price, createdAt]
+          default: relevance
+        description: Sort field. Relevance only applies when search is present.
+      - in: query
+        name: sortOrder
+        schema:
+          type: string
+          enum: [asc, desc]
+          default: desc
+        description: Sort order for price/createdAt
+      - in: query
+        name: page
+        schema:
+          type: integer
+          minimum: 1
+          default: 1
+        description: Page number
+      - in: query
+        name: limit
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 10
+        description: Page size
+      - in: query
+        name: option_*
+        schema:
+          type: string
+        description: Dynamic filter by variant option (e.g., option_Size=M)
+    responses:
+      "200":
+        description: Products retrieved successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                success:
+                  type: boolean
+                  example: true
+                message:
+                  type: string
+                  example: Products retrieved successfully
+                products:
+                  type: array
+                  items:
+                    type: object
+                    description: Aggregated product with variant and inventory fields
+                meta:
+                  type: object
+                  properties:
+                    totalProducts:
+                      type: integer
+                      example: 42
+                    currentPage:
+                      type: integer
+                      example: 1
+                    totalPages:
+                      type: integer
+                      example: 5
+                    hasNextPage:
+                      type: boolean
+                      example: true
+                    hasPrevPage:
+                      type: boolean
+                      example: false
+      "400":
+        description: Invalid query parameters
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"
+      "500":
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/error.yaml#/ErrorResponse"

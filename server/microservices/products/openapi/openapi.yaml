@@ -9,8 +9,12 @@ info:
     email: support@example.com
 
 servers:
-  - url: http://localhost:3000
-    description: Development server
+  - url: http://localhost:{port}
+    description: Local product service
+    variables:
+      port:
+        default: "3001"
+        enum: ["3001"]
   - url: https://api.example.com
     description: Production server
 
@@ -44,6 +48,8 @@ paths:
   # Example path structure:
   # /api/v1/samples:
   #   $ref: './paths/samples.yaml'
+  /api/storefront/search:
+    $ref: "./paths/storefront.yaml#/search"
 
 components:
   schemas:
@@ -79,3 +85,5 @@ tags:
   # TODO: Add your tags here
   # - name: Samples
   #   description: Sample operations
+  - name: Storefront
+    description: Public storefront endpoints for product discovery
