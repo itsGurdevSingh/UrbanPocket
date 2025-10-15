@@ -9,9 +9,10 @@ describe('Sample Test Suite', () => {
                 .get('/health')
                 .expect(200);
 
-            expect(response.body).toHaveProperty('status', 'ok');
-            expect(response.body).toHaveProperty('timestamp');
-            expect(response.body).toHaveProperty('service', 'microservice-boilerplate');
+            expect(response.body.success).toBe(true);
+            expect(response.body.message).toBe('ok');
+            expect(response.body.data).toHaveProperty('timestamp');
+            expect(response.body.data).toHaveProperty('service', 'microservice-boilerplate');
         });
     });
 
@@ -21,8 +22,9 @@ describe('Sample Test Suite', () => {
                 .get('/non-existent-route')
                 .expect(404);
 
-            expect(response.body).toHaveProperty('status', 'error');
-            expect(response.body).toHaveProperty('message', 'Route not found');
+            expect(response.body.success).toBe(false);
+            expect(response.body.error).toBeDefined();
+            expect(response.body.error.code).toBe('ROUTE_NOT_FOUND');
         });
     });
 

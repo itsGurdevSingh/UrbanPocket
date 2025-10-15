@@ -14,7 +14,6 @@ const router = express.Router();
 router.post(
     '/create',
     uploadProductImages, // multer memory storage
-    reqLog, // log request for debugging
     parseJsonFields, //parse JSON fields like attributes, baseImages from postman/form-data
     authenticateRole(['seller', 'admin']),
     createProductValidation,

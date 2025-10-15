@@ -17,7 +17,7 @@ export const authenticate = (req, res, next) => {
     next();
   } catch (error) {
     // This will catch missing tokens, expired tokens, and invalid signatures.
-    next(new ApiError('Unauthorized: Invalid or expired token', { statusCode: 401 }));
+    next(new ApiError('Unauthorized: Invalid or expired token', { statusCode: 401, code: 'UNAUTHORIZED' }));
   }
 };
 
@@ -33,7 +33,7 @@ export const authenticateRole = (allowedRoles = []) => {
 
       // If authentication succeeds, check the role.
       if (allowedRoles.length > 0 && !allowedRoles.includes(req.user.role)) {
-        return next(new ApiError('Forbidden: Insufficient permissions', { statusCode: 403 }));
+        return next(new ApiError('Forbidden: Insufficient permissions', { statusCode: 403, code: 'FORBIDDEN' }));
       }
 
       next(); // Success

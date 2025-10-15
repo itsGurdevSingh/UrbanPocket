@@ -1,0 +1,63 @@
+# Review entity and request schemas
+Review:
+  type: object
+  required: [product, userId, rating]
+  properties:
+    _id:
+      type: string
+      format: objectid
+      example: "6730a111a1a8c3a5e8a71b08"
+    product:
+      type: string
+      format: objectid
+      description: Product being reviewed
+      example: "6724b111a1a8c3a5e8a71b08"
+    userId:
+      type: string
+      format: objectid
+      description: Author user id
+      example: "66f1a111a1a8c3a5e8a71b77"
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+      example: 5
+    comment:
+      type: string
+      maxLength: 1000
+      example: "Great product, highly recommend!"
+    createdAt:
+      type: string
+      format: date-time
+      example: "2025-10-01T12:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2025-10-01T12:00:00Z"
+
+CreateReviewRequest:
+  type: object
+  required: [product, rating]
+  properties:
+    product:
+      type: string
+      format: objectid
+      description: Product being reviewed
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    comment:
+      type: string
+      maxLength: 1000
+
+UpdateReviewRequest:
+  type: object
+  properties:
+    rating:
+      type: integer
+      minimum: 1
+      maximum: 5
+    comment:
+      type: string
+      maxLength: 1000

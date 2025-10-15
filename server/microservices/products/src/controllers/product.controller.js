@@ -1,19 +1,16 @@
 import { ApiError } from '../utils/errors.js';
 import logger from '../utils/logger.js';
 import productService from '../services/product.service.js';
+import { ApiResponse } from '../utils/success.js';
 
 class productController {
 
     async createProduct(req, res, next) {
         try {
             // Pass body and uploaded files to service (service will upload images after uniqueness check)
-            const product = await productService.createProduct(req.body, req.files || [],req.user);
+            const product = await productService.createProduct(req.body, req.files || [], req.user);
 
-            res.status(201).json({
-                status: 'success',
-                message: 'Product created successfully',
-                product: product || {} // return created product details
-            });
+            res.status(201).json( new ApiResponse(product, 'Product created successfully') );
         } catch (error) {
             logger.error('Error creating product:', error);
             // If the service already produced an ApiError (e.g. validation/duplicate/no images/upload failure)
@@ -28,12 +25,14 @@ class productController {
     async getAllProducts(req, res, next) {
         try {
             const result = await productService.getAllProducts(req.query || {});
-            res.status(200).json({
-                status: 'success',
+
+            const data = {
                 products: result.data || [],
-                meta: result.meta,
-                count: result.count // backward compatibility
-            });
+                meta: result.meta
+            };
+            res.status(200).json(
+                new ApiResponse(data, 'Products fetched successfully')
+            );
         } catch (error) {
             if (error instanceof ApiError) {
                 return next(error);
@@ -49,10 +48,8 @@ class productController {
             if (!product) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                product: product
-            });
+            res.status(200).json(
+                new ApiResponse(product, 'Product fetched successfully'));
         } catch (error) {
             logger.error('Error fetching product by ID:', error);
             if (error instanceof ApiError) {
@@ -70,11 +67,8 @@ class productController {
             if (!updatedProduct) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                message: 'Product updated successfully',
-                product: updatedProduct
-            });
+            res.status(200).json(
+                new ApiResponse(updatedProduct, 'Product updated successfully'));
         } catch (error) {
             logger.error('Error updating product:', error);
             if (error instanceof ApiError) {
@@ -94,11 +88,9 @@ class productController {
             if (!updatedImage) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                message: 'Product image updated successfully',
-                product: updatedImage
-            });
+            res.status(200).json(
+                new ApiResponse(updatedImage,'Product image updated successfully')
+                );
         }
         catch (error) {
             logger.error('Error updating product image:', error);
@@ -117,10 +109,7 @@ class productController {
             if (!deleted) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                message: 'Product deleted successfully'
-            });
+            res.status(200).json(new ApiResponse(null, 'Product deleted successfully'));
         }
         catch (error) {
             logger.error('Error deleting product:', error);
@@ -138,10 +127,7 @@ class productController {
             if (!disabled) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                message: 'Product disabled successfully'
-            });
+            res.status(200).json( new ApiResponse(null, 'Product disabled successfully') );
         } catch (error) {
             logger.error('Error disabling product:', error);
             if (error instanceof ApiError) {
@@ -158,10 +144,7 @@ class productController {
             if (!enabled) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json({
-                status: 'success',
-                message: 'Product enabled successfully'
-            });
+            res.status(200).json( new ApiResponse(null, 'Product enabled successfully') );
         } catch (error) {
             logger.error('Error enabling product:', error);
             if (error instanceof ApiError) {

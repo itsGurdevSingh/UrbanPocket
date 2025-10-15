@@ -79,14 +79,14 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .expect(200);
 
         expect(res.body.success).toBe(true);
-        expect(Array.isArray(res.body.products)).toBe(true);
+        expect(Array.isArray(res.body.data.products)).toBe(true);
         // Should include Samsung Galaxy S25 Ultra when in stock and active
-        const names = res.body.products.map((p) => p.name);
+        const names = res.body.data.products.map((p) => p.name);
         expect(names.some((n) => /Galaxy S25 Ultra/i.test(n))).toBe(true);
         // iPhone 17 Pro has 0 stock in inventory; should be excluded
         expect(names.some((n) => /iPhone 17 Pro/i.test(n))).toBe(false);
 
-        const { meta } = res.body;
+        const { meta } = res.body.data;
         expect(meta).toMatchObject({ currentPage: 1, totalProducts: expect.any(Number) });
     });
 
@@ -101,8 +101,8 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .expect(200);
 
         const allowedCats = new Set([catSmartphones, catLaptops]);
-        expect(res.body.products.length).toBeGreaterThan(0);
-        res.body.products.forEach((p) => {
+        expect(res.body.data.products.length).toBeGreaterThan(0);
+        res.body.data.products.forEach((p) => {
             expect(allowedCats.has(p.categoryId.toString())).toBe(true);
             expect(['Apple', 'Samsung']).toContain(p.brand);
         });
@@ -116,7 +116,7 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .query({ sellerId, minRating: 4.7, minPrice: 100000, maxPrice: 300000, limit: 50 })
             .expect(200);
 
-        res.body.products.forEach((p) => {
+        res.body.data.products.forEach((p) => {
             expect(p.sellerId.toString()).toBe(sellerId);
             expect(p.rating?.average ?? 0).toBeGreaterThanOrEqual(4.7);
             // price range enforced by pipeline
@@ -133,8 +133,8 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .query({ 'option_Color': 'Black', 'option_Size': 'M', limit: 50 })
             .expect(200);
 
-        expect(res.body.products.length).toBeGreaterThan(0);
-        res.body.products.forEach((p) => {
+        expect(res.body.data.products.length).toBeGreaterThan(0);
+        res.body.data.products.forEach((p) => {
             expect(p.options.Color).toBe('Black');
             expect(p.options.Size).toBe('M');
             // stock must be > 0 per pipeline
@@ -148,7 +148,7 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .get('/api/storefront/search')
             .query({ sortBy: 'price', sortOrder: 'asc', limit: 20 })
             .expect(200);
-        const prices = res.body.products.map((p) => p.price.amount);
+        const prices = res.body.data.products.map((p) => p.price.amount);
         const sorted = [...prices].sort((a, b) => a - b);
         expect(prices).toEqual(sorted);
     });
@@ -158,7 +158,7 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
             .get('/api/storefront/search')
             .query({ sortBy: 'price', sortOrder: 'desc', limit: 20 })
             .expect(200);
-        const prices = res.body.products.map((p) => p.price.amount);
+        const prices = res.body.data.products.map((p) => p.price.amount);
         const sorted = [...prices].sort((a, b) => b - a);
         expect(prices).toEqual(sorted);
     });
@@ -168,11 +168,11 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
         const res1 = await request(app).get('/api/storefront/search?limit=2&page=1').expect(200);
         const res2 = await request(app).get('/api/storefront/search?limit=2&page=2').expect(200);
 
-        expect(res1.body.meta).toEqual(expect.objectContaining({ currentPage: 1, hasNextPage: true }));
-        expect(res2.body.meta.currentPage).toBe(2);
+        expect(res1.body.data.meta).toEqual(expect.objectContaining({ currentPage: 1, hasNextPage: true }));
+        expect(res2.body.data.meta.currentPage).toBe(2);
         // Different pages should not be identical sets
-        const ids1 = new Set(res1.body.products.map((p) => p._id.toString()));
-        const ids2 = new Set(res2.body.products.map((p) => p._id.toString()));
+        const ids1 = new Set(res1.body.data.products.map((p) => p._id.toString()));
+        const ids2 = new Set(res2.body.data.products.map((p) => p._id.toString()));
         let overlap = false;
         ids1.forEach((id) => { if (ids2.has(id)) overlap = true; });
         expect(overlap).toBe(false);
@@ -180,50 +180,50 @@ describe('Storefront Search API - GET /api/storefront/search', () => {
 
     test('page beyond last returns empty products with correct meta', async () => {
         const first = await request(app).get('/api/storefront/search?limit=5&page=1').expect(200);
-        const total = first.body.meta.totalProducts;
+        const total = first.body.data.meta.totalProducts;
         const totalPages = Math.ceil(total / 5) || 1;
         const beyond = await request(app).get(`/api/storefront/search?limit=5&page=${totalPages + 1}`).expect(200);
-        expect(beyond.body.products.length).toBe(0);
-        expect(beyond.body.meta.hasNextPage).toBe(false);
+        expect(beyond.body.data.products.length).toBe(0);
+        expect(beyond.body.data.meta.hasNextPage).toBe(false);
     });
 
     // Validation errors
     test('rejects invalid sellerId', async () => {
         const res = await request(app).get('/api/storefront/search?sellerId=bad-id').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('rejects category with only invalid IDs', async () => {
         const res = await request(app).get('/api/storefront/search?category=bad1,bad2').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('accepts mixed category list and keeps only valid IDs', async () => {
         const res = await request(app)
             .get('/api/storefront/search?category=bad,6724b334a1a8c3a5e8a71b18,also-bad')
             .expect(200);
-        expect(Array.isArray(res.body.products)).toBe(true);
+        expect(Array.isArray(res.body.data.products)).toBe(true);
     });
 
     test('rejects invalid sortBy', async () => {
         const res = await request(app).get('/api/storefront/search?sortBy=popularity').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('rejects invalid sortOrder', async () => {
         const res = await request(app).get('/api/storefront/search?sortOrder=UP').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('rejects minPrice > maxPrice', async () => {
         const res = await request(app).get('/api/storefront/search?minPrice=100&maxPrice=50').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('rejects invalid dynamic option name/value', async () => {
         const res1 = await request(app).get('/api/storefront/search?option_-Bad=Value').expect(400);
-        expect(res1.body.code).toBe('VALIDATION_ERROR');
+        expect(res1.body.error.code).toBe('VALIDATION_ERROR');
         const res2 = await request(app).get('/api/storefront/search?option_Size=').expect(400);
-        expect(res2.body.code).toBe('VALIDATION_ERROR');
+        expect(res2.body.error.code).toBe('VALIDATION_ERROR');
     });
 });

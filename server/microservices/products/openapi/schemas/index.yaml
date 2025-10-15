@@ -1,0 +1,149 @@
+# ============================================================================
+# Central Schema Index
+# ============================================================================
+# This file acts as the single source of truth for all API schemas.
+# Schemas are organized in logical order for better UI presentation.
+# ============================================================================
+
+# ============================================================================
+# 1. PRODUCT SCHEMAS
+# ============================================================================
+
+# Product Entity
+Product:
+  $ref: "./product.yaml#/Product"
+
+# Product Request Schemas
+ProductCreateRequest:
+  $ref: "./product.yaml#/CreateProductRequest"
+
+# Product Response Envelopes
+ProductResponse:
+  $ref: "./common.yaml#/ProductResponse"
+
+ProductsListResponse:
+  $ref: "./common.yaml#/ProductsListResponse"
+
+# ============================================================================
+# 2. PRODUCT VARIANT SCHEMAS
+# ============================================================================
+
+# Variant Entity
+ProductVariant:
+  $ref: "./variant.yaml#/Variant"
+
+# Variant Request Schemas
+VariantCreateRequest:
+  $ref: "./variant.yaml#/CreateVariantRequest"
+
+VariantUpdateRequest:
+  $ref: "./variant.yaml#/UpdateVariantRequest"
+
+# Variant Response Envelopes
+VariantResponse:
+  $ref: "./common.yaml#/VariantResponse"
+
+VariantsListResponse:
+  $ref: "./common.yaml#/VariantsListResponse"
+
+VariantsArrayResponse:
+  $ref: "./common.yaml#/VariantsArrayResponse"
+
+# ============================================================================
+# 3. CATEGORY SCHEMAS
+# ============================================================================
+
+# Category Entity
+Category:
+  $ref: "./category.yaml#/Category"
+
+# Category Request Schemas
+CategoryCreateRequest:
+  $ref: "./category.yaml#/CreateCategoryRequest"
+
+CategoryUpdateRequest:
+  $ref: "./category.yaml#/UpdateCategoryRequest"
+
+# Category Response Envelopes
+CategoryResponse:
+  $ref: "./common.yaml#/CategoryResponse"
+
+CategoriesListResponse:
+  $ref: "./common.yaml#/CategoriesListResponse"
+
+# ============================================================================
+# 4. INVENTORY SCHEMAS
+# ============================================================================
+
+# Inventory Entity
+InventoryItem:
+  $ref: "./inventory.yaml#/InventoryItem"
+
+# Inventory Request Schemas
+InventoryCreateRequest:
+  $ref: "./inventory.yaml#/CreateInventoryRequest"
+
+InventoryUpdateRequest:
+  $ref: "./inventory.yaml#/UpdateInventoryRequest"
+
+# Inventory Response Envelopes
+InventoryResponse:
+  $ref: "./common.yaml#/InventoryResponse"
+
+InventoryItemsListResponse:
+  $ref: "./common.yaml#/InventoryItemsListResponse"
+
+# ============================================================================
+# 5. REVIEW SCHEMAS
+# ============================================================================
+
+# Review Entity
+Review:
+  $ref: "./review.yaml#/Review"
+
+# Review Request Schemas
+ReviewCreateRequest:
+  $ref: "./review.yaml#/CreateReviewRequest"
+
+ReviewUpdateRequest:
+  $ref: "./review.yaml#/UpdateReviewRequest"
+
+# Review Response Envelopes
+ReviewResponse:
+  $ref: "./common.yaml#/ReviewResponse"
+
+ReviewsListResponse:
+  $ref: "./common.yaml#/ReviewsListResponse"
+
+# ============================================================================
+# 6. STOREFRONT SCHEMAS
+# ============================================================================
+
+# Storefront Product Card (Public-facing)
+StorefrontProductCard:
+  $ref: "./storefront.yaml#/StorefrontProductCard"
+
+# Storefront Search Response
+StorefrontSearchResponse:
+  $ref: "./storefront.yaml#/StorefrontSearchResponse"
+
+# ============================================================================
+# 7. COMMON SCHEMAS & RESPONSES
+# ============================================================================
+
+# Base Response Wrappers
+BaseSuccessResponse:
+  $ref: "./common.yaml#/BaseSuccessResponse"
+
+ErrorResponse:
+  $ref: "./common.yaml#/ErrorResponse"
+
+# Generic Responses
+HealthCheckResponse:
+  $ref: "./common.yaml#/HealthCheckResponse"
+
+MessageResponse:
+  $ref: "./common.yaml#/MessageResponse"
+
+ImageResponse:
+  $ref: "./common.yaml#/ImageResponse"

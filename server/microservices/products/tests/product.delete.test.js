@@ -25,13 +25,13 @@ describe('DELETE /api/product/:id', () => {
 
     it('returns 400 for invalid id', async () => {
         const res = await request(app).delete('/api/product/not-valid').expect(400);
-        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('returns 404 for non-existent product', async () => {
         const id = new mongoose.Types.ObjectId().toString();
         const res = await request(app).delete(`/api/product/${id}`).expect(404);
-        expect(res.body).toHaveProperty('code', 'PRODUCT_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     it('deletes product successfully as owning seller', async () => {
@@ -51,14 +51,14 @@ describe('DELETE /api/product/:id', () => {
         const doc = await Product.create(buildProduct({ sellerId: sellerA }));
         // auth user is seller (mock sets id 'test-user' which won't match sellerA ObjectId)
         const res = await request(app).delete(`/api/product/${doc._id}`).expect(403);
-        expect(res.body).toHaveProperty('code', 'UNAUTHORIZED_PRODUCT_DELETE');
+        expect(res.body.error.code).toBe('UNAUTHORIZED_PRODUCT_DELETE');
     });
 
     it('deletes product successfully as admin (bypass ownership)', async () => {
         const doc = await Product.create(buildProduct());
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
         const res = await request(app).delete(`/api/product/${doc._id}`).expect(200);
-        expect(res.body).toHaveProperty('status', 'success');
+        expect(res.body.success).toBe(true);
         const inDb = await Product.findById(doc._id);
         expect(inDb).toBeNull();
     });
@@ -67,6 +67,6 @@ describe('DELETE /api/product/:id', () => {
         const doc = await Product.create(buildProduct());
         jest.spyOn(productRepository, 'findById').mockRejectedValue(new Error('Simulated repo failure'));
         const res = await request(app).delete(`/api/product/${doc._id}`).expect(500);
-        expect(['DELETE_PRODUCT_FAILED', 'DELETE_PRODUCT_ERROR']).toContain(res.body.code);
+        expect(['DELETE_PRODUCT_FAILED', 'DELETE_PRODUCT_ERROR']).toContain(res.body.error.code);
     });
 });

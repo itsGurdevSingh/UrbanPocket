@@ -73,9 +73,9 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
 
         const res = await putVariantImage(variant._id, 'ik-old-b', 'repl');
         expect(res.status).toBe(200);
-        expect(res.body.updatedImage).toBeDefined();
-        expect(res.body.updatedImage.fileId).toContain('ik-file-');
-        expect(res.body.updatedImage.url).toContain('ik-updated-');
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.fileId).toContain('ik-file-');
+        expect(res.body.data.url).toContain('ik-updated-');
     });
 
     test('error: missing file returns 400 NO_FILE', async () => {
@@ -83,7 +83,7 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
         const variant = await createVariant(product._id);
         const res = await request(app).put(`/api/variant/${variant._id}/ik-old-a`);
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('NO_FILE');
+        expect(res.body.error.code).toBe('NO_FILE');
     });
 
     test('error: variant image not found (bad fileId)', async () => {
@@ -91,7 +91,7 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
         const variant = await createVariant(product._id);
         const res = await putVariantImage(variant._id, 'non-exist', 'new');
         expect(res.status).toBe(404);
-        expect(res.body.code).toBe('VARIANT_IMAGE_NOT_FOUND');
+        expect(res.body.error.code).toBe('VARIANT_IMAGE_NOT_FOUND');
     });
 
     test('error: product inactive', async () => {
@@ -99,7 +99,7 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
         const variant = await createVariant(product._id);
         const res = await putVariantImage(variant._id, 'ik-old-a', 'new');
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('PRODUCT_INACTIVE');
+        expect(res.body.error.code).toBe('PRODUCT_INACTIVE');
     });
 
     test('error: seller not owner', async () => {
@@ -108,7 +108,7 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
         const variant = await createVariant(product._id);
         const res = await putVariantImage(variant._id, 'ik-old-a', 'new');
         expect(res.status).toBe(403);
-        expect(res.body.code).toBe('FORBIDDEN_NOT_OWNER');
+        expect(res.body.error.code).toBe('FORBIDDEN_NOT_OWNER');
     });
 
     test('validation: invalid variant id or fileId', async () => {
@@ -116,7 +116,7 @@ describe('PUT /api/variant/:id/:fileId - update a single variant image', () => {
             .put(`/api/variant/bad-id/ik-old-a`)
             .attach('image', createImageBuffer('x'), 'x.jpg');
         expect(res1.status).toBe(400);
-        expect(res1.body.code).toBe('VALIDATION_ERROR');
+        expect(res1.body.error.code).toBe('VALIDATION_ERROR');
 
         const sellerId2 = new mongoose.Types.ObjectId();
         if (global.setTestAuthRole) global.setTestAuthRole('seller');

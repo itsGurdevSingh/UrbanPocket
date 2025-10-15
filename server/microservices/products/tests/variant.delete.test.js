@@ -62,6 +62,7 @@ describe('DELETE /api/variant/:id - delete variant', () => {
         const variant = await createVariant(product._id);
         const res = await request(app).delete(`/api/variant/${variant._id}`);
         expect(res.status).toBe(200);
+        expect(res.body.success).toBe(true);
         expect(res.body.message).toMatch(/deleted successfully/i);
         expect(uploadService.deleteImages).toHaveBeenCalledTimes(1);
         const [fileIdsArg] = uploadService.deleteImages.mock.calls[0];
@@ -82,7 +83,7 @@ describe('DELETE /api/variant/:id - delete variant', () => {
         const variant = await createVariant(product._id);
         const res = await request(app).delete(`/api/variant/${variant._id}`);
         expect(res.status).toBe(403);
-        expect(res.body.code).toBe('FORBIDDEN_NOT_OWNER');
+        expect(res.body.error.code).toBe('FORBIDDEN_NOT_OWNER');
     });
 
     test('error: product inactive', async () => {
@@ -90,12 +91,12 @@ describe('DELETE /api/variant/:id - delete variant', () => {
         const variant = await createVariant(product._id);
         const res = await request(app).delete(`/api/variant/${variant._id}`);
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('PRODUCT_INACTIVE');
+        expect(res.body.error.code).toBe('PRODUCT_INACTIVE');
     });
 
     test('validation: invalid id', async () => {
         const res = await request(app).delete('/api/variant/not-a-valid-id');
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 });

@@ -77,8 +77,8 @@ describe('PUT /api/variant/:id - update variant', () => {
 
         const res = await putVariant(variant._id, { price: { amount: 150 } }, ['new']);
         expect(res.status).toBe(200);
-        expect(res.body.variant.price.amount).toBe(150);
-        expect(res.body.variant.variantImages.length).toBe(2);
+        expect(res.body.data.price.amount).toBe(150);
+        expect(res.body.data.variantImages.length).toBe(2);
     });
 
     test('success: admin updates currency (auto uppercase)', async () => {
@@ -88,7 +88,7 @@ describe('PUT /api/variant/:id - update variant', () => {
 
         const res = await putVariant(variant._id, { price: { currency: 'usd' } });
         expect(res.status).toBe(200);
-        expect(res.body.variant.price.currency).toBe('USD');
+        expect(res.body.data.price.currency).toBe('USD');
     });
 
     test('error: seller not owner of product', async () => {
@@ -98,7 +98,7 @@ describe('PUT /api/variant/:id - update variant', () => {
 
         const res = await putVariant(variant._id, { price: { amount: 120 } });
         expect(res.status).toBe(403);
-        expect(res.body.code).toBe('FORBIDDEN_NOT_OWNER');
+        expect(res.body.error.code).toBe('FORBIDDEN_NOT_OWNER');
     });
 
     test('error: product inactive cannot update', async () => {
@@ -107,7 +107,7 @@ describe('PUT /api/variant/:id - update variant', () => {
 
         const res = await putVariant(variant._id, { price: { amount: 120 } });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('PRODUCT_INACTIVE');
+        expect(res.body.error.code).toBe('PRODUCT_INACTIVE');
     });
 
     test('error: duplicate SKU within product on update', async () => {
@@ -117,13 +117,13 @@ describe('PUT /api/variant/:id - update variant', () => {
 
         const res = await putVariant(v2._id, { sku: 'SKU-1' });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('DUPLICATE_VARIANT_SKU');
+        expect(res.body.error.code).toBe('DUPLICATE_VARIANT_SKU');
     });
 
     test('validation: bad id format', async () => {
         const res = await putVariant('bad-id', { price: { amount: 120 } });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('validation: negative price rejected', async () => {
@@ -131,7 +131,7 @@ describe('PUT /api/variant/:id - update variant', () => {
         const variant = await createVariant(product._id);
         const res = await putVariant(variant._id, { price: { amount: -10 } });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('validation: options must be object', async () => {
@@ -139,7 +139,7 @@ describe('PUT /api/variant/:id - update variant', () => {
         const variant = await createVariant(product._id);
         const res = await putVariant(variant._id, { options: [] });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('error: cannot remove all images (no files and no variantImages, existing still present -> allowed)', async () => {
@@ -147,7 +147,7 @@ describe('PUT /api/variant/:id - update variant', () => {
         const variant = await createVariant(product._id);
         const res = await putVariant(variant._id, { price: { amount: 130 } });
         expect(res.status).toBe(200);
-        expect(res.body.variant.variantImages.length).toBeGreaterThan(0);
+        expect(res.body.data.variantImages.length).toBeGreaterThan(0);
     });
 
     test('error: no images at all if starting variant had none and none provided', async () => {
@@ -155,6 +155,6 @@ describe('PUT /api/variant/:id - update variant', () => {
         const variant = await createVariant(product._id, { variantImages: [] });
         const res = await putVariant(variant._id, { price: { amount: 130 } });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('NO_IMAGES');
+        expect(res.body.error.code).toBe('NO_IMAGES');
     });
 });

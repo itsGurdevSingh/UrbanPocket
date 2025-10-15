@@ -74,10 +74,10 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(201);
-        expect(res.body.variant).toBeDefined();
-        expect(res.body.variant.productId).toBe(String(product._id));
-        expect(res.body.variant.price.currency).toBe('INR');
-        expect(res.body.variant.variantImages.length).toBe(1);
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.productId).toBe(String(product._id));
+        expect(res.body.data.price.currency).toBe('INR');
+        expect(res.body.data.variantImages.length).toBe(1);
     });
 
     test('success: admin creates variant with custom lowercase currency (auto uppercase)', async () => {
@@ -91,7 +91,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(201);
-        expect(res.body.variant.price.currency).toBe('USD');
+        expect(res.body.data.price.currency).toBe('USD');
     });
 
     test('error: unauthorized seller creating variant for product they do not own', async () => {
@@ -105,7 +105,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(403);
-        expect(res.body.code).toBe('FORBIDDEN_NOT_OWNER');
+        expect(res.body.error.code).toBe('FORBIDDEN_NOT_OWNER');
     });
 
     test('error: inactive product', async () => {
@@ -118,7 +118,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('PRODUCT_INACTIVE');
+        expect(res.body.error.code).toBe('PRODUCT_INACTIVE');
     });
 
     test('error: duplicate SKU within product', async () => {
@@ -142,7 +142,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('DUPLICATE_VARIANT_SKU');
+        expect(res.body.error.code).toBe('DUPLICATE_VARIANT_SKU');
     });
 
     test('validation: invalid productId', async () => {
@@ -154,7 +154,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('validation: negative price', async () => {
@@ -167,7 +167,7 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('validation: missing images (no files, no variantImages array)', async () => {
@@ -181,7 +181,7 @@ describe('POST /api/variant/create - create variant', () => {
             .field('stock', '2')
             .field('baseUnit', 'unit');
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('NO_IMAGES');
+        expect(res.body.error.code).toBe('NO_IMAGES');
     });
 
     test('validation: options not object', async () => {
@@ -195,7 +195,7 @@ describe('POST /api/variant/create - create variant', () => {
             .field('stock', '2')
             .field('baseUnit', 'unit');
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('validation: bad currency code', async () => {
@@ -208,6 +208,6 @@ describe('POST /api/variant/create - create variant', () => {
             baseUnit: 'unit'
         });
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 });

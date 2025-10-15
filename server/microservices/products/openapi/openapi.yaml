@@ -1,89 +1,114 @@
 openapi: 3.0.0
 info:
-  title: Microservice API
+  title: Product Service API
   version: 1.0.0
-  description: Generic microservice API template. Replace with your service-specific information.
+  description: Manages all product-related data, including products, variants, inventory, categories, and the public-facing storefront search.
   contact:
     name: API Support
-    url: https://example.com/support
-    email: support@example.com
+    email: dev-team@yourcompany.com
 
 servers:
-  - url: http://localhost:{port}
-    description: Local product service
-    variables:
-      port:
-        default: "3001"
-        enum: ["3001"]
-  - url: https://api.example.com
-    description: Production server
+  - url: http://localhost:3001
+    description: Local Development Server
+  - url: https://api.yourcompany.com/products
+    description: Production Server
+
+tags:
+  - name: Products
+    description: Operations for managing product blueprints.
+  - name: Variants
+    description: Operations for managing specific product variants.
+  - name: Categories
+    description: Operations for managing product categories.
+  - name: Inventory
+    description: Operations for managing stock and batches.
+  - name: Reviews
+    description: Operations for managing product reviews.
+  - name: Storefront
+    description: Public-facing endpoints for product discovery.
+  - name: Health
+    description: Service health checks.
 
 paths:
-  # Health check endpoint
+  # Health Check
   /health:
-    get:
-      summary: Health check
-      description: Returns the health status of the service
-      tags: [Health]
-      responses:
-        "200":
-          description: Service is healthy
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "ok"
-                  timestamp:
-                    type: string
-                    format: date-time
-                    example: "2023-10-01T12:00:00.000Z"
-                  service:
-                    type: string
-                    example: "microservice-boilerplate"
+    $ref: "./paths/health.yaml#/healthCheck"
 
-  # TODO: Add your API paths here
-  # Example path structure:
-  # /api/v1/samples:
-  #   $ref: './paths/samples.yaml'
+  # Storefront
   /api/storefront/search:
     $ref: "./paths/storefront.yaml#/search"
 
+  # Products
+  /api/products/create:
+    $ref: "./paths/products.yaml#/createProduct"
+  /api/products/{id}:
+    $ref: "./paths/products.yaml#/productById"
+  /api/products/{id}/enable:
+    $ref: "./paths/products.yaml#/enableProduct"
+  /api/products/{id}/disable:
+    $ref: "./paths/products.yaml#/disableProduct"
+  /api/products/{id}/images/{fileId}:
+    $ref: "./paths/products.yaml#/productImageById"
+  # Variants
+  /api/variant/create:
+    $ref: "./paths/variants.yaml#/createVariant"
+  /api/variant/{id}:
+    $ref: "./paths/variants.yaml#/variantById"
+  /api/variant/{id}/{fileId}:
+    $ref: "./paths/variants.yaml#/variantImageById"
+  /api/variant/{id}/enable:
+    $ref: "./paths/variants.yaml#/enableVariant"
+  /api/variant/{id}/disable:
+    $ref: "./paths/variants.yaml#/disableVariant"
+  /api/variant/product/{productId}:
+    $ref: "./paths/variants.yaml#/getVariantsByProduct"
+  /api/variant/getAll:
+    $ref: "./paths/variants.yaml#/getAllVariants"
+
+  # Inventory
+  /api/inventory/create:
+    $ref: "./paths/inventory.yaml#/createInventory"
+  /api/inventory/{id}:
+    $ref: "./paths/inventory.yaml#/inventoryById"
+  /api/inventory/getAll:
+    $ref: "./paths/inventory.yaml#/getAllInventory"
+  /api/inventory/{id}/enable:
+    $ref: "./paths/inventory.yaml#/enableInventory"
+  /api/inventory/{id}/disable:
+    $ref: "./paths/inventory.yaml#/disableInventory"
+  # Reviews
+  /api/reviews/create:
+    $ref: "./paths/reviews.yaml#/createReview"
+  /api/reviews/{id}:
+    $ref: "./paths/reviews.yaml#/reviewById"
+  /api/reviews/product/{productId}:
+    $ref: "./paths/reviews.yaml#/getReviewsByProduct"
+  /api/reviews/getAll:
+    $ref: "./paths/reviews.yaml#/getAllReviews"
+  # Categories
+  /api/category/create:
+    $ref: "./paths/categories.yaml#/createCategory"
+  /api/category/{id}:
+    $ref: "./paths/categories.yaml#/categoryById"
+  /api/category/{id}/enable:
+    $ref: "./paths/categories.yaml#/enableCategory"
+  /api/category/{id}/disable:
+    $ref: "./paths/categories.yaml#/disableCategory"
+  /api/category/getAll:
+    $ref: "./paths/categories.yaml#/getAllCategories"
+  /api/category/{id}/tree:
+    $ref: "./paths/categories.yaml#/getCategoryTree"
+
 components:
   schemas:
-    # Import common error schema
-    ErrorResponse:
-      $ref: "./schemas/error.yaml#/ErrorResponse"
-    SuccessResponse:
-      $ref: "./schemas/error.yaml#/SuccessResponse"
-
-    # TODO: Add your schemas here
-    # Example:
-    Sample:
-      $ref: "./schemas/sample.yaml#/Sample"
-    CreateSampleRequest:
-      $ref: "./schemas/sample.yaml#/CreateSampleRequest"
-    UpdateSampleRequest:
-      $ref: "./schemas/sample.yaml#/UpdateSampleRequest"
-
-  # TODO: Add your security schemes here if needed
-  # securitySchemes:
-  #   BearerAuth:
-  #     type: http
-  #     scheme: bearer
-  #     bearerFormat: JWT
-
-# TODO: Apply security globally or to specific paths
-# security:
-#   - BearerAuth: []
-
-tags:
-  - name: Health
-    description: Health check operations
-  # TODO: Add your tags here
-  # - name: Samples
-  #   description: Sample operations
-  - name: Storefront
-    description: Public storefront endpoints for product discovery
+    # ============================================================================
+    # All schemas are centrally managed and imported from schemas/index.yaml
+    # This single reference imports all organized schemas for better maintainability
+    # ============================================================================
+    $ref: "./schemas/index.yaml"
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access Token provided by the Auth service."

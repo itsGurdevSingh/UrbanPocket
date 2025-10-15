@@ -13,9 +13,9 @@ describe('GET /api/product/getAll', () => {
 
     it('returns empty array when no products', async () => {
         const res = await request(app).get('/api/product/getAll').expect(200);
-        expect(res.body).toHaveProperty('status', 'success');
-        expect(Array.isArray(res.body.products)).toBe(true);
-        expect(res.body.products.length).toBe(0);
+        expect(res.body.success).toBe(true);
+        expect(Array.isArray(res.body.data.products)).toBe(true);
+        expect(res.body.data.products.length).toBe(0);
     });
 
     it('returns list of products when present', async () => {
@@ -24,16 +24,16 @@ describe('GET /api/product/getAll', () => {
             { name: 'Prod B', description: 'Desc B', sellerId: new mongoose.Types.ObjectId(), categoryId: new mongoose.Types.ObjectId(), attributes: ['Color'], baseImages: [{ url: 'http://example.com/b.jpg' }] }
         ]);
         const res = await request(app).get('/api/product/getAll').expect(200);
-        expect(res.body.products.length).toBe(2);
-        const names = res.body.products.map(p => p.name).sort();
+        expect(res.body.data.products.length).toBe(2);
+        const names = res.body.data.products.map(p => p.name).sort();
         expect(names).toEqual(['Prod A', 'Prod B']);
     });
 
     it('handles service errors gracefully', async () => {
         jest.spyOn(productService, 'getAllProducts').mockRejectedValue(new Error('Simulated DB failure'));
         const res = await request(app).get('/api/product/getAll').expect(500);
-        expect(res.body).toHaveProperty('status', 'error');
+        expect(res.body).toHaveProperty('success');
         // Controller-level code now may produce FETCH_PRODUCTS_ERROR if generic error is thrown
-        expect(['FETCH_PRODUCTS_FAILED', 'FETCH_PRODUCTS_ERROR']).toContain(res.body.code);
+        expect(['FETCH_PRODUCTS_FAILED', 'FETCH_PRODUCTS_ERROR']).toContain(res.body.error.code);
     });
 });

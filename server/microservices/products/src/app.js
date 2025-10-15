@@ -5,6 +5,8 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import productRouter from './routers/product.router.js';
 import variantRouter from './routers/variant.router.js';
 import storefrontRouter from './routers/storefront.router.js'
+import { ApiResponse } from './utils/success.js';
+import { ApiError } from './utils/errors.js';
 
 const app = express();
 
@@ -39,20 +41,15 @@ app.use('/api/storefront', storefrontRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'ok',
-    timestamp: new Date().toISOString(),
-    service: 'microservice-boilerplate'
-  });
+  res.status(200).json(
+
+    new ApiResponse({ timestamp: new Date().toISOString(), service: 'microservice-boilerplate' }, 'ok')
+  );
 });
 
-// 404 handler
-app.use('*unknown', (req, res) => {
-  res.status(404).json({
-    status: 'error',
-    message: 'Route not found',
-    path: req.originalUrl
-  });
+// 404 handler -> forward to error handler using ApiError
+app.use('*unknown', (req, res, next) => {
+  next(new ApiError('Route not found', { statusCode: 404, code: 'ROUTE_NOT_FOUND', details: { path: req.originalUrl } }));
 });
 
 // Global error handler (must be last)

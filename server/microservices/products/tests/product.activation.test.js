@@ -40,8 +40,8 @@ describe('PATCH /api/product/:id/(disable|enable)', () => {
         const res = await request(app)
             .patch(`/api/product/${product._id}/disable`)
             .expect(200);
-        expect(res.body).toHaveProperty('status', 'success');
-        expect(res.body).toHaveProperty('message', 'Product disabled successfully');
+        expect(res.body.success).toBe(true);
+        expect(res.body.message).toBe('Product disabled successfully');
         const updated = await Product.findById(product._id);
         expect(updated.isActive).toBe(false);
     });
@@ -52,7 +52,7 @@ describe('PATCH /api/product/:id/(disable|enable)', () => {
         const res = await request(app)
             .patch(`/api/product/${product._id}/disable`)
             .expect(403);
-        expect(res.body.code).toBe('UNAUTHORIZED_PRODUCT_DISABLE');
+        expect(res.body.error.code).toBe('UNAUTHORIZED_PRODUCT_DISABLE');
     });
 
     test('admin can disable any product', async () => {
@@ -68,14 +68,14 @@ describe('PATCH /api/product/:id/(disable|enable)', () => {
         const res = await request(app)
             .patch(`/api/product/${fakeId}/disable`)
             .expect(404);
-        expect(res.body.code).toBe('PRODUCT_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     test('disable validation failure for invalid id', async () => {
         const res = await request(app)
             .patch('/api/product/not-valid-id/disable')
             .expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     // ENABLE tests
@@ -97,7 +97,7 @@ describe('PATCH /api/product/:id/(disable|enable)', () => {
         const res = await request(app)
             .patch(`/api/product/${product._id}/enable`)
             .expect(403);
-        expect(res.body.code).toBe('UNAUTHORIZED_PRODUCT_ENABLE');
+        expect(res.body.error.code).toBe('UNAUTHORIZED_PRODUCT_ENABLE');
     });
 
     test('admin can enable any product', async () => {
@@ -114,14 +114,14 @@ describe('PATCH /api/product/:id/(disable|enable)', () => {
         const res = await request(app)
             .patch(`/api/product/${fakeId}/enable`)
             .expect(404);
-        expect(res.body.code).toBe('PRODUCT_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     test('enable validation failure for invalid id', async () => {
         const res = await request(app)
             .patch('/api/product/not-valid-id/enable')
             .expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('enabling already active product still returns success', async () => {

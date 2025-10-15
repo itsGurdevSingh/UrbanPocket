@@ -49,10 +49,10 @@ describe('POST /api/product/create', () => {
             .field('attributes', JSON.stringify(payload.attributes))
             , 2).expect(201);
 
-        expect(res.body).toHaveProperty('status', 'success');
-        expect(res.body.product).toHaveProperty('sellerId');
-        expect(res.body.product.sellerId).toBe(authSellerId); // enforced ownership
-        expect(res.body.product.baseImages.length).toBe(2);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data).toHaveProperty('sellerId');
+        expect(res.body.data.sellerId).toBe(authSellerId); // enforced ownership
+        expect(res.body.data.baseImages.length).toBe(2);
     });
 
     it('rejects duplicate product name for the same seller', async () => {
@@ -77,7 +77,7 @@ describe('POST /api/product/create', () => {
             .field('attributes', JSON.stringify(payload.attributes))
             , 1).expect(400);
 
-        expect(res.body).toHaveProperty('code', 'DUPLICATE_PRODUCT_NAME');
+        expect(res.body.error.code).toBe('DUPLICATE_PRODUCT_NAME');
     });
 
     it('allows same product name for different sellers', async () => {
@@ -109,9 +109,9 @@ describe('POST /api/product/create', () => {
             .field('attributes', JSON.stringify(['Size']))
             , 1).expect(201);
 
-        expect(res.body.status).toBe('success');
-        expect(res.body.product.name).toBe(commonName);
-        expect(res.body.product.sellerId).toBe(sellerB);
+        expect(res.body.success).toBe(true);
+        expect(res.body.data.name).toBe(commonName);
+        expect(res.body.data.sellerId).toBe(sellerB);
     });
 
     it('fails when required fields missing (validation)', async () => {
@@ -120,8 +120,8 @@ describe('POST /api/product/create', () => {
             .field('description', 'Only description provided')
             .expect(400);
 
-        expect(res.body).toHaveProperty('code', 'VALIDATION_ERROR');
-        expect(res.body).toHaveProperty('errors');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
+        expect(res.body).toHaveProperty('error.details');
     });
 
     it('fails when no images and no baseImages provided', async () => {
@@ -136,7 +136,7 @@ describe('POST /api/product/create', () => {
             .field('attributes', JSON.stringify(payload.attributes))
             .expect(400);
 
-        expect(res.body).toHaveProperty('code', 'NO_IMAGES');
+        expect(res.body.error.code).toBe('NO_IMAGES');
     });
 
     it('admin creation requires sellerId (missing -> error)', async () => {
@@ -151,7 +151,7 @@ describe('POST /api/product/create', () => {
             .field('categoryId', payload.categoryId)
             .field('attributes', JSON.stringify(payload.attributes))
             , 1).expect(400);
-        expect(res.body.code).toBe('SELLER_ID_REQUIRED');
+        expect(res.body.error.code).toBe('SELLER_ID_REQUIRED');
     });
 
     it('admin can create product for specified sellerId', async () => {
@@ -167,7 +167,7 @@ describe('POST /api/product/create', () => {
             .field('categoryId', payload.categoryId)
             .field('attributes', JSON.stringify(payload.attributes))
             , 1).expect(201);
-        expect(res.body.product.sellerId).toBe(sellerForProduct);
+        expect(res.body.data.sellerId).toBe(sellerForProduct);
     });
 
     it('rolls back when any image upload fails (trigger via FAIL filename)', async () => {
@@ -183,8 +183,7 @@ describe('POST /api/product/create', () => {
             , 3, 1) // second image will have FAIL in name
             .expect(500);
 
-        expect(res.body).toHaveProperty('code');
-        expect(['PRODUCT_IMAGE_UPLOAD_FAILED', 'IMAGEKIT_UPLOAD_ERROR']).toContain(res.body.code);
+        expect(['PRODUCT_IMAGE_UPLOAD_FAILED', 'IMAGEKIT_UPLOAD_ERROR']).toContain(res.body.error.code);
     });
 
     it('rolls back uploaded images if DB create fails', async () => {
@@ -217,7 +216,7 @@ describe('POST /api/product/create', () => {
             return req.expect(500);
         })();
 
-        expect(res.body).toHaveProperty('code', 'PRODUCT_PERSIST_FAILED');
+        expect(res.body.error.code).toBe('PRODUCT_PERSIST_FAILED');
 
         // restore
         productRepository.create = originalCreate;

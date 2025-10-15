@@ -1,0 +1,21 @@
+# Health Check Endpoint
+healthCheck:
+  get:
+    tags:
+      - Health
+    summary: Health check endpoint
+    description: Returns the health status of the Product Service
+    operationId: healthCheck
+    responses:
+      "200":
+        description: Service is healthy and running
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/index.yaml#/HealthCheckResponse"
+            example:
+              success: true
+              message: "ok"
+              data:
+                timestamp: "2025-10-15T12:00:00.000Z"
+                service: "microservice-boilerplate"

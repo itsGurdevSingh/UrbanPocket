@@ -1,6 +1,7 @@
 import variantService from "../services/variant.service.js";
 import { ApiError } from "../utils/errors.js";
 import logger from "../utils/logger.js";
+import { ApiResponse } from "../utils/success.js";
 
 class variantsController {
 
@@ -8,11 +9,7 @@ class variantsController {
         try {
             const variantData = req.body;
             const newVariant = await variantService.createVariant(variantData, req.files || [], req.user);
-            res.status(201).json({
-                status: 'success',
-                message: 'Variant created successfully',
-                variant: newVariant
-            });
+            res.status(201).json(new ApiResponse(newVariant, 'Variant created successfully'));
         } catch (error) {
             logger.error('Error creating variant:', error);
             if (error instanceof ApiError) {
@@ -27,11 +24,7 @@ class variantsController {
             const variantId = req.params.id;
             const updateData = req.body;
             const updatedVariant = await variantService.updateVariant(variantId, updateData, req.files || [], req.user);
-            res.status(200).json({
-                status: 'success',
-                message: 'Variant updated successfully',
-                variant: updatedVariant
-            });
+            res.status(200).json(new ApiResponse(updatedVariant, 'Variant updated successfully'));
         } catch (error) {
             logger.error('Error updating variant:', error);
             if (error instanceof ApiError) {
@@ -47,11 +40,7 @@ class variantsController {
             const variantId = req.params.id;
             const fileId = req.params.fileId;
             const updatedImage = await variantService.updateVariantImage(variantId, fileId, req.file, req.user);
-            res.status(200).json({
-                status: 'success',
-                message: 'Variant image updated successfully',
-                updatedImage: updatedImage
-            });
+            res.status(200).json(new ApiResponse(updatedImage, 'Variant image updated successfully'));
         } catch (error) {
             logger.error('Error updating variant image:', error);
             if (error instanceof ApiError) {
@@ -65,10 +54,7 @@ class variantsController {
         try {
             const variantId = req.params.id;
             await variantService.deleteVariant(variantId, req.user);
-            res.status(200).json({
-                status: 'success',
-                message: 'Variant deleted successfully'
-            });
+            res.status(200).json(new ApiResponse(null, 'Variant deleted successfully'));
         } catch (error) {
             logger.error('Error deleting variant:', error);
             if (error instanceof ApiError) {
@@ -82,11 +68,7 @@ class variantsController {
         try {
             const variantId = req.params.id;
             const disabledVariant = await variantService.disableVariant(variantId, req.user);
-            res.status(200).json({
-                status: 'success',
-                message: 'Variant disabled successfully',
-                variant: disabledVariant
-            });
+            res.status(200).json(new ApiResponse(disabledVariant, 'Variant disabled successfully'));
         }
         catch (error) {
             logger.error('Error disabling variant:', error);
@@ -101,11 +83,7 @@ class variantsController {
         try {
             const variantId = req.params.id;
             const enabledVariant = await variantService.enableVariant(variantId, req.user);
-            res.status(200).json({
-                status: 'success',
-                message: 'Variant enabled successfully',
-                variant: enabledVariant
-            });
+            res.status(200).json(new ApiResponse(enabledVariant, 'Variant enabled successfully'));
         }
         catch (error) {
             logger.error('Error enabling variant:', error);
@@ -120,10 +98,7 @@ class variantsController {
         try {
             const variantId = req.params.id;
             const variant = await variantService.getVariantById(variantId);
-            res.status(200).json({
-                status: 'success',
-                variant: variant
-            });
+            res.status(200).json(new ApiResponse(variant, 'Variant fetched successfully'));
         } catch (error) {
             logger.error('Error fetching variant by ID:', error);
             if (error instanceof ApiError) {
@@ -137,10 +112,7 @@ class variantsController {
         try {
             const productId = req.params.productId;
             const variants = await variantService.getVariantsByProductId(productId);
-            res.status(200).json({
-                status: 'success',
-                variants: variants
-            });
+            res.status(200).json(new ApiResponse(variants, 'Variants fetched successfully'));
         } catch (error) {
             logger.error('Error fetching variants by product ID:', error);
             if (error instanceof ApiError) {
@@ -153,12 +125,11 @@ class variantsController {
     async getAllVariants(req, res, next) {
         try {
             const result = await variantService.getAllVariants(req.query || {});
-            res.status(200).json({
-                status: 'success',
+            const data = {
                 variants: result.data || [],
                 meta: result.meta,
-                count: result.count,
-            });
+            }
+            res.status(200).json(new ApiResponse(data, 'Variants fetched successfully'));
         } catch (error) {
             logger.error('Error fetching variants:', error);
             if (error instanceof ApiError) {

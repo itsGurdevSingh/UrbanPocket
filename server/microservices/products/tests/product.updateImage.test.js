@@ -51,11 +51,11 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${product._id}/${targetFileId}/`)
             .attach('image', createImageBuffer('new1'), 'new1.jpg');
         expect(res.status).toBe(200);
-        // API now returns the updated image object in product field
-        expect(res.body.product).toBeDefined();
-        expect(res.body.product.fileId).toBeDefined();
-        expect(res.body.product.fileId).not.toBe(targetFileId);
-        expect(res.body.product.url).toMatch(/^https:\/\//);
+        // API now returns the updated image object in data field
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.fileId).toBeDefined();
+        expect(res.body.data.fileId).not.toBe(targetFileId);
+        expect(res.body.data.url).toMatch(/^https:\/\//);
     });
 
     test('success: admin can replace image of any product (returns updated image only)', async () => {
@@ -65,8 +65,8 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${product._id}/${targetFileId}/`)
             .attach('image', createImageBuffer('admin'), 'admin.jpg');
         expect(res.status).toBe(200);
-        expect(res.body.product).toBeDefined();
-        expect(res.body.product.fileId).not.toBe(targetFileId);
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data.fileId).not.toBe(targetFileId);
     });
 
     test('validation: invalid product id', async () => {
@@ -74,7 +74,7 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/123/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(400); // validation error
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('not found: product does not exist', async () => {
@@ -83,7 +83,7 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${fakeId}/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(404);
-        expect(res.body.code).toBe('PRODUCT_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     test('not found: image fileId not in product', async () => {
@@ -91,7 +91,7 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${product._id}/missing-file-id/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(404);
-        expect(res.body.code).toBe('PRODUCT_IMAGE_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_IMAGE_NOT_FOUND');
     });
 
     test('unauthorized: seller not owner', async () => {
@@ -102,14 +102,14 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${product._id}/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(403);
-        expect(res.body.code).toBe('UNAUTHORIZED_PRODUCT_UPDATE');
+        expect(res.body.error.code).toBe('UNAUTHORIZED_PRODUCT_UPDATE');
     });
 
     test('validation: missing file upload', async () => {
         const res = await request(app)
             .put(`/api/product/${product._id}/${product.baseImages[0].fileId}/`);
         expect(res.status).toBe(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     test('upload failure: simulate upload service error', async () => {
@@ -119,6 +119,6 @@ describe('PUT /api/product/:id/:fileId/ - update single product image', () => {
             .put(`/api/product/${product._id}/${product.baseImages[0].fileId}/`)
             .attach('image', createImageBuffer(), 'file.jpg');
         expect(res.status).toBe(500);
-        expect(res.body.code).toBe('UPDATE_PRODUCT_IMAGE_FAILED');
+        expect(res.body.error.code).toBe('UPDATE_PRODUCT_IMAGE_FAILED');
     });
 });

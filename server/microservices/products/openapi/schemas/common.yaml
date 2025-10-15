@@ -1,0 +1,388 @@
+# The envelope for ANY successful response.
+BaseSuccessResponse:
+  type: object
+  required: [success]
+  properties:
+    success:
+      type: boolean
+      description: "Always 'true' for a successful response."
+      example: true
+    message:
+      type: string
+      description: A human-friendly success message.
+      example: "Operation completed successfully."
+
+# The envelope for ANY error response.
+ErrorResponse:
+  type: object
+  required: [success, error]
+  properties:
+    success:
+      type: boolean
+      description: "Always 'false' for an error response."
+      example: false
+    error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: "A unique, machine-readable code for this specific error."
+          example: "PRODUCT_NOT_FOUND"
+        message:
+          type: string
+          description: "A human-readable message explaining the error."
+          example: "The product with the specified ID does not exist."
+        details:
+          nullable: true
+          description: "Optional extra info. For validation, often an array of field errors. May also be an object or string."
+          oneOf:
+            - type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string, example: "name" }
+                  message:
+                    { type: string, example: "Product name cannot be empty." }
+            - type: object
+            - type: string
+        errorId:
+          type: string
+          description: "A unique identifier for this error instance."
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    stack:
+      type: string
+      nullable: true
+      description: Present only in non-production environments for debugging.
+
+# --- Composed Success Responses ---
+
+# Health Check Response
+HealthCheckResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        message:
+          type: string
+          example: "ok"
+        data:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+              example: "2025-10-15T12:00:00.000Z"
+            service:
+              type: string
+              example: "microservice-boilerplate"
+
+# For responses that just return a message (e.g., DELETE success)
+MessageResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        message:
+          type: string
+          example: "Operation completed successfully."
+        data:
+          nullable: true
+          description: Typically null for message-only responses.
+          example: null
+
+# For responses that return a single product object.
+# Notice the payload is inside a 'data' field. ALWAYS.
+ProductResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "../schemas/product.yaml#/Product"
+
+# For responses that return a list of products with metadata.
+ProductsListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: "../schemas/product.yaml#/Product"
+            meta:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  example: 1
+                limit:
+                  type: integer
+                  example: 20
+                total:
+                  type: integer
+                  example: 57
+                totalPages:
+                  type: integer
+                  example: 3
+                hasNextPage:
+                  type: boolean
+                  example: true
+                hasPrevPage:
+                  type: boolean
+                  example: false
+
+# For responses that return an image object (e.g., update image)
+ImageResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            fileId:
+              type: string
+              example: "img_123456"
+            url:
+              type: string
+              example: "https://cdn.yourcompany.com/images/img_123456.jpg"
+            altText:
+              type: string
+              example: "Front view of Organic Urea Fertilizer"
+
+# Variant envelopes
+VariantResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "../schemas/variant.yaml#/Variant"
+
+VariantsListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            variants:
+              type: array
+              items:
+                $ref: "../schemas/variant.yaml#/Variant"
+            meta:
+              type: object
+              properties:
+                page: { type: integer, example: 1 }
+                limit: { type: integer, example: 20 }
+                total: { type: integer, example: 57 }
+                totalPages: { type: integer, example: 3 }
+                hasNextPage: { type: boolean, example: true }
+                hasPrevPage: { type: boolean, example: false }
+
+# For responses returning a bare array of variants (no meta)
+VariantsArrayResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "../schemas/variant.yaml#/Variant"
+
+  # Category envelopes
+InventoryResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "../schemas/inventory.yaml#/InventoryItem"
+
+InventoryItemsListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: "../schemas/inventory.yaml#/InventoryItem"
+            meta:
+              type: object
+              properties:
+                page: { type: integer, example: 1 }
+                limit: { type: integer, example: 20 }
+                total: { type: integer, example: 57 }
+                totalPages: { type: integer, example: 3 }
+                hasNextPage: { type: boolean, example: true }
+                hasPrevPage: { type: boolean, example: false }
+CategoryResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "../schemas/category.yaml#/Category"
+
+CategoriesListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            categories:
+              type: array
+              items:
+                $ref: "../schemas/category.yaml#/Category"
+            meta:
+              type: object
+              properties:
+                page: { type: integer, example: 1 }
+                limit: { type: integer, example: 20 }
+                total: { type: integer, example: 57 }
+                totalPages: { type: integer, example: 3 }
+                hasNextPage: { type: boolean, example: true }
+                hasPrevPage: { type: boolean, example: false }
+
+# Review envelopes
+ReviewResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "../schemas/review.yaml#/Review"
+
+ReviewsListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            reviews:
+              type: array
+              items:
+                $ref: "../schemas/review.yaml#/Review"
+            meta:
+              type: object
+              properties:
+                page: { type: integer, example: 1 }
+                limit: { type: integer, example: 20 }
+                total: { type: integer, example: 57 }
+                totalPages: { type: integer, example: 3 }
+                hasNextPage: { type: boolean, example: true }
+                hasPrevPage: { type: boolean, example: false }
+
+# --- Composed Error Responses ---
+
+responses:
+  Unauthorized:
+    description: Unauthorized - The user is not authenticated.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          UnauthorizedAccess:
+            summary: Example of an authentication error
+            value:
+              success: false
+              error:
+                code: "UNAUTHORIZED"
+                message: "Authentication token is missing or invalid."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+  Forbidden:
+    description: Forbidden - The user does not have the required role.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ForbiddenAccess:
+            summary: Example of a forbidden error
+            value:
+              success: false
+              error:
+                code: "FORBIDDEN"
+                message: "You do not have permission to perform this action."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+  NotFound:
+    description: The requested resource was not found.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ResourceNotFound:
+            summary: Example of a not found error
+            value:
+              success: false
+              error:
+                code: "RESOURCE_NOT_FOUND"
+                message: "The resource with the specified ID does not exist."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+  RouteNotFound:
+    description: Route Not Found - The requested endpoint does not exist.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          RouteNotFound:
+            summary: Example of a route not found error
+            value:
+              success: false
+              error:
+                code: "ROUTE_NOT_FOUND"
+                message: "Route not found"
+                details:
+                  path: "/api/invalid-endpoint"
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+  InvalidRequest:
+    description: Validation Error - The request is invalid.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ValidationError:
+            summary: Example of a validation error
+            value:
+              success: false
+              error:
+                code: "VALIDATION_ERROR"
+                message: "One or more fields are invalid."
+                details:
+                  - field: "name"
+                    message: "Product name cannot be empty."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+  InternalServerError:
+    description: An unexpected error occurred on the server.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          UnknownError:
+            summary: Example of an unknown server error
+            value:
+              success: false
+              error:
+                code: "INTERNAL_SERVER_ERROR"
+                message: "An unexpected error occurred. Please try again later."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"

@@ -1,0 +1,60 @@
+# Schema for creating a category
+CreateCategoryRequest:
+  type: object
+  required: [name]
+  properties:
+    name:
+      type: string
+      maxLength: 50
+      description: Unique category name.
+      example: "Fertilizers"
+    description:
+      type: string
+      maxLength: 500
+      example: "Inputs that provide plant nutrients."
+    parentCategory:
+      type: string
+      format: objectid
+      nullable: true
+      description: Optional parent category ObjectId for sub-categories.
+      example: null
+    isActive:
+      type: boolean
+      default: true
+
+# Schema for updating a category (partial)
+UpdateCategoryRequest:
+  type: object
+  properties:
+    name:
+      type: string
+      maxLength: 50
+    description:
+      type: string
+      maxLength: 500
+    parentCategory:
+      type: string
+      format: objectid
+      nullable: true
+    isActive:
+      type: boolean
+
+# Category entity as returned by the API
+Category:
+  type: object
+  properties:
+    _id: { type: string, format: objectid }
+    name: { type: string }
+    description: { type: string }
+    parentCategory:
+      type: string
+      format: objectid
+      nullable: true
+    ancestors:
+      type: array
+      items:
+        type: string
+        format: objectid
+    isActive: { type: boolean }
+    createdAt: { type: string, format: date-time }
+    updatedAt: { type: string, format: date-time }

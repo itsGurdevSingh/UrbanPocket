@@ -44,13 +44,13 @@ describe('PUT /api/product/:id', () => {
 
     it('returns 400 for invalid id', async () => {
         const res = await request(app).put('/api/product/not-valid').expect(400);
-        expect(res.body.code).toBe('VALIDATION_ERROR');
+        expect(res.body.error.code).toBe('VALIDATION_ERROR');
     });
 
     it('returns 404 when product not found', async () => {
         const id = new mongoose.Types.ObjectId().toString();
         const res = await sendUpdate(id, { name: 'New Name' }).expect(404);
-        expect(res.body.code).toBe('PRODUCT_NOT_FOUND');
+        expect(res.body.error.code).toBe('PRODUCT_NOT_FOUND');
     });
 
     it('updates product basic fields (name, description, brand)', async () => {
@@ -59,9 +59,9 @@ describe('PUT /api/product/:id', () => {
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
         const doc = await Product.create(buildProduct());
         const res = await sendUpdate(doc._id.toString(), { name: 'Updated Name', description: 'Updated Description', brand: 'BrandY' }).expect(200);
-        expect(res.body).toHaveProperty('product');
-        expect(res.body.product).toHaveProperty('name', 'Updated Name');
-        expect(res.body.product).toHaveProperty('brand', 'BrandY');
+        expect(res.body.data).toBeDefined();
+        expect(res.body.data).toHaveProperty('name', 'Updated Name');
+        expect(res.body.data).toHaveProperty('brand', 'BrandY');
     });
 
     it('prevents duplicate product name within the same seller context', async () => {
@@ -70,7 +70,7 @@ describe('PUT /api/product/:id', () => {
         const p1 = await Product.create(buildProduct({ name: 'DupName', sellerId: seller }));
         const p2 = await Product.create(buildProduct({ name: 'OtherName', sellerId: seller }));
         const res = await sendUpdate(p2._id.toString(), { name: 'DupName' }).expect(400);
-        expect(res.body.code).toBe('DUPLICATE_PRODUCT_NAME');
+        expect(res.body.error.code).toBe('DUPLICATE_PRODUCT_NAME');
     });
 
     it('allows duplicate product name across different sellers', async () => {
@@ -80,7 +80,7 @@ describe('PUT /api/product/:id', () => {
         const p1 = await Product.create(buildProduct({ name: 'SharedName', sellerId: sellerA }));
         const p2 = await Product.create(buildProduct({ name: 'OtherName', sellerId: sellerB }));
         const res = await sendUpdate(p2._id.toString(), { name: 'SharedName' }).expect(200);
-        expect(res.body.product.name).toBe('SharedName');
+        expect(res.body.data.name).toBe('SharedName');
     });
 
     it('returns 403 when seller updates another seller\'s product', async () => {
@@ -88,14 +88,14 @@ describe('PUT /api/product/:id', () => {
         const foreignSellerId = new mongoose.Types.ObjectId();
         const doc = await Product.create(buildProduct({ sellerId: foreignSellerId }));
         const res = await sendUpdate(doc._id.toString(), { name: 'Hack Attempt' }).expect(403);
-        expect(res.body.code).toBe('UNAUTHORIZED_PRODUCT_UPDATE');
+        expect(res.body.error.code).toBe('UNAUTHORIZED_PRODUCT_UPDATE');
     });
 
     it('appends new images when provided', async () => {
         if (global.setTestAuthRole) global.setTestAuthRole('admin');
         const doc = await Product.create(buildProduct());
         const res = await sendUpdate(doc._id.toString(), { name: 'Img Append' }, ['new1.png', 'new2.png']).expect(200);
-        expect(res.body.product.baseImages.length).toBeGreaterThanOrEqual(3); // original + 2 new (mock upload returns +2)
+        expect(res.body.data.baseImages.length).toBeGreaterThanOrEqual(3); // original + 2 new (mock upload returns +2)
     });
 
     it('returns 500 on repository error', async () => {
@@ -103,6 +103,6 @@ describe('PUT /api/product/:id', () => {
         const doc = await Product.create(buildProduct());
         jest.spyOn(productRepository, 'updateById').mockRejectedValue(new Error('Simulated repo failure'));
         const res = await sendUpdate(doc._id.toString(), { name: 'Trigger Error' }).expect(500);
-        expect(['UPDATE_PRODUCT_FAILED', 'UPDATE_PRODUCT_ERROR']).toContain(res.body.code);
+        expect(['UPDATE_PRODUCT_FAILED', 'UPDATE_PRODUCT_ERROR']).toContain(res.body.error.code);
     });
 });
