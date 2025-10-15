@@ -26,7 +26,7 @@ createProduct:
               success:
                 summary: Example of a successful product creation
                 value:
-                  status: success
+                  success: true
                   message: Product created successfully.
                   data:
                     _id: "6724b111a1a8c3a5e8a71b08"
@@ -80,8 +80,9 @@ productById:
               success:
                 summary: Example of a successful product retrieval
                 value:
-                  status: success
-                  product:
+                  success: true
+                  message: Product retrieved successfully.
+                  data:
                     _id: "6724b111a1a8c3a5e8a71b08"
                     name: "Organic Urea Fertilizer"
                     description: "A high-nitrogen organic fertilizer suitable for all crops."
@@ -142,8 +143,9 @@ productById:
               success:
                 summary: Example of a successful product update
                 value:
-                  status: success
-                  product:
+                  success: true
+                  message: Product updated successfully.
+                  data:
                     _id: "6724b111a1a8c3a5e8a71b08"
                     name: "Organic Urea Fertilizer - Updated"
                     description: "An updated description for the organic fertilizer."
@@ -202,7 +204,7 @@ productById:
               success:
                 summary: Example of a successful product deletion
                 value:
-                  status: success
+                  success: true
                   message: "Product deleted successfully."
       "400":
         $ref: "../schemas/common.yaml#/responses/InvalidRequest"
@@ -336,7 +338,7 @@ productImageById:
               success:
                 summary: Example of a successful image deletion
                 value:
-                  status: success
+                  success: true
                   message: "Product image deleted successfully."
       "400":
         $ref: "../schemas/common.yaml#/responses/InvalidRequest"
@@ -377,7 +379,7 @@ enableProduct:
               success:
                 summary: Example of a successful product enablement
                 value:
-                  status: success
+                  success: true
                   message: "Product enabled successfully."
       "400":
         $ref: "../schemas/common.yaml#/responses/InvalidRequest"
@@ -418,7 +420,7 @@ disableProduct:
               success:
                 summary: Example of a successful product disablement
                 value:
-                  status: success
+                  success: true
                   message: "Product disabled successfully."
       "400":
         $ref: "../schemas/common.yaml#/responses/InvalidRequest"
@@ -486,7 +488,7 @@ getAllProducts:
               success:
                 summary: Example of a successful products retrieval
                 value:
-                  status: success
+                  success: true
                   products:
                     - _id: "6724b111a1a8c3a5e8a71b08"
                       name: "Organic Urea Fertilizer"
