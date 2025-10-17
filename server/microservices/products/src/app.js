@@ -5,6 +5,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import productRouter from './routers/product.router.js';
 import variantRouter from './routers/variant.router.js';
 import storefrontRouter from './routers/storefront.router.js'
+import inventoryItemRouter from './routers/inventoryItems.router.js';
 import { ApiResponse } from './utils/success.js';
 import { ApiError } from './utils/errors.js';
 
@@ -37,6 +38,7 @@ app.use(cookieParser());
 // Routes
 app.use('/api/product', productRouter);
 app.use('/api/variant', variantRouter);
+app.use('/api/inventory-item', inventoryItemRouter);
 app.use('/api/storefront', storefrontRouter);
 
 // Health check endpoint
