@@ -51,6 +51,14 @@ export const createInventoryItemValidation = [
     handleValidationErrors,
 ];
 
+export const inventoryItemIdValidation = [
+    param('id')
+        .exists({ checkFalsy: true }).withMessage('Inventory item ID is required')
+        .isMongoId().withMessage('Inventory item ID must be a valid Mongo ID'),
+    // validation errors are handled here
+    handleValidationErrors,
+];
+
 export const updateInventoryItemValidation = [
     param('id')
         .exists({ checkFalsy: true }).withMessage('Inventory item ID is required')

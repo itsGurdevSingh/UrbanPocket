@@ -31,6 +31,26 @@ class inventoryItemService {
     return updatedItem;
   }
 
+  async getInventoryItemById(id) {
+    // Get inventory item by id
+    const inventoryItem = await InventoryItemRepository.findById(id);
+    if (!inventoryItem) {
+      throw new ApiError('Inventory item not found', { statusCode: 404, code: 'INVENTORY_ITEM_NOT_FOUND' });
+    }
+    return inventoryItem;
+  }
+
+  async deleteInventoryItem(id) {
+    // Check if inventory item exists
+    const inventoryItem = await InventoryItemRepository.findById(id);
+    if (!inventoryItem) {
+      throw new ApiError('Inventory item not found', { statusCode: 404, code: 'INVENTORY_ITEM_NOT_FOUND' });
+    }
+
+    // Delete inventory item
+    const deleted = await InventoryItemRepository.delete(id);
+    return deleted;
+  }
 
 };
 

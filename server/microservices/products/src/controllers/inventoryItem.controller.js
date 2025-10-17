@@ -27,8 +27,31 @@ class inventoryItemController {
           new ApiResponse(updatedItem, 'Inventory item updated successfully')
         );
     } catch (error) {
-      if (error instanceof ApiError) next(error);
-      next(new ApiError('Failed to update inventory item', { statusCode: 500, code: 'INVENTORY_ITEM_UPDATE_FAILED' }));
+      next(error);
+    }
+  }
+
+  async getInventoryItemById(req, res, next) {
+    try {
+      const { id } = req.params;
+      const inventoryItem = await inventoryItemService.getInventoryItemById(id);
+      res.status(200).json(
+        new ApiResponse(inventoryItem, 'Inventory item fetched successfully')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteInventoryItem(req, res, next) {
+    try {
+      const { id } = req.params;
+      const deleted = await inventoryItemService.deleteInventoryItem(id);
+      res.status(200).json(
+        new ApiResponse(null, 'Inventory item deleted successfully')
+      );
+    } catch (error) {
+      next(error);
     }
   }
 
