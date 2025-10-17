@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 import { handleValidationErrors } from "./utils";
 
 export const createInventoryItemValidation = [
@@ -106,6 +106,85 @@ export const updateInventoryItemValidation = [
         .optional()
         .isBoolean().withMessage('isActive must be boolean')
         .toBoolean(),
+    // validation errors are handled here
+    handleValidationErrors,
+];
+
+export const getAllInventoryItemsValidation = [
+    query('page')
+        .optional()
+        .isInt({ min: 1 }).withMessage('page must be a positive integer')
+        .toInt(),
+    query('limit')
+        .optional()
+        .isInt({ min: 1, max: 100 }).withMessage('limit must be between 1 and 100')
+        .toInt(),
+    query('sortBy')
+        .optional()
+        .isIn(['price', 'stock', 'createdAt', 'updatedAt', 'expDate', 'mfgDate'])
+        .withMessage('sortBy must be one of: price, stock, createdAt, updatedAt, expDate, mfgDate'),
+    query('sortOrder')
+        .optional()
+        .isIn(['asc', 'desc'])
+        .withMessage('sortOrder must be either asc or desc'),
+    query('variantId')
+        .optional()
+        .isMongoId().withMessage('variantId must be a valid Mongo ID'),
+    query('batchNumber')
+        .optional()
+        .isString().withMessage('batchNumber must be a string')
+        .trim(),
+    query('status')
+        .optional()
+        .isIn(['Sealed', 'Unsealed']).withMessage('status must be either Sealed or Unsealed'),
+    query('isActive')
+        .optional()
+        .isIn(['true', 'false']).withMessage('isActive must be true or false'),
+    query('inStock')
+        .optional()
+        .isIn(['true', 'false']).withMessage('inStock must be true or false'),
+    query('minPrice')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('minPrice must be a non-negative number')
+        .toFloat(),
+    query('maxPrice')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('maxPrice must be a non-negative number')
+        .toFloat(),
+    query('minStock')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('minStock must be a non-negative number')
+        .toFloat(),
+    query('maxStock')
+        .optional()
+        .isFloat({ min: 0 }).withMessage('maxStock must be a non-negative number')
+        .toFloat(),
+    query('mfgDateFrom')
+        .optional()
+        .isISO8601().withMessage('mfgDateFrom must be a valid ISO date'),
+    query('mfgDateTo')
+        .optional()
+        .isISO8601().withMessage('mfgDateTo must be a valid ISO date'),
+    query('expDateFrom')
+        .optional()
+        .isISO8601().withMessage('expDateFrom must be a valid ISO date'),
+    query('expDateTo')
+        .optional()
+        .isISO8601().withMessage('expDateTo must be a valid ISO date'),
+    query('excludeExpired')
+        .optional()
+        .isIn(['true', 'false']).withMessage('excludeExpired must be true or false'),
+    query('productName')
+        .optional()
+        .isString().withMessage('productName must be a string')
+        .trim(),
+    query('sku')
+        .optional()
+        .isString().withMessage('sku must be a string')
+        .trim(),
+    query('sellerId')
+        .optional()
+        .isMongoId().withMessage('sellerId must be a valid Mongo ID'),
     // validation errors are handled here
     handleValidationErrors,
 ];

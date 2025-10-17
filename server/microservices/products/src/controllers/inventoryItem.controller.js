@@ -55,6 +55,18 @@ class inventoryItemController {
     }
   }
 
+  async getAllInventoryItems(req, res, next) {
+    try {
+      const queryParams = req.query;
+      const result = await inventoryItemService.getAllInventoryItems(queryParams);
+      res.status(200).json(
+        new ApiResponse(result, 'Inventory items fetched successfully')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Additional methods for inventory item management can be added here
 }
 export default new inventoryItemController();

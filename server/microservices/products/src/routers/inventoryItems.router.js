@@ -1,9 +1,17 @@
 import express from 'express';
 import { authenticateRole } from '../middlewares/authenticateUser';
-import { createInventoryItemValidation, updateInventoryItemValidation, inventoryItemIdValidation } from '../validators/invetoryItem.validator';
+import {
+    createInventoryItemValidation,
+    updateInventoryItemValidation,
+    inventoryItemIdValidation,
+    getAllInventoryItemsValidation
+} from '../validators/invetoryItem.validator';
 import inventoryItemController from '../controllers/inventoryItem.controller.js';
 
 const router = express.Router();
+
+// in our contract we use /getAll for fetching multiple items with filters
+router.get('/getAll', authenticateRole(['admin', 'seller', 'user']), getAllInventoryItemsValidation, inventoryItemController.getAllInventoryItems);
 
 // create inventory item
 router.post('/create', authenticateRole(['admin', 'seller']), createInventoryItemValidation, inventoryItemController.createInventoryItem);
