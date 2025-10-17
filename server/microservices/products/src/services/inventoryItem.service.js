@@ -19,6 +19,19 @@ class inventoryItemService {
     return inventoryItem;
   }
 
+  async updateInventoryItem(id, data) {
+    // Check if inventory item exists
+    const inventoryItem = await InventoryItemRepository.findById(id);
+    if (!inventoryItem) {
+      throw new ApiError('Inventory item not found', { statusCode: 404, code: 'INVENTORY_ITEM_NOT_FOUND' });
+    }
+
+    // update inventory item
+    const updatedItem = await InventoryItemRepository.update(id, data);
+    return updatedItem;
+  }
+
+
 };
 
 
