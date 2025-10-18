@@ -6,6 +6,7 @@ import productRouter from './routers/product.router.js';
 import variantRouter from './routers/variant.router.js';
 import storefrontRouter from './routers/storefront.router.js'
 import inventoryItemRouter from './routers/inventoryItems.router.js';
+import categoryRouter from './routers/category.router.js';
 import { ApiResponse } from './utils/success.js';
 import { ApiError } from './utils/errors.js';
 
@@ -40,6 +41,7 @@ app.use('/api/product', productRouter);
 app.use('/api/variant', variantRouter);
 app.use('/api/inventory-item', inventoryItemRouter);
 app.use('/api/storefront', storefrontRouter);
+app.use('/api/category', categoryRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
