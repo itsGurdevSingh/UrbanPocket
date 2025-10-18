@@ -54,11 +54,6 @@ class InventoryItemRepository {
             initialMatch.batchNumber = new RegExp(filters.batchNumber, 'i');
         }
 
-        // Filter by status (Sealed/Unsealed)
-        if (filters.status) {
-            initialMatch.status = filters.status;
-        }
-
         // Filter by isActive status
         if (filters.isActive !== undefined) {
             initialMatch.isActive = filters.isActive === 'true' || filters.isActive === true;
@@ -68,39 +63,39 @@ class InventoryItemRepository {
         if (filters.inStock !== undefined) {
             const inStock = filters.inStock === 'true' || filters.inStock === true;
             if (inStock) {
-                initialMatch.stockInBaseUnits = { $gt: 0 };
+                initialMatch.stock = { $gt: 0 };
             } else {
-                initialMatch.stockInBaseUnits = { $lte: 0 };
+                initialMatch.stock = { $lte: 0 };
             }
         }
 
         // Price range filters
         if (filters.minPrice || filters.maxPrice) {
-            initialMatch['pricePerBaseUnit.amount'] = {};
+            initialMatch['price.amount'] = {};
             if (filters.minPrice) {
-                initialMatch['pricePerBaseUnit.amount'].$gte = Number(filters.minPrice);
+                initialMatch['price.amount'].$gte = Number(filters.minPrice);
             }
             if (filters.maxPrice) {
-                initialMatch['pricePerBaseUnit.amount'].$lte = Number(filters.maxPrice);
+                initialMatch['price.amount'].$lte = Number(filters.maxPrice);
             }
         }
 
         // Stock range filters
         if (filters.minStock !== undefined) {
-            if (!initialMatch.stockInBaseUnits) {
-                initialMatch.stockInBaseUnits = {};
+            if (!initialMatch.stock) {
+                initialMatch.stock = {};
             }
-            if (typeof initialMatch.stockInBaseUnits === 'object' && !initialMatch.stockInBaseUnits.$gt) {
-                initialMatch.stockInBaseUnits.$gte = Number(filters.minStock);
+            if (typeof initialMatch.stock === 'object' && !initialMatch.stock.$gt) {
+                initialMatch.stock.$gte = Number(filters.minStock);
             }
         }
 
         if (filters.maxStock !== undefined) {
-            if (!initialMatch.stockInBaseUnits) {
-                initialMatch.stockInBaseUnits = {};
+            if (!initialMatch.stock) {
+                initialMatch.stock = {};
             }
-            if (typeof initialMatch.stockInBaseUnits === 'object') {
-                initialMatch.stockInBaseUnits.$lte = Number(filters.maxStock);
+            if (typeof initialMatch.stock === 'object') {
+                initialMatch.stock.$lte = Number(filters.maxStock);
             }
         }
 
@@ -195,10 +190,10 @@ class InventoryItemRepository {
         if (sort.sortBy) {
             switch (sort.sortBy) {
                 case 'price':
-                    sortStage = { 'pricePerBaseUnit.amount': sort.sortOrder === 'desc' ? -1 : 1 };
+                    sortStage = { 'price.amount': sort.sortOrder === 'desc' ? -1 : 1 };
                     break;
                 case 'stock':
-                    sortStage = { stockInBaseUnits: sort.sortOrder === 'desc' ? -1 : 1 };
+                    sortStage = { stock: sort.sortOrder === 'desc' ? -1 : 1 };
                     break;
                 case 'createdAt':
                     sortStage = { createdAt: sort.sortOrder === 'desc' ? -1 : 1 };
@@ -233,9 +228,8 @@ class InventoryItemRepository {
             _id: 1,
             variantId: 1,
             batchNumber: 1,
-            stockInBaseUnits: 1,
-            pricePerBaseUnit: 1,
-            status: 1,
+            stock: 1,
+            price: 1,
             manufacturingDetails: 1,
             hsnCode: 1,
             gstPercentage: 1,

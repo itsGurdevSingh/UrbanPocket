@@ -10,22 +10,19 @@ export const createInventoryItemValidation = [
         .isString().withMessage('batchNumber must be a string')
         .trim()
         .isLength({ max: 100 }).withMessage('batchNumber must be at most 100 characters'),
-    body('stockInBaseUnits')
-        .exists().withMessage('stockInBaseUnits is required')
-        .isFloat({ min: 0 }).withMessage('stockInBaseUnits must be a non-negative number')
+    body('stock')
+        .exists().withMessage('stock is required')
+        .isFloat({ min: 0 }).withMessage('stock must be a non-negative number')
         .toFloat(),
-    body('pricePerBaseUnit.amount')
-        .exists().withMessage('pricePerBaseUnit.amount is required')
-        .isFloat({ min: 0 }).withMessage('pricePerBaseUnit.amount must be a non-negative number')
+    body('price.amount')
+        .exists().withMessage('price.amount is required')
+        .isFloat({ min: 0 }).withMessage('price.amount must be a non-negative number')
         .toFloat(),
-    body('pricePerBaseUnit.currency')
-        .exists({ checkFalsy: true }).withMessage('pricePerBaseUnit.currency is required')
-        .isString().withMessage('pricePerBaseUnit.currency must be a string')
+    body('price.currency')
+        .exists({ checkFalsy: true }).withMessage('price.currency is required')
+        .isString().withMessage('price.currency must be a string')
         .trim()
-        .isLength({ min: 3, max: 3 }).withMessage('pricePerBaseUnit.currency must be a 3-letter currency code'),
-    body('status')
-        .optional()
-        .isIn(['Sealed', 'Unsealed']).withMessage('status must be either Sealed or Unsealed'),
+        .isLength({ min: 3, max: 3 }).withMessage('price.currency must be a 3-letter currency code'),
     body('manufacturingDetails.mfgDate')
         .optional()
         .isISO8601().withMessage('manufacturingDetails.mfgDate must be a valid date')
@@ -69,22 +66,19 @@ export const updateInventoryItemValidation = [
         .isString().withMessage('batchNumber must be a string')
         .trim()
         .isLength({ max: 100 }).withMessage('batchNumber must be at most 100 characters'),
-    body('stockInBaseUnits')
+    body('stock')
         .optional()
-        .isFloat({ min: 0 }).withMessage('stockInBaseUnits must be a non-negative number')
+        .isFloat({ min: 0 }).withMessage('stock must be a non-negative number')
         .toFloat(),
-    body('pricePerBaseUnit.amount')
+    body('price.amount')
         .optional()
-        .isFloat({ min: 0 }).withMessage('pricePerBaseUnit.amount must be a non-negative number')
+        .isFloat({ min: 0 }).withMessage('price.amount must be a non-negative number')
         .toFloat(),
-    body('pricePerBaseUnit.currency')
+    body('price.currency')
         .optional({ nullable: true })
-        .isString().withMessage('pricePerBaseUnit.currency must be a string')
+        .isString().withMessage('price.currency must be a string')
         .trim()
-        .isLength({ min: 3, max: 3 }).withMessage('pricePerBaseUnit.currency must be a 3-letter currency code'),
-    body('status')
-        .optional()
-        .isIn(['Sealed', 'Unsealed']).withMessage('status must be either Sealed or Unsealed'),
+        .isLength({ min: 3, max: 3 }).withMessage('price.currency must be a 3-letter currency code'),
     body('manufacturingDetails.mfgDate')
         .optional()
         .isISO8601().withMessage('manufacturingDetails.mfgDate must be a valid date')
@@ -134,9 +128,6 @@ export const getAllInventoryItemsValidation = [
         .optional()
         .isString().withMessage('batchNumber must be a string')
         .trim(),
-    query('status')
-        .optional()
-        .isIn(['Sealed', 'Unsealed']).withMessage('status must be either Sealed or Unsealed'),
     query('isActive')
         .optional()
         .isIn(['true', 'false']).withMessage('isActive must be true or false'),

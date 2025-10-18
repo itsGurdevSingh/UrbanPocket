@@ -43,12 +43,11 @@ async function createTestInventoryItem(variantId, overrides = {}) {
     return InventoryItem.create({
         variantId,
         batchNumber: `BATCH-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
-        stockInBaseUnits: 100,
-        pricePerBaseUnit: {
+        stock: 100,
+        price: {
             amount: 120.5,
             currency: 'INR'
         },
-        status: 'Sealed',
         manufacturingDetails: {
             mfgDate: new Date('2024-01-01'),
             expDate: new Date('2025-01-01')
@@ -96,14 +95,13 @@ describe('GET /api/inventory-item/:id - Get Inventory Item by ID', () => {
                 _id: inventoryItem._id.toString(),
                 variantId: variant._id.toString(),
                 batchNumber: inventoryItem.batchNumber,
-                stockInBaseUnits: 100,
-                status: 'Sealed',
+                stock: 100,
                 hsnCode: '310210',
                 gstPercentage: 18,
                 isActive: true
             });
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(120.5);
-            expect(res.body.data.pricePerBaseUnit.currency).toBe('INR');
+            expect(res.body.data.price.amount).toBe(120.5);
+            expect(res.body.data.price.currency).toBe('INR');
             expect(res.body.data).toHaveProperty('createdAt');
             expect(res.body.data).toHaveProperty('updatedAt');
         });
@@ -139,27 +137,16 @@ describe('GET /api/inventory-item/:id - Get Inventory Item by ID', () => {
             expect(item).toHaveProperty('_id');
             expect(item).toHaveProperty('variantId');
             expect(item).toHaveProperty('batchNumber');
-            expect(item).toHaveProperty('stockInBaseUnits');
-            expect(item).toHaveProperty('pricePerBaseUnit');
-            expect(item.pricePerBaseUnit).toHaveProperty('amount');
-            expect(item.pricePerBaseUnit).toHaveProperty('currency');
-            expect(item).toHaveProperty('status');
+            expect(item).toHaveProperty('stock');
+            expect(item).toHaveProperty('price');
+            expect(item.price).toHaveProperty('amount');
+            expect(item.price).toHaveProperty('currency');
             expect(item).toHaveProperty('manufacturingDetails');
             expect(item).toHaveProperty('hsnCode');
             expect(item).toHaveProperty('gstPercentage');
             expect(item).toHaveProperty('isActive');
             expect(item).toHaveProperty('createdAt');
             expect(item).toHaveProperty('updatedAt');
-        });
-
-        test('retrieves inventory item with Unsealed status', async () => {
-            const unsealedItem = await createTestInventoryItem(variant._id, { status: 'Unsealed' });
-
-            const res = await request(app)
-                .get(`/api/inventory-item/${unsealedItem._id}`)
-                .expect(200);
-
-            expect(res.body.data.status).toBe('Unsealed');
         });
 
         test('retrieves inactive inventory item', async () => {
@@ -225,37 +212,37 @@ describe('GET /api/inventory-item/:id - Get Inventory Item by ID', () => {
 
     describe('Edge Cases', () => {
         test('retrieves inventory item with zero stock', async () => {
-            const zeroStockItem = await createTestInventoryItem(variant._id, { stockInBaseUnits: 0 });
+            const zeroStockItem = await createTestInventoryItem(variant._id, { stock: 0 });
 
             const res = await request(app)
                 .get(`/api/inventory-item/${zeroStockItem._id}`)
                 .expect(200);
 
-            expect(res.body.data.stockInBaseUnits).toBe(0);
+            expect(res.body.data.stock).toBe(0);
         });
 
         test('retrieves inventory item with decimal stock', async () => {
-            const decimalStockItem = await createTestInventoryItem(variant._id, { stockInBaseUnits: 45.75 });
+            const decimalStockItem = await createTestInventoryItem(variant._id, { stock: 45.75 });
 
             const res = await request(app)
                 .get(`/api/inventory-item/${decimalStockItem._id}`)
                 .expect(200);
 
-            expect(res.body.data.stockInBaseUnits).toBe(45.75);
+            expect(res.body.data.stock).toBe(45.75);
         });
 
         test('retrieves inventory item with no batch number', async () => {
             const noBatchItem = await InventoryItem.create({
                 variantId: variant._id,
-                stockInBaseUnits: 50,
-                pricePerBaseUnit: { amount: 100, currency: 'INR' }
+                stock: 50,
+                price: { amount: 100, currency: 'INR' }
             });
 
             const res = await request(app)
                 .get(`/api/inventory-item/${noBatchItem._id}`)
                 .expect(200);
 
-            expect(res.body.data.stockInBaseUnits).toBe(50);
+            expect(res.body.data.stock).toBe(50);
         });
 
         test('retrieves multiple inventory items sequentially', async () => {
@@ -368,7 +355,7 @@ describe('DELETE /api/inventory-item/:id - Delete Inventory Item', () => {
         });
 
         test('deletes inventory item with zero stock', async () => {
-            const zeroStockItem = await createTestInventoryItem(variant._id, { stockInBaseUnits: 0 });
+            const zeroStockItem = await createTestInventoryItem(variant._id, { stock: 0 });
 
             const res = await request(app)
                 .delete(`/api/inventory-item/${zeroStockItem._id}`)
@@ -485,7 +472,7 @@ describe('DELETE /api/inventory-item/:id - Delete Inventory Item', () => {
             // Try to update it
             const res = await request(app)
                 .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send({ stockInBaseUnits: 200 })
+                .send({ stock: 200 })
                 .expect(404);
 
             expect(res.body.error.code).toBe('INVENTORY_ITEM_NOT_FOUND');

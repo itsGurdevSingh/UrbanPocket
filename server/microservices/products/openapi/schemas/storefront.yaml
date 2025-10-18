@@ -21,7 +21,7 @@ StorefrontProductCard:
       properties:
         amount: { type: number, format: float }
         currency: { type: string, minLength: 3, maxLength: 3 }
-    stock: { type: number, description: "Stock in base units" }
+    stock: { type: number, description: "Stock " }
     images:
       type: array
       items:

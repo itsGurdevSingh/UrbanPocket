@@ -42,12 +42,11 @@ async function createTestVariant(productId, overrides = {}) {
 const createInventoryPayload = (variantId, overrides = {}) => ({
     variantId: variantId.toString(),
     batchNumber: `BATCH-${Date.now()}`,
-    stockInBaseUnits: 100,
-    pricePerBaseUnit: {
+    stock: 100,
+    price: {
         amount: 120.5,
         currency: 'INR'
     },
-    status: 'Sealed',
     manufacturingDetails: {
         mfgDate: '2024-01-01',
         expDate: '2025-01-01'
@@ -94,14 +93,13 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.data).toMatchObject({
                 variantId: variant._id.toString(),
                 batchNumber: payload.batchNumber,
-                stockInBaseUnits: 100,
-                status: 'Sealed',
+                stock: 100,
                 hsnCode: '310210',
                 gstPercentage: 18,
                 isActive: true
             });
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(120.5);
-            expect(res.body.data.pricePerBaseUnit.currency).toBe('INR');
+            expect(res.body.data.price.amount).toBe(120.5);
+            expect(res.body.data.price.currency).toBe('INR');
             expect(res.body.data).toHaveProperty('_id');
             expect(res.body.data).toHaveProperty('createdAt');
             expect(res.body.data).toHaveProperty('updatedAt');
@@ -124,8 +122,8 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
         test('creates inventory with minimal required fields', async () => {
             const payload = {
                 variantId: variant._id.toString(),
-                stockInBaseUnits: 50,
-                pricePerBaseUnit: {
+                stock: 50,
+                price: {
                     amount: 100,
                     currency: 'INR'
                 }
@@ -137,28 +135,15 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                 .expect(201);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(50);
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(100);
+            expect(res.body.data.stock).toBe(50);
+            expect(res.body.data.price.amount).toBe(100);
             // Check defaults
-            expect(res.body.data.status).toBe('Sealed');
             expect(res.body.data.gstPercentage).toBe(18);
             expect(res.body.data.isActive).toBe(true);
         });
 
-        test('creates inventory with Unsealed status', async () => {
-            const payload = createInventoryPayload(variant._id, { status: 'Unsealed' });
-
-            const res = await request(app)
-                .post('/api/inventory-item/create')
-                .send(payload)
-                .expect(201);
-
-            expect(res.body.success).toBe(true);
-            expect(res.body.data.status).toBe('Unsealed');
-        });
-
         test('creates inventory with zero stock', async () => {
-            const payload = createInventoryPayload(variant._id, { stockInBaseUnits: 0 });
+            const payload = createInventoryPayload(variant._id, { stock: 0 });
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -166,7 +151,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                 .expect(201);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(0);
+            expect(res.body.data.stock).toBe(0);
         });
 
         test('creates inventory without optional batchNumber', async () => {
@@ -201,7 +186,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                 const newVariant = await createTestVariant(product._id);
                 const payload = createInventoryPayload(newVariant._id, {
                     batchNumber: `BATCH-${currency}-${Date.now()}`,
-                    pricePerBaseUnit: { amount: 100, currency }
+                    price: { amount: 100, currency }
                 });
 
                 const res = await request(app)
@@ -209,7 +194,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                     .send(payload)
                     .expect(201);
 
-                expect(res.body.data.pricePerBaseUnit.currency).toBe(currency);
+                expect(res.body.data.price.currency).toBe(currency);
             }
         });
 
@@ -272,9 +257,9 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             );
         });
 
-        test('fails when stockInBaseUnits is missing', async () => {
+        test('fails when stock is missing', async () => {
             const payload = createInventoryPayload(variant._id);
-            delete payload.stockInBaseUnits;
+            delete payload.stock;
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -285,15 +270,15 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'stockInBaseUnits',
-                        message: 'stockInBaseUnits is required'
+                        field: 'stock',
+                        message: 'stock is required'
                     })
                 ])
             );
         });
 
-        test('fails when stockInBaseUnits is negative', async () => {
-            const payload = createInventoryPayload(variant._id, { stockInBaseUnits: -10 });
+        test('fails when stock is negative', async () => {
+            const payload = createInventoryPayload(variant._id, { stock: -10 });
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -304,16 +289,16 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'stockInBaseUnits',
-                        message: 'stockInBaseUnits must be a non-negative number'
+                        field: 'stock',
+                        message: 'stock must be a non-negative number'
                     })
                 ])
             );
         });
 
-        test('fails when pricePerBaseUnit.amount is missing', async () => {
+        test('fails when price.amount is missing', async () => {
             const payload = createInventoryPayload(variant._id);
-            delete payload.pricePerBaseUnit.amount;
+            delete payload.price.amount;
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -324,16 +309,16 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.amount',
-                        message: 'pricePerBaseUnit.amount is required'
+                        field: 'price.amount',
+                        message: 'price.amount is required'
                     })
                 ])
             );
         });
 
-        test('fails when pricePerBaseUnit.amount is negative', async () => {
+        test('fails when price.amount is negative', async () => {
             const payload = createInventoryPayload(variant._id);
-            payload.pricePerBaseUnit.amount = -50;
+            payload.price.amount = -50;
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -344,16 +329,16 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.amount',
-                        message: 'pricePerBaseUnit.amount must be a non-negative number'
+                        field: 'price.amount',
+                        message: 'price.amount must be a non-negative number'
                     })
                 ])
             );
         });
 
-        test('fails when pricePerBaseUnit.currency is missing', async () => {
+        test('fails when price.currency is missing', async () => {
             const payload = createInventoryPayload(variant._id);
-            delete payload.pricePerBaseUnit.currency;
+            delete payload.price.currency;
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -364,8 +349,8 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.currency',
-                        message: 'pricePerBaseUnit.currency is required'
+                        field: 'price.currency',
+                        message: 'price.currency is required'
                     })
                 ])
             );
@@ -373,7 +358,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
 
         test('fails when currency code is not 3 letters', async () => {
             const payload = createInventoryPayload(variant._id);
-            payload.pricePerBaseUnit.currency = 'IN';
+            payload.price.currency = 'IN';
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
@@ -384,27 +369,8 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.currency',
-                        message: 'pricePerBaseUnit.currency must be a 3-letter currency code'
-                    })
-                ])
-            );
-        });
-
-        test('fails when status is invalid', async () => {
-            const payload = createInventoryPayload(variant._id, { status: 'Invalid' });
-
-            const res = await request(app)
-                .post('/api/inventory-item/create')
-                .send(payload)
-                .expect(400);
-
-            expect(res.body.error.code).toBe('VALIDATION_ERROR');
-            expect(res.body.error.details).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        field: 'status',
-                        message: 'status must be either Sealed or Unsealed'
+                        field: 'price.currency',
+                        message: 'price.currency must be a 3-letter currency code'
                     })
                 ])
             );
@@ -588,7 +554,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
     describe('Edge Cases', () => {
         test('creates inventory with very large stock', async () => {
             const payload = createInventoryPayload(variant._id, {
-                stockInBaseUnits: 999999999
+                stock: 999999999
             });
 
             const res = await request(app)
@@ -596,24 +562,24 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                 .send(payload)
                 .expect(201);
 
-            expect(res.body.data.stockInBaseUnits).toBe(999999999);
+            expect(res.body.data.stock).toBe(999999999);
         });
 
         test('creates inventory with very small price', async () => {
             const payload = createInventoryPayload(variant._id);
-            payload.pricePerBaseUnit.amount = 0.01;
+            payload.price.amount = 0.01;
 
             const res = await request(app)
                 .post('/api/inventory-item/create')
                 .send(payload)
                 .expect(201);
 
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(0.01);
+            expect(res.body.data.price.amount).toBe(0.01);
         });
 
         test('creates inventory with decimal stock value', async () => {
             const payload = createInventoryPayload(variant._id, {
-                stockInBaseUnits: 45.75
+                stock: 45.75
             });
 
             const res = await request(app)
@@ -621,7 +587,7 @@ describe('POST /api/inventory-item/create - Create Inventory Item', () => {
                 .send(payload)
                 .expect(201);
 
-            expect(res.body.data.stockInBaseUnits).toBe(45.75);
+            expect(res.body.data.stock).toBe(45.75);
         });
 
         test('creates inventory with isActive false', async () => {

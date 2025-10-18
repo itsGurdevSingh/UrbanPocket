@@ -3,8 +3,8 @@ InventoryItem:
   type: object
   required:
     - variantId
-    - stockInBaseUnits
-    - pricePerBaseUnit
+    - stock
+    - price
   properties:
     _id:
       type: string
@@ -20,11 +20,11 @@ InventoryItem:
       type: string
       description: Unique batch or lot identifier
       example: "BATCH-2024-001"
-    stockInBaseUnits:
+    stock:
       type: number
-      description: Stock level in base units (e.g., kg)
+      description: Current stock level
       example: 100
-    pricePerBaseUnit:
+    price:
       type: object
       required: [amount, currency]
       properties:
@@ -34,11 +34,6 @@ InventoryItem:
         currency:
           type: string
           example: "INR"
-    status:
-      type: string
-      enum: [Sealed, Unsealed]
-      description: Sealed package or loose items
-      example: "Sealed"
     manufacturingDetails:
       type: object
       properties:
@@ -75,8 +70,8 @@ CreateInventoryRequest:
   type: object
   required:
     - variantId
-    - stockInBaseUnits
-    - pricePerBaseUnit
+    - stock
+    - price
   properties:
     variantId:
       type: string
@@ -85,10 +80,10 @@ CreateInventoryRequest:
     batchNumber:
       type: string
       description: Unique batch or lot identifier
-    stockInBaseUnits:
+    stock:
       type: number
-      description: Stock level in base units (e.g., kg)
-    pricePerBaseUnit:
+      description: Current stock level
+    price:
       type: object
       required: [amount, currency]
       properties:
@@ -96,10 +91,6 @@ CreateInventoryRequest:
           type: number
         currency:
           type: string
-    status:
-      type: string
-      enum: [Sealed, Unsealed]
-      description: Sealed package or loose items
     manufacturingDetails:
       type: object
       properties:
@@ -122,20 +113,16 @@ UpdateInventoryRequest:
     batchNumber:
       type: string
       description: Unique batch or lot identifier
-    stockInBaseUnits:
+    stock:
       type: number
-      description: Stock level in base units (e.g., kg)
-    pricePerBaseUnit:
+      description: Current stock level
+    price:
       type: object
       properties:
         amount:
           type: number
         currency:
           type: string
-    status:
-      type: string
-      enum: [Sealed, Unsealed]
-      description: Sealed package or loose items
     manufacturingDetails:
       type: object
       properties:

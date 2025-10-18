@@ -118,8 +118,8 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
             // Check inventory fields
             expect(item._id).toBeDefined();
             expect(item.variantId).toBeDefined();
-            expect(item.stockInBaseUnits).toBeDefined();
-            expect(item.pricePerBaseUnit).toBeDefined();
+            expect(item.stock).toBeDefined();
+            expect(item.price).toBeDefined();
 
             // Check variant info
             expect(item.variant).toBeDefined();
@@ -217,17 +217,6 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
             });
         });
 
-        test('should filter by status (Sealed)', async () => {
-            const res = await request(app)
-                .get('/api/inventory-item/getAll')
-                .query({ status: 'Sealed' });
-
-            expect(res.status).toBe(200);
-            res.body.data.items.forEach(item => {
-                expect(item.status).toBe('Sealed');
-            });
-        });
-
         test('should filter by isActive=true', async () => {
             const res = await request(app)
                 .get('/api/inventory-item/getAll')
@@ -246,7 +235,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
 
             expect(res.status).toBe(200);
             res.body.data.items.forEach(item => {
-                expect(item.stockInBaseUnits).toBeGreaterThan(0);
+                expect(item.stock).toBeGreaterThan(0);
             });
         });
 
@@ -257,7 +246,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
 
             expect(res.status).toBe(200);
             res.body.data.items.forEach(item => {
-                expect(item.pricePerBaseUnit.amount).toBeGreaterThanOrEqual(100000);
+                expect(item.price.amount).toBeGreaterThanOrEqual(100000);
             });
         });
 
@@ -268,7 +257,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
 
             expect(res.status).toBe(200);
             res.body.data.items.forEach(item => {
-                expect(item.pricePerBaseUnit.amount).toBeLessThanOrEqual(1000);
+                expect(item.price.amount).toBeLessThanOrEqual(1000);
             });
         });
 
@@ -279,8 +268,8 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
 
             expect(res.status).toBe(200);
             res.body.data.items.forEach(item => {
-                expect(item.pricePerBaseUnit.amount).toBeGreaterThanOrEqual(100000);
-                expect(item.pricePerBaseUnit.amount).toBeLessThanOrEqual(200000);
+                expect(item.price.amount).toBeGreaterThanOrEqual(100000);
+                expect(item.price.amount).toBeLessThanOrEqual(200000);
             });
         });
 
@@ -314,7 +303,6 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
             const res = await request(app)
                 .get('/api/inventory-item/getAll')
                 .query({
-                    status: 'Sealed',
                     isActive: 'true',
                     inStock: 'true',
                     minPrice: 10000
@@ -322,10 +310,9 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
 
             expect(res.status).toBe(200);
             res.body.data.items.forEach(item => {
-                expect(item.status).toBe('Sealed');
                 expect(item.isActive).toBe(true);
-                expect(item.stockInBaseUnits).toBeGreaterThan(0);
-                expect(item.pricePerBaseUnit.amount).toBeGreaterThanOrEqual(10000);
+                expect(item.stock).toBeGreaterThan(0);
+                expect(item.price.amount).toBeGreaterThanOrEqual(10000);
             });
         });
     });
@@ -338,7 +325,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
                 .query({ sortBy: 'price', sortOrder: 'asc' });
 
             expect(res.status).toBe(200);
-            const prices = res.body.data.items.map(item => item.pricePerBaseUnit.amount);
+            const prices = res.body.data.items.map(item => item.price.amount);
             for (let i = 1; i < prices.length; i++) {
                 expect(prices[i]).toBeGreaterThanOrEqual(prices[i - 1]);
             }
@@ -350,7 +337,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
                 .query({ sortBy: 'price', sortOrder: 'desc' });
 
             expect(res.status).toBe(200);
-            const prices = res.body.data.items.map(item => item.pricePerBaseUnit.amount);
+            const prices = res.body.data.items.map(item => item.price.amount);
             for (let i = 1; i < prices.length; i++) {
                 expect(prices[i]).toBeLessThanOrEqual(prices[i - 1]);
             }
@@ -362,7 +349,7 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
                 .query({ sortBy: 'stock', sortOrder: 'asc' });
 
             expect(res.status).toBe(200);
-            const stocks = res.body.data.items.map(item => item.stockInBaseUnits);
+            const stocks = res.body.data.items.map(item => item.stock);
             for (let i = 1; i < stocks.length; i++) {
                 expect(stocks[i]).toBeGreaterThanOrEqual(stocks[i - 1]);
             }
@@ -394,15 +381,6 @@ describe('GET /api/inventory-item/getAll - Get All Inventory Items', () => {
             const res = await request(app)
                 .get('/api/inventory-item/getAll')
                 .query({ variantId: 'invalid-id' });
-
-            expect(res.status).toBe(400);
-            expect(res.body.success).toBe(false);
-        });
-
-        test('should reject invalid status value', async () => {
-            const res = await request(app)
-                .get('/api/inventory-item/getAll')
-                .query({ status: 'InvalidStatus' });
 
             expect(res.status).toBe(400);
             expect(res.body.success).toBe(false);

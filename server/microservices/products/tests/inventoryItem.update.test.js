@@ -43,12 +43,11 @@ async function createTestInventoryItem(variantId, overrides = {}) {
     return InventoryItem.create({
         variantId,
         batchNumber: `BATCH-${Date.now()}`,
-        stockInBaseUnits: 100,
-        pricePerBaseUnit: {
+        stock: 100,
+        price: {
             amount: 120.5,
             currency: 'INR'
         },
-        status: 'Sealed',
         manufacturingDetails: {
             mfgDate: new Date('2024-01-01'),
             expDate: new Date('2025-01-01')
@@ -88,12 +87,11 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
         test('seller updates inventory item with all fields', async () => {
             const updatePayload = {
                 batchNumber: 'BATCH-UPDATED',
-                stockInBaseUnits: 200,
-                pricePerBaseUnit: {
+                stock: 200,
+                price: {
                     amount: 150.75,
                     currency: 'USD'
                 },
-                status: 'Unsealed',
                 manufacturingDetails: {
                     mfgDate: '2024-06-01',
                     expDate: '2025-06-01'
@@ -114,21 +112,20 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 _id: inventoryItem._id.toString(),
                 variantId: variant._id.toString(),
                 batchNumber: 'BATCH-UPDATED',
-                stockInBaseUnits: 200,
-                status: 'Unsealed',
+                stock: 200,
                 hsnCode: '310220',
                 gstPercentage: 12,
                 isActive: false
             });
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(150.75);
-            expect(res.body.data.pricePerBaseUnit.currency).toBe('USD');
+            expect(res.body.data.price.amount).toBe(150.75);
+            expect(res.body.data.price.currency).toBe('USD');
         });
 
         test('admin updates inventory item', async () => {
             if (global.setTestAuthRole) global.setTestAuthRole('admin');
 
             const updatePayload = {
-                stockInBaseUnits: 300,
+                stock: 300,
                 gstPercentage: 5
             };
 
@@ -138,13 +135,13 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .expect(200);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(300);
+            expect(res.body.data.stock).toBe(300);
             expect(res.body.data.gstPercentage).toBe(5);
         });
 
         test('updates only stock quantity', async () => {
             const updatePayload = {
-                stockInBaseUnits: 50
+                stock: 50
             };
 
             const res = await request(app)
@@ -153,15 +150,14 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .expect(200);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(50);
+            expect(res.body.data.stock).toBe(50);
             // Other fields remain unchanged
             expect(res.body.data.batchNumber).toBe(inventoryItem.batchNumber);
-            expect(res.body.data.status).toBe('Sealed');
         });
 
         test('updates only price', async () => {
             const updatePayload = {
-                pricePerBaseUnit: {
+                price: {
                     amount: 99.99,
                     currency: 'EUR'
                 }
@@ -173,22 +169,8 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .expect(200);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(99.99);
-            expect(res.body.data.pricePerBaseUnit.currency).toBe('EUR');
-        });
-
-        test('updates only status', async () => {
-            const updatePayload = {
-                status: 'Unsealed'
-            };
-
-            const res = await request(app)
-                .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send(updatePayload)
-                .expect(200);
-
-            expect(res.body.success).toBe(true);
-            expect(res.body.data.status).toBe('Unsealed');
+            expect(res.body.data.price.amount).toBe(99.99);
+            expect(res.body.data.price.currency).toBe('EUR');
         });
 
         test('updates manufacturing details', async () => {
@@ -269,7 +251,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
 
         test('updates stock to zero', async () => {
             const updatePayload = {
-                stockInBaseUnits: 0
+                stock: 0
             };
 
             const res = await request(app)
@@ -278,12 +260,12 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .expect(200);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(0);
+            expect(res.body.data.stock).toBe(0);
         });
 
         test('updates with decimal stock value', async () => {
             const updatePayload = {
-                stockInBaseUnits: 75.5
+                stock: 75.5
             };
 
             const res = await request(app)
@@ -292,7 +274,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .expect(200);
 
             expect(res.body.success).toBe(true);
-            expect(res.body.data.stockInBaseUnits).toBe(75.5);
+            expect(res.body.data.stock).toBe(75.5);
         });
 
         test('updates with empty body returns unchanged item', async () => {
@@ -303,7 +285,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
 
             expect(res.body.success).toBe(true);
             // Item should remain unchanged
-            expect(res.body.data.stockInBaseUnits).toBe(inventoryItem.stockInBaseUnits);
+            expect(res.body.data.stock).toBe(inventoryItem.stock);
         });
     });
 
@@ -311,7 +293,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
         test('fails when inventory item ID is invalid ObjectId', async () => {
             const res = await request(app)
                 .put('/api/inventory-item/invalid-id')
-                .send({ stockInBaseUnits: 100 })
+                .send({ stock: 100 })
                 .expect(400);
 
             expect(res.body.error.code).toBe('VALIDATION_ERROR');
@@ -325,9 +307,9 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             );
         });
 
-        test('fails when stockInBaseUnits is negative', async () => {
+        test('fails when stock is negative', async () => {
             const updatePayload = {
-                stockInBaseUnits: -50
+                stock: -50
             };
 
             const res = await request(app)
@@ -339,16 +321,16 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'stockInBaseUnits',
-                        message: 'stockInBaseUnits must be a non-negative number'
+                        field: 'stock',
+                        message: 'stock must be a non-negative number'
                     })
                 ])
             );
         });
 
-        test('fails when pricePerBaseUnit.amount is negative', async () => {
+        test('fails when price.amount is negative', async () => {
             const updatePayload = {
-                pricePerBaseUnit: {
+                price: {
                     amount: -100
                 }
             };
@@ -362,8 +344,8 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.amount',
-                        message: 'pricePerBaseUnit.amount must be a non-negative number'
+                        field: 'price.amount',
+                        message: 'price.amount must be a non-negative number'
                     })
                 ])
             );
@@ -371,7 +353,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
 
         test('fails when currency code is not 3 letters', async () => {
             const updatePayload = {
-                pricePerBaseUnit: {
+                price: {
                     currency: 'US'
                 }
             };
@@ -385,29 +367,8 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             expect(res.body.error.details).toEqual(
                 expect.arrayContaining([
                     expect.objectContaining({
-                        field: 'pricePerBaseUnit.currency',
-                        message: 'pricePerBaseUnit.currency must be a 3-letter currency code'
-                    })
-                ])
-            );
-        });
-
-        test('fails when status is invalid', async () => {
-            const updatePayload = {
-                status: 'InvalidStatus'
-            };
-
-            const res = await request(app)
-                .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send(updatePayload)
-                .expect(400);
-
-            expect(res.body.error.code).toBe('VALIDATION_ERROR');
-            expect(res.body.error.details).toEqual(
-                expect.arrayContaining([
-                    expect.objectContaining({
-                        field: 'status',
-                        message: 'status must be either Sealed or Unsealed'
+                        field: 'price.currency',
+                        message: 'price.currency must be a 3-letter currency code'
                     })
                 ])
             );
@@ -561,7 +522,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
         test('fails when inventory item does not exist', async () => {
             const nonExistentId = new mongoose.Types.ObjectId();
             const updatePayload = {
-                stockInBaseUnits: 200
+                stock: 200
             };
 
             const res = await request(app)
@@ -602,7 +563,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             if (global.setTestAuthRole) global.setTestAuthRole('user');
 
             const updatePayload = {
-                stockInBaseUnits: 200
+                stock: 200
             };
 
             const res = await request(app)
@@ -617,7 +578,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             if (global.setTestAuthRole) global.setTestAuthRole('customer');
 
             const updatePayload = {
-                stockInBaseUnits: 200
+                stock: 200
             };
 
             const res = await request(app)
@@ -632,7 +593,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
     describe('Edge Cases', () => {
         test('updates with very large stock', async () => {
             const updatePayload = {
-                stockInBaseUnits: 999999999
+                stock: 999999999
             };
 
             const res = await request(app)
@@ -640,12 +601,12 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .send(updatePayload)
                 .expect(200);
 
-            expect(res.body.data.stockInBaseUnits).toBe(999999999);
+            expect(res.body.data.stock).toBe(999999999);
         });
 
         test('updates with very small price', async () => {
             const updatePayload = {
-                pricePerBaseUnit: {
+                price: {
                     amount: 0.01
                 }
             };
@@ -655,12 +616,12 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .send(updatePayload)
                 .expect(200);
 
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(0.01);
+            expect(res.body.data.price.amount).toBe(0.01);
         });
 
         test('updates price to zero', async () => {
             const updatePayload = {
-                pricePerBaseUnit: {
+                price: {
                     amount: 0
                 }
             };
@@ -670,7 +631,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .send(updatePayload)
                 .expect(200);
 
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(0);
+            expect(res.body.data.price.amount).toBe(0);
         });
 
         test('updates GST to 0%', async () => {
@@ -703,13 +664,13 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
             // First update
             await request(app)
                 .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send({ stockInBaseUnits: 50 })
+                .send({ stock: 50 })
                 .expect(200);
 
             // Second update
             await request(app)
                 .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send({ pricePerBaseUnit: { amount: 200 } })
+                .send({ price: { amount: 200 } })
                 .expect(200);
 
             // Third update
@@ -718,8 +679,8 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
                 .send({ gstPercentage: 5 })
                 .expect(200);
 
-            expect(res.body.data.stockInBaseUnits).toBe(50);
-            expect(res.body.data.pricePerBaseUnit.amount).toBe(200);
+            expect(res.body.data.stock).toBe(50);
+            expect(res.body.data.price.amount).toBe(200);
             expect(res.body.data.gstPercentage).toBe(5);
         });
 
@@ -731,7 +692,7 @@ describe('PUT /api/inventory-item/:id - Update Inventory Item', () => {
 
             const res = await request(app)
                 .put(`/api/inventory-item/${inventoryItem._id}`)
-                .send({ stockInBaseUnits: 150 })
+                .send({ stock: 150 })
                 .expect(200);
 
             // createdAt should remain the same

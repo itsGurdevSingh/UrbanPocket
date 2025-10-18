@@ -41,9 +41,9 @@ async function createInventoryItem(variantId, overrides = {}) {
     const base = {
         variantId,
         batchNumber: `BATCH-${Math.random().toString(36).slice(2, 8)}`,
-        stockInBaseUnits: 100,
-        pricePerBaseUnit: { amount: 50, currency: 'INR' },
-        status: 'Sealed',
+        stock: 100,
+        price: { amount: 50, currency: 'INR' },
+
         manufacturingDetails: {
             mfgDate: new Date('2024-01-01'),
             expDate: new Date('2025-12-31')

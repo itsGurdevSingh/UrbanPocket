@@ -13,24 +13,19 @@ const inventorySchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
-  // The current stock level, always stored in the variant's `baseUnit` (e.g., in kilograms).
-  stockInBaseUnits: {
+  // The current stock level, always stored in the variant's
+  stock: {
     type: Number,
     required: true,
     min: 0,
     default: 0,
   },
   // The price is also set per base unit.
-  pricePerBaseUnit: {
+  price: {
     amount: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, default: 'INR' },
   },
-  // Tracks if this inventory is a sealed package or loose items.
-  status: {
-    type: String,
-    enum: ['Sealed', 'Unsealed'],
-    default: 'Sealed',
-  },
+ 
   // Batch-specific details like manufacturing and expiration dates
   manufacturingDetails: {
     mfgDate: { type: Date },

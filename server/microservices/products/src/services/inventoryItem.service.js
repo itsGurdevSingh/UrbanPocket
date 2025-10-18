@@ -63,7 +63,6 @@ class inventoryItemService {
     const filters = {
       variantId: queryParams.variantId,
       batchNumber: queryParams.batchNumber,
-      status: queryParams.status,
       isActive: queryParams.isActive,
       inStock: queryParams.inStock,
       minPrice: queryParams.minPrice,

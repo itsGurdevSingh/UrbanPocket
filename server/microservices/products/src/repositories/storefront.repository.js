@@ -68,13 +68,13 @@ const search = async (filters = {}, sort = {}, pagination = {}) => {
   // ----------------------------------------------------------------------------------
   const postMatch = {
     'variant.isActive': true,
-    'inventory.stockInBaseUnits': { $gt: 0 },
+    'inventory.stock': { $gt: 0 },
   };
 
   if (filters.minPrice || filters.maxPrice) {
-    postMatch['inventory.pricePerBaseUnit.amount'] = {};
-    if (filters.minPrice) postMatch['inventory.pricePerBaseUnit.amount'].$gte = Number(filters.minPrice);
-    if (filters.maxPrice) postMatch['inventory.pricePerBaseUnit.amount'].$lte = Number(filters.maxPrice);
+    postMatch['inventory.price.amount'] = {};
+    if (filters.minPrice) postMatch['inventory.price.amount'].$gte = Number(filters.minPrice);
+    if (filters.maxPrice) postMatch['inventory.price.amount'].$lte = Number(filters.maxPrice);
   }
   // Dynamically build match conditions for variant options (e.g., ?option_Size=M)
   for (const key in filters) {
@@ -95,7 +95,7 @@ const search = async (filters = {}, sort = {}, pagination = {}) => {
   if (sort.sortBy === 'relevance' && filters.search) {
     sortStage = { score: -1 };
   } else if (sort.sortBy === 'price') {
-    sortStage = { 'inventory.pricePerBaseUnit.amount': sort.sortOrder === 'desc' ? -1 : 1 };
+    sortStage = { 'inventory.price.amount': sort.sortOrder === 'desc' ? -1 : 1 };
   } else {
     // Default sort is by creation date of the product.
     sortStage = { createdAt: -1 };
@@ -111,21 +111,21 @@ const search = async (filters = {}, sort = {}, pagination = {}) => {
   const limit = parseInt(pagination.limit, 10) || 10;
   const skip = (page - 1) * limit;
 
-  const finalProjection ={
+  const finalProjection = {
     // --- Key Identifiers ---
     _id: '$inventory._id', // The sellable item's ID is the root ID
     sku: '$variant.sku',
-    
+
     // --- Core Product Info (from the parent) ---
     name: '$name',
     brand: '$brand',
     description: '$description',
-    
+
     // --- Variant & Inventory Details (Flattened) ---
     options: '$variant.options',
-    price: '$inventory.pricePerBaseUnit', // One clear price object
-    stock: '$inventory.stockInBaseUnits', // One clear stock number
-    
+    price: '$inventory.price', // One clear price object
+    stock: '$inventory.stock', // One clear stock number
+
     // --- Other Important Fields ---
     images: { $concatArrays: ['$baseImages', '$variant.variantImages'] }, // Combine product and variant images
     rating: '$rating',
@@ -135,7 +135,7 @@ const search = async (filters = {}, sort = {}, pagination = {}) => {
 
   pipeline.push({
     $facet: {
-      paginatedResults: [{ $skip: skip }, { $limit: limit }, { $project: finalProjection}],
+      paginatedResults: [{ $skip: skip }, { $limit: limit }, { $project: finalProjection }],
       totalCount: [{ $count: 'count' }],
     },
   });
