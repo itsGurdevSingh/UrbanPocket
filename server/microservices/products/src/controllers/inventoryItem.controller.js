@@ -67,6 +67,30 @@ class inventoryItemController {
     }
   }
 
+  async disableInventoryItem(req, res, next) {
+    try {
+      const { id } = req.params;
+      const disabledItem = await inventoryItemService.disableInventoryItem(id, req.user);
+      res.status(200).json(
+        new ApiResponse(disabledItem, 'Inventory item disabled successfully')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async enableInventoryItem(req, res, next) {
+    try {
+      const { id } = req.params;
+      const enabledItem = await inventoryItemService.enableInventoryItem(id, req.user);
+      res.status(200).json(
+        new ApiResponse(enabledItem, 'Inventory item enabled successfully')
+      );
+    } catch (error) {
+      next(error);
+    }
+  }
+
   // Additional methods for inventory item management can be added here
 }
 export default new inventoryItemController();

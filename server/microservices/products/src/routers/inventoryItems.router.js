@@ -25,4 +25,10 @@ router.put('/:id', authenticateRole(['admin', 'seller']), updateInventoryItemVal
 // delete inventory item
 router.delete('/:id', authenticateRole(['admin', 'seller']), inventoryItemIdValidation, inventoryItemController.deleteInventoryItem);
 
+// disable inventory item - only seller or admin can disable (soft delete)
+router.patch('/:id/disable', authenticateRole(['admin', 'seller']), inventoryItemIdValidation, inventoryItemController.disableInventoryItem);
+
+// enable inventory item - only seller or admin can enable (soft undelete)
+router.patch('/:id/enable', authenticateRole(['admin', 'seller']), inventoryItemIdValidation, inventoryItemController.enableInventoryItem);
+
 export default router;
