@@ -11,6 +11,9 @@ router.get('/getAll', getAllCategoriesValidation, categoryController.getAllCateg
 // POST /api/category/create - only admin
 router.post('/create', authenticateRole(['admin']), createCategoryValidation, categoryController.createCategory);
 
+// GET /api/category/:id/tree - public (no auth required per docs)
+router.get('/:id/tree', categoryIdValidation, categoryController.getCategoryTree);
+
 // GET /api/category/:id - public (no auth required per docs)
 router.get('/:id', categoryIdValidation, categoryController.getCategoryById);
 

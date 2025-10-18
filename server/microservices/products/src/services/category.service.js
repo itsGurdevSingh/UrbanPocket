@@ -146,6 +146,23 @@ class categoryService {
             throw new ApiError('Failed to fetch categories', { statusCode: 500, code: 'FETCH_CATEGORIES_FAILED', details: error.message });
         }
     }
+
+    /**
+     * Get category tree (category with all its descendants)
+     * @param {string} id - Category ID
+     * @returns {Promise<object>} Category tree with nested children
+     */
+    async getCategoryTree(id) {
+        try {
+            // Call repository to get the category tree
+            const tree = await categoryRepository.getTree(id);
+            return tree;
+        } catch (error) {
+            logger.error('Error fetching category tree:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch category tree', { statusCode: 500, code: 'FETCH_CATEGORY_TREE_FAILED', details: error.message });
+        }
+    }
 }
 
 export default new categoryService();

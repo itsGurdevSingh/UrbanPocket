@@ -85,6 +85,18 @@ class categoryController {
             return next(new ApiError('Failed to fetch categories', { statusCode: 500, code: 'FETCH_CATEGORIES_ERROR', details: error.message }));
         }
     }
+
+    async getCategoryTree(req, res, next) {
+        try {
+            const categoryId = req.params.id;
+            const tree = await categoryService.getCategoryTree(categoryId);
+            res.status(200).json(new ApiResponse(tree, 'Category tree fetched successfully'));
+        } catch (error) {
+            logger.error('Error fetching category tree:', error);
+            if (error instanceof ApiError) return next(error);
+            return next(new ApiError('Failed to fetch category tree', { statusCode: 500, code: 'FETCH_CATEGORY_TREE_ERROR', details: error.message }));
+        }
+    }
 }
 
 export default new categoryController();
