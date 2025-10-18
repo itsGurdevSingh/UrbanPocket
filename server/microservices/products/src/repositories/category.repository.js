@@ -41,6 +41,91 @@ class CategoryRepository {
         }
         return item;
     }
+
+    /**
+     * Search and filter categories using aggregation pipeline
+     * @param {object} filters - Filter criteria (isActive, parentCategory, q)
+     * @param {object} pagination - Page and limit for results
+     * @returns {Promise<{categories: Array, total: number}>} Categories and total count
+     */
+    async search(filters = {}, pagination = {}) {
+        const pipeline = [];
+
+        // ----------------------------------------------------------------------------------
+        // STAGE 1: INITIAL MATCH (FILTER)
+        // ----------------------------------------------------------------------------------
+        const matchStage = {};
+
+        // Filter by isActive status
+        if (filters.isActive !== undefined) {
+            matchStage.isActive = filters.isActive === 'true' || filters.isActive === true;
+        }
+
+        // Filter by parentCategory
+        if (filters.parentCategory) {
+            if (filters.parentCategory === 'null' || filters.parentCategory === null) {
+                matchStage.parentCategory = null; // Top-level categories
+            } else {
+                matchStage.parentCategory = new Category.base.Types.ObjectId(filters.parentCategory);
+            }
+        }
+
+        // Text search on name and description
+        if (filters.q) {
+            matchStage.$or = [
+                { name: { $regex: filters.q, $options: 'i' } },
+                { description: { $regex: filters.q, $options: 'i' } }
+            ];
+        }
+
+        if (Object.keys(matchStage).length > 0) {
+            pipeline.push({ $match: matchStage });
+        }
+
+        // ----------------------------------------------------------------------------------
+        // STAGE 2: SORTING
+        // Sort by name ascending by default
+        // ----------------------------------------------------------------------------------
+        pipeline.push({ $sort: { name: 1 } });
+
+        // ----------------------------------------------------------------------------------
+        // STAGE 3: PAGINATION & COUNT ($facet)
+        // ----------------------------------------------------------------------------------
+        const page = parseInt(pagination.page, 10) || 1;
+        const limit = parseInt(pagination.limit, 10) || 20;
+        const skip = (page - 1) * limit;
+
+        pipeline.push({
+            $facet: {
+                paginatedResults: [{ $skip: skip }, { $limit: limit }],
+                totalCount: [{ $count: 'count' }],
+            },
+        });
+
+        // ----------------------------------------------------------------------------------
+        // STAGE 4: CLEANUP & RESHAPE OUTPUT
+        // ----------------------------------------------------------------------------------
+        pipeline.push(
+            {
+                $project: {
+                    categories: '$paginatedResults',
+                    total: { $arrayElemAt: ['$totalCount.count', 0] },
+                },
+            },
+            {
+                $addFields: {
+                    total: { $ifNull: ['$total', 0] },
+                },
+            }
+        );
+
+        // ----------------------------------------------------------------------------------
+        // EXECUTION
+        // ----------------------------------------------------------------------------------
+        const results = await Category.aggregate(pipeline);
+
+        return results[0] || { categories: [], total: 0 };
+    }
 }
 
 export default new CategoryRepository();

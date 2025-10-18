@@ -370,7 +370,7 @@ describe('PUT /api/category/:id', () => {
 
         it('preserves other fields when updating one field', async () => {
             const original = await Category.findById(testCategory._id);
-            
+
             const res = await request(app)
                 .put(`/api/category/${testCategory._id}`)
                 .send({ description: 'New description' })

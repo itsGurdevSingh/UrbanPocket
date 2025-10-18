@@ -74,6 +74,78 @@ class categoryService {
             throw new ApiError('Failed to delete category', { statusCode: 500, code: 'DELETE_CATEGORY_FAILED', details: error.message });
         }
     }
+
+    async disableCategory(categoryId, currentUser) {
+        try {
+            // Fetch category to check existence
+            const category = await categoryRepository.findById(categoryId);
+
+            // Update isActive to false and return updated category
+            const updated = await categoryRepository.updateById(categoryId, { isActive: false });
+            return updated;
+        } catch (error) {
+            logger.error('Error disabling category:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to disable category', { statusCode: 500, code: 'DISABLE_CATEGORY_FAILED', details: error.message });
+        }
+    }
+
+    async enableCategory(categoryId, currentUser) {
+        try {
+            // Fetch category to check existence
+            const category = await categoryRepository.findById(categoryId);
+
+            // Update isActive to true and return updated category
+            const updated = await categoryRepository.updateById(categoryId, { isActive: true });
+            return updated;
+        } catch (error) {
+            logger.error('Error enabling category:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to enable category', { statusCode: 500, code: 'ENABLE_CATEGORY_FAILED', details: error.message });
+        }
+    }
+
+    /**
+     * Get all categories with filtering, searching, and pagination
+     * @param {object} queryParams - Query parameters from request
+     * @returns {Promise<object>} - Categories with pagination metadata
+     */
+    async getAllCategories(queryParams) {
+        try {
+            // 1. Sanitize and structure the inputs for the repository
+            const filters = {
+                isActive: queryParams.isActive,
+                parentCategory: queryParams.parentCategory,
+                q: queryParams.q,
+            };
+
+            const pagination = {
+                page: Number(queryParams.page) || 1,
+                limit: Number(queryParams.limit) || 20,
+            };
+
+            // 2. Call the repository to execute the aggregation pipeline
+            const { categories, total } = await categoryRepository.search(filters, pagination);
+
+            // 3. Calculate pagination metadata
+            const totalPages = Math.ceil(total / pagination.limit) || 0;
+            const meta = {
+                page: pagination.page,
+                limit: pagination.limit,
+                total,
+                totalPages,
+                hasNextPage: pagination.page < totalPages,
+                hasPrevPage: pagination.page > 1,
+            };
+
+            // 4. Return the final structured response
+            return { categories, meta };
+        } catch (error) {
+            logger.error('Error fetching all categories:', error);
+            if (error instanceof ApiError) throw error;
+            throw new ApiError('Failed to fetch categories', { statusCode: 500, code: 'FETCH_CATEGORIES_FAILED', details: error.message });
+        }
+    }
 }
 
 export default new categoryService();
