@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import { errorHandler } from './middlewares/errorHandler.js';
+import { globalRateLimiter } from './middlewares/rateLimiter.js';
 import productRouter from './routers/product.router.js';
 import variantRouter from './routers/variant.router.js';
 import storefrontRouter from './routers/storefront.router.js'
@@ -36,6 +37,9 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+// Global rate limiter - protect all routes from abuse
+app.use(globalRateLimiter);
 
 // Routes
 app.use('/api/product', productRouter);
