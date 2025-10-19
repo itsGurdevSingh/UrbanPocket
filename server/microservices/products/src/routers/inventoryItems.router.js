@@ -1,11 +1,11 @@
 import express from 'express';
-import { authenticateRole } from '../middlewares/authenticateUser';
+import { authenticateRole } from '../middlewares/authenticateUser.js';
 import {
     createInventoryItemValidation,
     updateInventoryItemValidation,
     inventoryItemIdValidation,
     getAllInventoryItemsValidation
-} from '../validators/invetoryItem.validator';
+} from '../validators/invetoryItem.validator.js';
 import inventoryItemController from '../controllers/inventoryItem.controller.js';
 
 const router = express.Router();

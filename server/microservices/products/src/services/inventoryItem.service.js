@@ -1,7 +1,7 @@
-import InventoryItemRepository from "../repositories/InventoryItemRepository";
-import variantRepository from "../repositories/variant.repository";
-import productRepository from "../repositories/product.repository";
-import { ApiError } from "../utils/errors";
+import InventoryItemRepository from "../repositories/InventoryItemRepository.js";
+import variantRepository from "../repositories/variant.repository.js";
+import productRepository from "../repositories/product.repository.js";
+import { ApiError } from "../utils/errors.js";
 
 class inventoryItemService {
 

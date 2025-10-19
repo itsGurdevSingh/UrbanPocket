@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import InventoryItem from "../models/inventory.model";
+import InventoryItem from "../models/inventory.model.js";
 
 class InventoryItemRepository {
 
