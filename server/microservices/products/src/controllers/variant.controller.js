@@ -125,11 +125,7 @@ class variantsController {
     async getAllVariants(req, res, next) {
         try {
             const result = await variantService.getAllVariants(req.query || {});
-            const data = {
-                variants: result.data || [],
-                meta: result.meta,
-            }
-            res.status(200).json(new ApiResponse(data, 'Variants fetched successfully'));
+            res.status(200).json(new ApiResponse(result, 'Variants fetched successfully'));
         } catch (error) {
             logger.error('Error fetching variants:', error);
             if (error instanceof ApiError) {

@@ -10,7 +10,7 @@ class productController {
             // Pass body and uploaded files to service (service will upload images after uniqueness check)
             const product = await productService.createProduct(req.body, req.files || [], req.user);
 
-            res.status(201).json( new ApiResponse(product, 'Product created successfully') );
+            res.status(201).json(new ApiResponse(product, 'Product created successfully'));
         } catch (error) {
             logger.error('Error creating product:', error);
             // If the service already produced an ApiError (e.g. validation/duplicate/no images/upload failure)
@@ -24,10 +24,10 @@ class productController {
 
     async getAllProducts(req, res, next) {
         try {
-            const result = await productService.getAllProducts(req.query || {});
+            const result = await productService.getAllProducts(req.query);
 
             const data = {
-                products: result.data || [],
+                products: result.products || [],
                 meta: result.meta
             };
             res.status(200).json(
@@ -89,8 +89,8 @@ class productController {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
             res.status(200).json(
-                new ApiResponse(updatedImage,'Product image updated successfully')
-                );
+                new ApiResponse(updatedImage, 'Product image updated successfully')
+            );
         }
         catch (error) {
             logger.error('Error updating product image:', error);
@@ -127,7 +127,7 @@ class productController {
             if (!disabled) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json( new ApiResponse(null, 'Product disabled successfully') );
+            res.status(200).json(new ApiResponse(null, 'Product disabled successfully'));
         } catch (error) {
             logger.error('Error disabling product:', error);
             if (error instanceof ApiError) {
@@ -144,7 +144,7 @@ class productController {
             if (!enabled) {
                 return next(new ApiError('Product not found', { statusCode: 404, code: 'PRODUCT_NOT_FOUND' }));
             }
-            res.status(200).json( new ApiResponse(null, 'Product enabled successfully') );
+            res.status(200).json(new ApiResponse(null, 'Product enabled successfully'));
         } catch (error) {
             logger.error('Error enabling product:', error);
             if (error instanceof ApiError) {

@@ -25,7 +25,7 @@ class productService {
             }
             // (Future) Other roles could be restricted here
             // 1. Uniqueness of name in context of seller
-            const existing = await productRepository.findOne({name:productData.name, sellerId: productData.sellerId});
+            const existing = await productRepository.findOne({ name: productData.name, sellerId: productData.sellerId });
             if (existing) {
                 throw new ApiError('Product name must be unique', { statusCode: 400, code: 'DUPLICATE_PRODUCT_NAME' });
             }
@@ -56,19 +56,20 @@ class productService {
     }
 
     /**
-     * Fetch all products (basic details)
-     * @returns {Promise<Array>}
+     * Fetch all products using aggregation pipeline
+     * @param {object} query - Query parameters
+     * @returns {Promise<object>} Products with pagination metadata
      */
-
     async getAllProducts(query = {}) {
         try {
+            // Parse query parameters
             const {
                 page = 1,
                 limit = 20,
                 categoryId,
                 sellerId,
                 brand,
-                isActive = true,
+                isActive,
                 ids,
                 q,
                 sort,
@@ -79,86 +80,75 @@ class productService {
                 updatedTo,
             } = query;
 
-            const filter = {};
+            // Build filters object
+            const filters = {};
 
-            if (categoryId) filter.categoryId = categoryId;
-            if (sellerId) filter.sellerId = sellerId;
-            if (isActive !== undefined) {
-                if (isActive === true || isActive === 'true') filter.isActive = true;
-                else if (isActive === false || isActive === 'false') filter.isActive = false;
-            }
-            if (brand) filter.brand = brand; // exact match keeps index usage
+            if (categoryId) filters.categoryId = categoryId;
+            if (sellerId) filters.sellerId = sellerId;
+            if (isActive !== undefined) filters.isActive = isActive;
+            if (brand) filters.brand = brand;
+            if (q) filters.q = q;
+            if (createdFrom) filters.createdFrom = createdFrom;
+            if (createdTo) filters.createdTo = createdTo;
+            if (updatedFrom) filters.updatedFrom = updatedFrom;
+            if (updatedTo) filters.updatedTo = updatedTo;
+
+            // Handle IDs filter
             if (ids) {
                 const idArray = ids.split(',').map(v => v.trim()).filter(Boolean);
-                if (idArray.length) {
-                    const objectIds = idArray.map(id => new mongoose.Types.ObjectId(id));
-                    filter._id = { $in: objectIds };
+                if (idArray.length > 0) {
+                    filters.ids = idArray;
                 }
             }
-            // date ranges
-            if (createdFrom || createdTo) {
-                filter.createdAt = {};
-                if (createdFrom) filter.createdAt.$gte = createdFrom;
-                if (createdTo) filter.createdAt.$lte = createdTo;
-            }
-            if (updatedFrom || updatedTo) {
-                filter.updatedAt = {};
-                if (updatedFrom) filter.updatedAt.$gte = updatedFrom;
-                if (updatedTo) filter.updatedAt.$lte = updatedTo;
-            }
 
-            if (q) {
-                filter.$text = { $search: q };
-            }
-
-            // projection
-            let projection = undefined;
+            // Handle fields projection
             if (fields) {
-                projection = fields.split(',').reduce((acc, f) => { acc[f] = 1; return acc; }, { _id: 1 });
-            }
-            if (q) {
-                projection = { ...(projection || {}), score: { $meta: 'textScore' } };
+                filters.fields = fields.split(',').map(f => f.trim()).filter(Boolean);
             }
 
-            // sort
-            let sortObj = { createdAt: -1 };
-            if (q && !sort) {
-                sortObj = { score: { $meta: 'textScore' }, createdAt: -1 };
-            } else if (sort) {
-                sortObj = {};
-                sort.split(',').forEach(part => {
+            // Build sort object
+            const sortConfig = {};
+            if (sort) {
+                const sortParts = sort.split(',');
+                sortParts.forEach(part => {
                     if (part.startsWith('-')) {
-                        sortObj[part.slice(1)] = -1;
+                        sortConfig.sortBy = part.slice(1);
+                        sortConfig.sortOrder = 'desc';
                     } else {
-                        sortObj[part] = 1;
+                        sortConfig.sortBy = part;
+                        sortConfig.sortOrder = 'asc';
                     }
                 });
             }
 
-            const pageNum = Number(page) || 1;
-            const limitNum = Number(limit) || 20;
-            const skip = (pageNum - 1) * limitNum;
+            // Pagination
+            const pagination = {
+                page: Number(page) || 1,
+                limit: Number(limit) || 20,
+            };
 
-            const [items, total] = await Promise.all([
-                productRepository.model.find(filter).select(projection).sort(sortObj).skip(skip).limit(limitNum).lean(),
-                productRepository.model.countDocuments(filter)
-            ]);
+            // Call repository with aggregation pipeline
+            const { products, total } = await productRepository.getAllProducts(filters, sortConfig, pagination);
 
-            const totalPages = Math.ceil(total / limitNum) || 1;
+            // Calculate pagination metadata
+            const totalPages = Math.ceil(total / pagination.limit) || 1;
+            const meta = {
+                page: pagination.page,
+                limit: pagination.limit,
+                total,
+                totalPages,
+                hasNextPage: pagination.page < totalPages,
+                hasPrevPage: pagination.page > 1,
+            };
+
             return {
-                data: items,
-                meta: {
-                    page: pageNum,
-                    limit: limitNum,
-                    total,
-                    totalPages,
-                    hasNextPage: pageNum < totalPages,
-                    hasPrevPage: pageNum > 1,
-                },
-                // temporary backward compatibility
-                count: items.length,
+                products,
+                meta,
+                // Backward compatibility
+                count: products.length,
             };
         } catch (error) {
+            logger.error('Error fetching all products:', error);
             if (error instanceof ApiError) throw error;
             throw new ApiError('Failed to fetch products', { statusCode: 500, code: 'FETCH_PRODUCTS_FAILED', details: error.message });
         }
@@ -203,7 +193,7 @@ class productService {
             }
             // 2. If name is changing, ensure uniquenessin context of seller
             if (updateData.name && updateData.name !== existing.name) {
-                const nameConflict = await productRepository.findOne({name:updateData.name, sellerId: existing.sellerId});
+                const nameConflict = await productRepository.findOne({ name: updateData.name, sellerId: existing.sellerId });
                 if (nameConflict) {
                     throw new ApiError('Product name must be unique', { statusCode: 400, code: 'DUPLICATE_PRODUCT_NAME' });
                 }

@@ -364,110 +364,85 @@ class VariantService {
      */
     async getAllVariants(query = {}) {
         try {
-            const {
-                page = 1,
-                limit = 20,
-                productId,
-                sku,
-                currency,
-                baseUnit,
-                isActive,
-                ids,
-                q,
-                sort,
-                fields,
-                createdFrom,
-                createdTo,
-                updatedFrom,
-                updatedTo,
-                priceMin,
-                priceMax,
-                stockMin,
-                stockMax,
-                // product-linked filters (reserved for later): sellerId, categoryId, brand, productIsActive
-            } = query;
+            // Parse query parameters
+            const page = parseInt(query.page, 10) || 1;
+            const limit = parseInt(query.limit, 10) || 20;
 
-            const filter = {};
+            // Build filters object
+            const filters = {};
 
-            if (productId) filter.productId = productId;
-            if (sku) filter.sku = sku;
-            if (currency) filter['price.currency'] = currency;
-            if (baseUnit) filter.baseUnit = baseUnit;
-            if (isActive !== undefined) {
-                if (isActive === true || isActive === 'true') filter.isActive = true;
-                else if (isActive === false || isActive === 'false') filter.isActive = false;
-            }
-            if (ids) {
-                const idArray = ids.split(',').map(v => v.trim()).filter(Boolean);
-                if (idArray.length) {
-                    filter._id = { $in: idArray.map(id => new mongoose.Types.ObjectId(id)) };
+            if (query.productId) filters.productId = query.productId;
+            if (query.sku) filters.sku = query.sku;
+            if (query.currency) filters.currency = query.currency;
+            if (query.baseUnit) filters.baseUnit = query.baseUnit;
+            if (query.q) filters.q = query.q;
+
+            // Boolean filter for isActive
+            if (query.isActive !== undefined) {
+                if (query.isActive === true || query.isActive === 'true') {
+                    filters.isActive = true;
+                } else if (query.isActive === false || query.isActive === 'false') {
+                    filters.isActive = false;
                 }
             }
-            // numeric ranges
-            if (priceMin != null || priceMax != null) {
-                filter['price.amount'] = {};
-                if (priceMin != null) filter['price.amount'].$gte = Number(priceMin);
-                if (priceMax != null) filter['price.amount'].$lte = Number(priceMax);
-            }
-            if (stockMin != null || stockMax != null) {
-                filter.stock = {};
-                if (stockMin != null) filter.stock.$gte = Number(stockMin);
-                if (stockMax != null) filter.stock.$lte = Number(stockMax);
-            }
-            // date ranges
-            if (createdFrom || createdTo) {
-                filter.createdAt = {};
-                if (createdFrom) filter.createdAt.$gte = createdFrom;
-                if (createdTo) filter.createdAt.$lte = createdTo;
-            }
-            if (updatedFrom || updatedTo) {
-                filter.updatedAt = {};
-                if (updatedFrom) filter.updatedAt.$gte = updatedFrom;
-                if (updatedTo) filter.updatedAt.$lte = updatedTo;
-            }
-            // free text: simple regex on sku
-            if (q) {
-                filter.$or = [
-                    { sku: { $regex: new RegExp(q, 'i') } },
-                ];
+
+            // IDs filter
+            if (query.ids) {
+                filters.ids = query.ids.split(',').map(v => v.trim()).filter(Boolean);
             }
 
-            // projection
-            let projection = undefined;
-            if (fields) {
-                projection = fields.split(',').reduce((acc, f) => { acc[f] = 1; return acc; }, { _id: 1 });
+            // Numeric range filters
+            if (query.priceMin !== undefined) filters.priceMin = Number(query.priceMin);
+            if (query.priceMax !== undefined) filters.priceMax = Number(query.priceMax);
+            if (query.stockMin !== undefined) filters.stockMin = Number(query.stockMin);
+            if (query.stockMax !== undefined) filters.stockMax = Number(query.stockMax);
+
+            // Date range filters
+            if (query.createdFrom) filters.createdFrom = query.createdFrom;
+            if (query.createdTo) filters.createdTo = query.createdTo;
+            if (query.updatedFrom) filters.updatedFrom = query.updatedFrom;
+            if (query.updatedTo) filters.updatedTo = query.updatedTo;
+
+            // Options filter (JSON string to object)
+            if (query.options) {
+                try {
+                    filters.options = JSON.parse(query.options);
+                } catch (e) {
+                    // Ignore invalid JSON
+                }
             }
 
-            // sort
-            let sortObj = { createdAt: -1 };
-            if (sort) {
-                sortObj = {};
-                sort.split(',').forEach(part => {
-                    if (part.startsWith('-')) sortObj[part.slice(1)] = -1; else sortObj[part] = 1;
-                });
+            // Fields projection
+            if (query.fields) {
+                filters.fields = query.fields.split(',').map(f => f.trim()).filter(Boolean);
             }
 
-            const pageNum = Number(page) || 1;
-            const limitNum = Number(limit) || 20;
-            const skip = (pageNum - 1) * limitNum;
+            // Sort configuration
+            const sort = {};
+            if (query.sort) {
+                sort.sortBy = query.sort;
+            }
 
-            const [items, total] = await Promise.all([
-                variantRepository.model.find(filter).select(projection).sort(sortObj).skip(skip).limit(limitNum).lean(),
-                variantRepository.model.countDocuments(filter)
-            ]);
+            // Pagination configuration
+            const pagination = { page, limit };
 
-            const totalPages = Math.ceil(total / limitNum) || 1;
+            // Call repository with aggregation pipeline
+            const { variants, total } = await variantRepository.getAllVariants(filters, sort, pagination);
+
+            // Calculate pagination metadata
+            const totalPages = Math.ceil(total / limit) || 0;
+            const meta = {
+                page,
+                limit,
+                total,
+                totalPages,
+                hasNextPage: page < totalPages,
+                hasPrevPage: page > 1
+            };
+
             return {
-                data: items,
-                meta: {
-                    page: pageNum,
-                    limit: limitNum,
-                    total,
-                    totalPages,
-                    hasNextPage: pageNum < totalPages,
-                    hasPrevPage: pageNum > 1,
-                },
-                count: items.length,
+                variants,
+                meta
             };
         } catch (error) {
             if (error instanceof ApiError) throw error;

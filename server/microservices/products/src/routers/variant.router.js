@@ -1,7 +1,7 @@
 import express from 'express';
 import { uploadVariantImages, uploadSingleVariantImages } from '../middlewares/upload.js';
 import { parseJsonFields } from '../middlewares/reqLog.js';
-import {authenticateRole} from '../middlewares/authenticateUser.js';
+import { authenticateRole } from '../middlewares/authenticateUser.js';
 import variantController from '../controllers/variant.controller.js';
 import { createVariantValidation, updateVariantValidation, updateVariantImageValidation, getVariantByIdValidation, getAllVariantsValidation } from '../validators/variant.validator.js';
 import { mongoIdValidation, mongoProductIdValidation } from '../validators/utils.js';
@@ -66,11 +66,12 @@ router.patch(
 
 // general routes for all roles
 
-// get variant by id - all roles including unauthenticated can access
+// get all variants (with pagination and filters) - all roles including unauthenticated can access
+// NOTE: This route MUST come before /:id to avoid matching "getAll" as an ID parameter
 router.get(
-    '/:id',
-    getVariantByIdValidation,
-    variantController.getVariantById
+    '/getAll',
+    getAllVariantsValidation,
+    variantController.getAllVariants
 );
 
 // get all variants for a product - all roles including unauthenticated can access
@@ -82,12 +83,12 @@ router.get(
     variantController.getVariantsByProductId
 );
 
-// get all variants (with pagination and filters) - all roles including unauthenticated can access
-
+// get variant by id - all roles including unauthenticated can access
+// NOTE: This route MUST come after specific routes like /getAll and /product/:productId
 router.get(
-    '/getAll',
-    getAllVariantsValidation,
-    variantController.getAllVariants
+    '/:id',
+    getVariantByIdValidation,
+    variantController.getVariantById
 );
 
 
