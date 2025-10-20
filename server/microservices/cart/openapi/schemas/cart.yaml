@@ -25,17 +25,6 @@ UpdateCartItemRequest:
       description: The new quantity for the item. Set to 0 to remove the item.
       example: 3
 
-# Schema for updating cart status
-UpdateCartStatusRequest:
-  type: object
-  required: [status]
-  properties:
-    status:
-      type: string
-      enum: [active, converted, abandoned]
-      description: The new status for the cart
-      example: "converted"
-
 # Schema for a single cart item (sub-document)
 CartItem:
   type: object
@@ -75,11 +64,6 @@ Cart:
       description: Array of items in the cart
       items:
         $ref: "#/CartItem"
-    status:
-      type: string
-      enum: [active, converted, abandoned]
-      description: The current status of the cart
-      example: "active"
     createdAt:
       type: string
       format: date-time

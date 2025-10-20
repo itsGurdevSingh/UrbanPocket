@@ -1,10 +1,11 @@
 getCart:
   get:
     tags: [Cart]
-    summary: Get user's active cart
+    summary: Get user's cart
     description: >
-      Retrieves the authenticated user's active shopping cart with all items.
-      If no cart exists, returns an empty cart structure.
+      Retrieves the authenticated user's shopping cart with all items.
+      If no cart exists, creates and returns a new empty cart.
+      Cart is always active - order service clears cart on successful order.
     security:
       - BearerAuth: []
     responses:
@@ -27,7 +28,6 @@ getCart:
                   - _id: "6724b111a1a8c3a5e8a71b12"
                     variantId: "6724b111a1a8c3a5e8a71b13"
                     quantity: 1
-                status: "active"
                 createdAt: "2025-10-20T10:00:00Z"
                 updatedAt: "2025-10-20T11:30:00Z"
       "401":
@@ -67,7 +67,6 @@ addItemToCart:
                   - _id: "6724b111a1a8c3a5e8a71b10"
                     variantId: "6724b111a1a8c3a5e8a71b11"
                     quantity: 3
-                status: "active"
                 createdAt: "2025-10-20T10:00:00Z"
                 updatedAt: "2025-10-20T11:35:00Z"
       "400":
@@ -130,7 +129,6 @@ updateCartItem:
                   - _id: "6724b111a1a8c3a5e8a71b10"
                     variantId: "6724b111a1a8c3a5e8a71b11"
                     quantity: 5
-                status: "active"
                 createdAt: "2025-10-20T10:00:00Z"
                 updatedAt: "2025-10-20T11:40:00Z"
       "400":
@@ -174,7 +172,6 @@ updateCartItem:
                   - _id: "6724b111a1a8c3a5e8a71b12"
                     variantId: "6724b111a1a8c3a5e8a71b13"
                     quantity: 1
-                status: "active"
                 createdAt: "2025-10-20T10:00:00Z"
                 updatedAt: "2025-10-20T11:45:00Z"
       "401":
@@ -189,7 +186,8 @@ clearCart:
     tags: [Cart]
     summary: Clear all items from cart
     description: >
-      Removes all items from the user's cart, but keeps the cart active.
+      Removes all items from the user's cart.
+      Order service calls this endpoint after successful order placement.
     security:
       - BearerAuth: []
     responses:
@@ -206,53 +204,8 @@ clearCart:
                 _id: "6724b111a1a8c3a5e8a71b08"
                 userId: "6724b111a1a8c3a5e8a71b09"
                 items: []
-                status: "active"
                 createdAt: "2025-10-20T10:00:00Z"
                 updatedAt: "2025-10-20T11:50:00Z"
-      "401":
-        $ref: "../schemas/common.yaml#/responses/Unauthorized"
-      "404":
-        $ref: "../schemas/common.yaml#/responses/NotFound"
-      "500":
-        $ref: "../schemas/common.yaml#/responses/InternalServerError"
-
-updateCartStatus:
-  patch:
-    tags: [Cart]
-    summary: Update cart status
-    description: >
-      Updates the cart status (active, converted, abandoned).
-      Typically used when checkout is completed (converted) or cart is abandoned.
-    security:
-      - BearerAuth: []
-    requestBody:
-      required: true
-      content:
-        application/json:
-          schema:
-            $ref: "../schemas/cart.yaml#/UpdateCartStatusRequest"
-    responses:
-      "200":
-        description: Cart status updated successfully.
-        content:
-          application/json:
-            schema:
-              $ref: "../schemas/common.yaml#/CartResponse"
-            example:
-              success: true
-              message: "Cart status updated successfully."
-              data:
-                _id: "6724b111a1a8c3a5e8a71b08"
-                userId: "6724b111a1a8c3a5e8a71b09"
-                items:
-                  - _id: "6724b111a1a8c3a5e8a71b10"
-                    variantId: "6724b111a1a8c3a5e8a71b11"
-                    quantity: 2
-                status: "converted"
-                createdAt: "2025-10-20T10:00:00Z"
-                updatedAt: "2025-10-20T12:00:00Z"
-      "400":
-        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
       "401":
         $ref: "../schemas/common.yaml#/responses/Unauthorized"
       "404":

@@ -33,8 +33,6 @@ paths:
     $ref: "./paths/cart.yaml#/updateCartItem"
   /api/cart/clear:
     $ref: "./paths/cart.yaml#/clearCart"
-  /api/cart/status:
-    $ref: "./paths/cart.yaml#/updateCartStatus"
 
 components:
   schemas:

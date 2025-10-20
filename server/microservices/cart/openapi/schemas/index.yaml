@@ -24,8 +24,6 @@ AddCartItemRequest:
   $ref: "./cart.yaml#/AddCartItemRequest"
 UpdateCartItemRequest:
   $ref: "./cart.yaml#/UpdateCartItemRequest"
-UpdateCartStatusRequest:
-  $ref: "./cart.yaml#/UpdateCartStatusRequest"
 
 # Response Envelopes
 CartResponse:
