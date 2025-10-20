@@ -1,0 +1,92 @@
+# Schema for adding an item to cart
+AddCartItemRequest:
+  type: object
+  required: [variantId, quantity]
+  properties:
+    variantId:
+      type: string
+      format: objectid
+      description: The ObjectId of the product variant to add to cart
+      example: "6724b111a1a8c3a5e8a71b11"
+    quantity:
+      type: integer
+      minimum: 1
+      description: The quantity of the item to add
+      example: 2
+
+# Schema for updating cart item quantity
+UpdateCartItemRequest:
+  type: object
+  required: [quantity]
+  properties:
+    quantity:
+      type: integer
+      minimum: 0
+      description: The new quantity for the item. Set to 0 to remove the item.
+      example: 3
+
+# Schema for updating cart status
+UpdateCartStatusRequest:
+  type: object
+  required: [status]
+  properties:
+    status:
+      type: string
+      enum: [active, converted, abandoned]
+      description: The new status for the cart
+      example: "converted"
+
+# Schema for a single cart item (sub-document)
+CartItem:
+  type: object
+  properties:
+    _id:
+      type: string
+      format: objectid
+      description: Unique identifier for the cart item
+      example: "6724b111a1a8c3a5e8a71b10"
+    variantId:
+      type: string
+      format: objectid
+      description: The ObjectId of the product variant
+      example: "6724b111a1a8c3a5e8a71b11"
+    quantity:
+      type: integer
+      minimum: 1
+      description: The quantity of this item in the cart
+      example: 2
+
+# Schema for the full Cart object as it is RETURNED by the API
+Cart:
+  type: object
+  properties:
+    _id:
+      type: string
+      format: objectid
+      description: Unique identifier for the cart
+      example: "6724b111a1a8c3a5e8a71b08"
+    userId:
+      type: string
+      format: objectid
+      description: The ObjectId of the user who owns this cart
+      example: "6724b111a1a8c3a5e8a71b09"
+    items:
+      type: array
+      description: Array of items in the cart
+      items:
+        $ref: "#/CartItem"
+    status:
+      type: string
+      enum: [active, converted, abandoned]
+      description: The current status of the cart
+      example: "active"
+    createdAt:
+      type: string
+      format: date-time
+      description: Timestamp when the cart was created
+      example: "2025-10-20T10:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: Timestamp when the cart was last updated
+      example: "2025-10-20T11:30:00Z"

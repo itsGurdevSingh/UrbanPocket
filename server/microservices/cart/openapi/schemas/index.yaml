@@ -1,0 +1,32 @@
+# ============================================================================
+# Central Schema Index
+# ============================================================================
+# This file serves as the single import point for all schemas in the API.
+# By organizing schemas here, we maintain a clean, maintainable structure.
+# ============================================================================
+
+# Common/Shared Schemas
+BaseSuccessResponse:
+  $ref: "./common.yaml#/BaseSuccessResponse"
+ErrorResponse:
+  $ref: "./common.yaml#/ErrorResponse"
+HealthCheckResponse:
+  $ref: "./common.yaml#/HealthCheckResponse"
+MessageResponse:
+  $ref: "./common.yaml#/MessageResponse"
+
+# Cart Schemas
+Cart:
+  $ref: "./cart.yaml#/Cart"
+CartItem:
+  $ref: "./cart.yaml#/CartItem"
+AddCartItemRequest:
+  $ref: "./cart.yaml#/AddCartItemRequest"
+UpdateCartItemRequest:
+  $ref: "./cart.yaml#/UpdateCartItemRequest"
+UpdateCartStatusRequest:
+  $ref: "./cart.yaml#/UpdateCartStatusRequest"
+
+# Response Envelopes
+CartResponse:
+  $ref: "./common.yaml#/CartResponse"

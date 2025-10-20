@@ -1,0 +1,18 @@
+healthCheck:
+  get:
+    tags: [Health]
+    summary: Health check endpoint
+    description: Returns the health status of the cart service
+    responses:
+      "200":
+        description: Service is healthy
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/HealthCheckResponse"
+            example:
+              success: true
+              message: "ok"
+              data:
+                timestamp: "2025-10-20T12:00:00.000Z"
+                service: "cart-microservice"
