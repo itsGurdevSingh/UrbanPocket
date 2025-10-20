@@ -1,0 +1,61 @@
+# Summary card returned by storefront search (flattened from product, variant, inventory)
+StorefrontProductCard:
+  type: object
+  properties:
+    _id:
+      {
+        type: string,
+        format: objectid,
+        description: "Inventory item id (sellable item)",
+      }
+    sku: { type: string }
+    name: { type: string }
+    brand: { type: string }
+    description: { type: string }
+    options:
+      type: object
+      additionalProperties: { type: string }
+      description: Variant option key-value pairs (e.g., Size:M, Color:Black)
+    price:
+      type: object
+      properties:
+        amount: { type: number, format: float }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+    stock: { type: number, description: "Stock " }
+    images:
+      type: array
+      items:
+        type: object
+        properties:
+          fileId: { type: string }
+          url: { type: string }
+          altText: { type: string }
+    rating:
+      type: object
+      properties:
+        average: { type: number }
+        count: { type: number }
+    sellerId: { type: string, format: objectid }
+    categoryId: { type: string, format: objectid }
+
+# Response envelope for storefront search
+StorefrontSearchResponse:
+  allOf:
+    - $ref: "../schemas/common.yaml#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            products:
+              type: array
+              items:
+                $ref: "#/StorefrontProductCard"
+            meta:
+              type: object
+              properties:
+                totalProducts: { type: integer, example: 123 }
+                currentPage: { type: integer, example: 1 }
+                totalPages: { type: integer, example: 13 }
+                hasNextPage: { type: boolean, example: true }
+                hasPrevPage: { type: boolean, example: false }

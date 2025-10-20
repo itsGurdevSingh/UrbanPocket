@@ -1,0 +1,149 @@
+# Schema for the data a user sends to CREATE a variant
+CreateVariantRequest:
+  type: object
+  required: [productId, options, price, stock, baseUnit]
+  properties:
+    productId:
+      type: string
+      format: objectid
+      description: The ObjectId of the parent product.
+      example: "6724b111a1a8c3a5e8a71b08"
+    sku:
+      type: string
+      description: Optional SKU for the variant. If omitted, it will be auto-generated.
+      example: "UREA-25KG"
+    # Note: When using multipart/form-data, send JSON fields as strings (handled server-side)
+    options:
+      oneOf:
+        - type: object
+          additionalProperties:
+            type: string
+        - type: string
+      description: 'A map of attribute -> value (e.g., { "Weight": "25kg" }). For multipart, you may send a JSON string.'
+      example: '{"Weight":"25kg"}'
+    price:
+      oneOf:
+        - type: object
+          required: [amount]
+          properties:
+            amount:
+              type: number
+              format: float
+              minimum: 0
+              description: Price amount in the specified currency.
+              example: 299.0
+            currency:
+              type: string
+              description: ISO 4217 code (default INR).
+              minLength: 3
+              maxLength: 3
+              example: "INR"
+        - type: string
+      description: "Price object or JSON string (for multipart)."
+    stock:
+      type: integer
+      minimum: 0
+      example: 100
+    baseUnit:
+      type: string
+      description: Base unit of measure (e.g., kg, g, ml, unit).
+      example: "kg"
+    images:
+      type: array
+      description: Variant images to upload (field name 'image' per item). For multipart uploads.
+      items:
+        type: string
+        format: binary
+    variantImages:
+      type: array
+      description: Alternatively, pass image URLs and alt texts directly without uploading.
+      items:
+        type: object
+        properties:
+          url:
+            {
+              type: string,
+              example: "https://cdn.yourcompany.com/images/ik-123.jpg",
+            }
+          altText: { type: string, example: "25kg bag front" }
+    isActive:
+      type: boolean
+      default: true
+
+# Schema for the data a user sends to UPDATE a variant (all fields optional)
+UpdateVariantRequest:
+  type: object
+  properties:
+    sku:
+      type: string
+      example: "UREA-25KG-NEW"
+    options:
+      oneOf:
+        - type: object
+          additionalProperties:
+            type: string
+        - type: string
+      example: '{"Weight":"25kg"}'
+    price:
+      oneOf:
+        - type: object
+          properties:
+            amount:
+              type: number
+              format: float
+              minimum: 0
+            currency:
+              type: string
+              minLength: 3
+              maxLength: 3
+        - type: string
+    stock:
+      type: integer
+      minimum: 0
+    baseUnit:
+      type: string
+      example: "kg"
+    images:
+      type: array
+      items:
+        type: string
+        format: binary
+    variantImages:
+      type: array
+      items:
+        type: object
+        properties:
+          url: { type: string }
+          altText: { type: string }
+    isActive:
+      type: boolean
+
+# Schema for the full Variant object as it is RETURNED by the API
+Variant:
+  type: object
+  properties:
+    _id: { type: string, format: objectid }
+    productId: { type: string, format: objectid }
+    sku: { type: string }
+    options:
+      type: object
+      additionalProperties:
+        type: string
+    price:
+      type: object
+      properties:
+        amount: { type: number, format: float }
+        currency: { type: string, minLength: 3, maxLength: 3 }
+    stock: { type: integer, minimum: 0 }
+    baseUnit: { type: string }
+    variantImages:
+      type: array
+      items:
+        type: object
+        properties:
+          fileId: { type: string }
+          url: { type: string }
+          altText: { type: string }
+    isActive: { type: boolean }
+    createdAt: { type: string, format: date-time }
+    updatedAt: { type: string, format: date-time }

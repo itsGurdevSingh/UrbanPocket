@@ -1,0 +1,198 @@
+# Inventory API paths
+createInventory:
+  post:
+    tags: [Inventory]
+    summary: Create a new inventory item
+    description: >
+      Creates a new inventory item for a product variant. Requires seller or admin role.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/inventory.yaml#/CreateInventoryRequest"
+    responses:
+      "201":
+        description: Inventory item created successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/InventoryResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+inventoryById:
+  get:
+    tags: [Inventory]
+    summary: Get inventory item by ID
+    description: >
+      Returns a single inventory item by its ID. Requires authentication.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Inventory item ID
+    responses:
+      "200":
+        description: Inventory item found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/InventoryResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  put:
+    tags: [Inventory]
+    summary: Update inventory item
+    description: >
+      Updates an inventory item by ID. Requires seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Inventory item ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/inventory.yaml#/UpdateInventoryRequest"
+    responses:
+      "200":
+        description: Inventory item updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/InventoryResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  delete:
+    tags: [Inventory]
+    summary: Delete inventory item
+    description: >
+      Deletes an inventory item by ID. Requires seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Inventory item ID
+    responses:
+      "200":
+        description: Inventory item deleted successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+getAllInventory:
+  get:
+    tags: [Inventory]
+    summary: Get all inventory items
+    description: >
+      Returns a paginated list of inventory items. Requires authentication.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Items per page
+    responses:
+      "200":
+        description: List of inventory items
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/InventoryItemsListResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+enableInventory:
+  patch:
+    tags: [Inventory]
+    summary: Enable inventory item
+    description: >
+      Enables (reactivates) an inventory item by ID. Requires seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Inventory item ID
+    responses:
+      "200":
+        description: Inventory item enabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+disableInventory:
+  patch:
+    tags: [Inventory]
+    summary: Disable inventory item
+    description: >
+      Disables (deactivates) an inventory item by ID. Requires seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Inventory item ID
+    responses:
+      "200":
+        description: Inventory item disabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }

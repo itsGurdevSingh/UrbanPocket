@@ -1,0 +1,143 @@
+# InventoryItem entity and request/response schemas
+InventoryItem:
+  type: object
+  required:
+    - variantId
+    - stock
+    - price
+  properties:
+    _id:
+      type: string
+      format: objectid
+      description: Unique identifier for the inventory item
+      example: "6624b111a1a8c3a5e8a71b08"
+    variantId:
+      type: string
+      format: objectid
+      description: Reference to the product variant
+      example: "6624b111a1a8c3a5e8a71b09"
+    batchNumber:
+      type: string
+      description: Unique batch or lot identifier
+      example: "BATCH-2024-001"
+    stock:
+      type: number
+      description: Current stock level
+      example: 100
+    price:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+          example: 120.5
+        currency:
+          type: string
+          example: "INR"
+    manufacturingDetails:
+      type: object
+      properties:
+        mfgDate:
+          type: string
+          format: date
+          example: "2024-01-01"
+        expDate:
+          type: string
+          format: date
+          example: "2025-01-01"
+    hsnCode:
+      type: string
+      description: HSN code for tax
+      example: "310210"
+    gstPercentage:
+      type: number
+      description: GST percentage
+      example: 18
+    isActive:
+      type: boolean
+      description: Whether the inventory item is active
+      example: true
+    createdAt:
+      type: string
+      format: date-time
+      example: "2024-10-01T12:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      example: "2024-10-01T12:00:00Z"
+
+CreateInventoryRequest:
+  type: object
+  required:
+    - variantId
+    - stock
+    - price
+  properties:
+    variantId:
+      type: string
+      format: objectid
+      description: Reference to the product variant
+    batchNumber:
+      type: string
+      description: Unique batch or lot identifier
+    stock:
+      type: number
+      description: Current stock level
+    price:
+      type: object
+      required: [amount, currency]
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+    manufacturingDetails:
+      type: object
+      properties:
+        mfgDate:
+          type: string
+          format: date
+        expDate:
+          type: string
+          format: date
+    hsnCode:
+      type: string
+      description: HSN code for tax
+    gstPercentage:
+      type: number
+      description: GST percentage
+
+UpdateInventoryRequest:
+  type: object
+  properties:
+    batchNumber:
+      type: string
+      description: Unique batch or lot identifier
+    stock:
+      type: number
+      description: Current stock level
+    price:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+    manufacturingDetails:
+      type: object
+      properties:
+        mfgDate:
+          type: string
+          format: date
+        expDate:
+          type: string
+          format: date
+    hsnCode:
+      type: string
+      description: HSN code for tax
+    gstPercentage:
+      type: number
+      description: GST percentage
+    isActive:
+      type: boolean
+      description: Whether the inventory item is active

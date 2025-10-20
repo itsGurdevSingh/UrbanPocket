@@ -14,6 +14,7 @@ router.post('/refresh-token', validateRefreshToken, refreshToken);
 
 // user profile route
 router.get('/me', authenticateUser, getUserProfile);
+router.get('/verify', authenticateUser, getUserProfile);
 
 // address routes
 router.get('/getAddresses', authenticateUser, getUserAddresses);

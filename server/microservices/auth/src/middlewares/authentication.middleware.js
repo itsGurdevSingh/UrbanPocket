@@ -6,6 +6,8 @@ import { ApiError } from '../utils/errors.js';
 
 const authenticateUser = async (req, res, next) => {
 
+    // console.log('Authenticating user...');
+
     const accessToken = req.cookies?.accessToken;
 
     if (!accessToken) {

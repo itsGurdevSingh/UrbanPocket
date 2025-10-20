@@ -1,0 +1,114 @@
+openapi: 3.0.0
+info:
+  title: Product Service API
+  version: 1.0.0
+  description: Manages all product-related data, including products, variants, inventory, categories, and the public-facing storefront search.
+  contact:
+    name: API Support
+    email: dev-team@yourcompany.com
+
+servers:
+  - url: http://localhost:3001
+    description: Local Development Server
+  - url: https://api.yourcompany.com/products
+    description: Production Server
+
+tags:
+  - name: Products
+    description: Operations for managing product blueprints.
+  - name: Variants
+    description: Operations for managing specific product variants.
+  - name: Categories
+    description: Operations for managing product categories.
+  - name: Inventory
+    description: Operations for managing stock and batches.
+  - name: Reviews
+    description: Operations for managing product reviews.
+  - name: Storefront
+    description: Public-facing endpoints for product discovery.
+  - name: Health
+    description: Service health checks.
+
+paths:
+  # Health Check
+  /health:
+    $ref: "./paths/health.yaml#/healthCheck"
+
+  # Storefront
+  /api/storefront/search:
+    $ref: "./paths/storefront.yaml#/search"
+
+  # Products
+  /api/products/create:
+    $ref: "./paths/products.yaml#/createProduct"
+  /api/products/{id}:
+    $ref: "./paths/products.yaml#/productById"
+  /api/products/{id}/enable:
+    $ref: "./paths/products.yaml#/enableProduct"
+  /api/products/{id}/disable:
+    $ref: "./paths/products.yaml#/disableProduct"
+  /api/products/{id}/images/{fileId}:
+    $ref: "./paths/products.yaml#/productImageById"
+  # Variants
+  /api/variant/create:
+    $ref: "./paths/variants.yaml#/createVariant"
+  /api/variant/{id}:
+    $ref: "./paths/variants.yaml#/variantById"
+  /api/variant/{id}/{fileId}:
+    $ref: "./paths/variants.yaml#/variantImageById"
+  /api/variant/{id}/enable:
+    $ref: "./paths/variants.yaml#/enableVariant"
+  /api/variant/{id}/disable:
+    $ref: "./paths/variants.yaml#/disableVariant"
+  /api/variant/product/{productId}:
+    $ref: "./paths/variants.yaml#/getVariantsByProduct"
+  /api/variant/getAll:
+    $ref: "./paths/variants.yaml#/getAllVariants"
+
+  # Inventory
+  /api/inventory/create:
+    $ref: "./paths/inventory.yaml#/createInventory"
+  /api/inventory/{id}:
+    $ref: "./paths/inventory.yaml#/inventoryById"
+  /api/inventory/getAll:
+    $ref: "./paths/inventory.yaml#/getAllInventory"
+  /api/inventory/{id}/enable:
+    $ref: "./paths/inventory.yaml#/enableInventory"
+  /api/inventory/{id}/disable:
+    $ref: "./paths/inventory.yaml#/disableInventory"
+  # Reviews
+  /api/reviews/create:
+    $ref: "./paths/reviews.yaml#/createReview"
+  /api/reviews/{id}:
+    $ref: "./paths/reviews.yaml#/reviewById"
+  /api/reviews/product/{productId}:
+    $ref: "./paths/reviews.yaml#/getReviewsByProduct"
+  /api/reviews/getAll:
+    $ref: "./paths/reviews.yaml#/getAllReviews"
+  # Categories
+  /api/category/create:
+    $ref: "./paths/categories.yaml#/createCategory"
+  /api/category/{id}:
+    $ref: "./paths/categories.yaml#/categoryById"
+  /api/category/{id}/enable:
+    $ref: "./paths/categories.yaml#/enableCategory"
+  /api/category/{id}/disable:
+    $ref: "./paths/categories.yaml#/disableCategory"
+  /api/category/getAll:
+    $ref: "./paths/categories.yaml#/getAllCategories"
+  /api/category/{id}/tree:
+    $ref: "./paths/categories.yaml#/getCategoryTree"
+
+components:
+  schemas:
+    # ============================================================================
+    # All schemas are centrally managed and imported from schemas/index.yaml
+    # This single reference imports all organized schemas for better maintainability
+    # ============================================================================
+    $ref: "./schemas/index.yaml"
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access Token provided by the Auth service."

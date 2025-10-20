@@ -1,0 +1,361 @@
+createVariant:
+  post:
+    tags: [Variants]
+    summary: Create a new product variant
+    description: >
+      Creates a new variant under a product. Requires seller or admin role.
+      Handles multipart/form-data for image uploads. JSON fields like 'options' and 'price' can be sent as strings.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: "../schemas/variant.yaml#/CreateVariantRequest"
+    responses:
+      "201":
+        description: Variant created successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+variantById:
+  get:
+    tags: [Variants]
+    summary: Get a variant by ID
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant.
+        schema:
+          type: string
+          format: objectid
+    responses:
+      "200":
+        description: Variant retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  put:
+    tags: [Variants]
+    summary: Update a variant by ID
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant to update.
+        schema:
+          type: string
+          format: objectid
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            $ref: "../schemas/variant.yaml#/UpdateVariantRequest"
+    responses:
+      "200":
+        description: Variant updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  delete:
+    tags: [Variants]
+    summary: Permanently delete a variant by ID
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant to delete.
+        schema:
+          type: string
+          format: objectid
+    responses:
+      "200":
+        description: Variant deleted successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+variantImageById:
+  put:
+    tags: [Variants]
+    summary: Update a variant image by file ID
+    description: >
+      Replaces a specific image of a variant by its file ID. Requires seller or admin role.
+      Handles multipart/form-data for the image upload.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant.
+        schema:
+          type: string
+          format: objectid
+      - name: fileId
+        in: path
+        required: true
+        description: The current file ID of the image to replace.
+        schema:
+          type: string
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+                description: The new image file to upload.
+    responses:
+      "200":
+        description: Image updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ImageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+enableVariant:
+  patch:
+    tags: [Variants]
+    summary: Enable a variant
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant to enable.
+        schema:
+          type: string
+          format: objectid
+    responses:
+      "200":
+        description: Variant enabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+disableVariant:
+  patch:
+    tags: [Variants]
+    summary: Disable a variant
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the variant to disable.
+        schema:
+          type: string
+          format: objectid
+    responses:
+      "200":
+        description: Variant disabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+getVariantsByProduct:
+  get:
+    tags: [Variants]
+    summary: Get all variants for a product
+    parameters:
+      - name: productId
+        in: path
+        required: true
+        description: The parent product's ObjectId.
+        schema:
+          type: string
+          format: objectid
+    responses:
+      "200":
+        description: Variants retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantsArrayResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+
+getAllVariants:
+  get:
+    tags: [Variants]
+    summary: Get all variants with pagination and filtering
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: Page number
+        schema:
+          type: integer
+          example: 1
+      - name: limit
+        in: query
+        required: false
+        description: Items per page
+        schema:
+          type: integer
+          example: 20
+      - name: productId
+        in: query
+        required: false
+        schema:
+          type: string
+          format: objectid
+      - name: sku
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: currency
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 3
+          maxLength: 3
+      - name: baseUnit
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: isActive
+        in: query
+        required: false
+        schema:
+          type: boolean
+      - name: priceMin
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: priceMax
+        in: query
+        required: false
+        schema:
+          type: number
+      - name: stockMin
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: stockMax
+        in: query
+        required: false
+        schema:
+          type: integer
+      - name: ids
+        in: query
+        required: false
+        description: CSV of variant IDs
+        schema:
+          type: string
+      - name: q
+        in: query
+        required: false
+        description: "Free-text search (e.g., by sku)"
+        schema:
+          type: string
+      - name: sort
+        in: query
+        required: false
+        description: Comma-separated sort fields
+        schema:
+          type: string
+      - name: fields
+        in: query
+        required: false
+        description: Comma-separated projection fields
+        schema:
+          type: string
+      - name: createdFrom
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: createdTo
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: updatedFrom
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: updatedTo
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: options
+        in: query
+        required: false
+        description: JSON object string of option filters
+        schema:
+          type: string
+    responses:
+      "200":
+        description: Variants retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/VariantsListResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }

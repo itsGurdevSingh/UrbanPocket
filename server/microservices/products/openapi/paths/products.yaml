@@ -1,0 +1,521 @@
+createProduct:
+  post:
+    tags: [Products]
+    summary: Create a new product blueprint
+    description: >
+      Creates a new parent product. Requires a seller or admin role.
+      Handles multipart/form-data for image uploads. JSON fields like 'attributes'
+      must be sent as strings.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            # This points to the exact shape of the incoming data.
+            $ref: "../schemas/product.yaml#/CreateProductRequest"
+    responses:
+      "201":
+        description: Product created successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ProductResponse"
+            example:
+              success:
+                summary: Example of a successful product creation
+                value:
+                  success: true
+                  message: Product created successfully.
+                  data:
+                    _id: "6724b111a1a8c3a5e8a71b08"
+                    name: "Organic Urea Fertilizer"
+                    description: "A high-nitrogen organic fertilizer suitable for all crops."
+                    brand: "FarmFresh Organics"
+                    sellerId: "6724b111a1a8c3a5e8a71b09"
+                    categoryId: "6724b111a1a8c3a5e8a71b07"
+                    attributes: ["Weight"]
+                    rating:
+                      average: 0
+                      count: 0
+                    baseImages:
+                      - fileId: "img_123456"
+                        url: "https://cdn.yourcompany.com/images/img_123456.jpg"
+                        altText: "Front view of Organic Urea Fertilizer"
+                    isActive: false
+                    createdAt: "2024-10-01T12:00:00Z"
+                    updatedAt: "2024-10-01T12:00:00Z"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+productById:
+  get:
+    tags: [Products]
+    summary: Get product blueprint by ID
+    description: >
+      Retrieves a product blueprint by its ID. Publicly accessible.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product to retrieve.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+    responses:
+      "200":
+        description: Product retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ProductResponse"
+            example:
+              success:
+                summary: Example of a successful product retrieval
+                value:
+                  success: true
+                  message: Product retrieved successfully.
+                  data:
+                    _id: "6724b111a1a8c3a5e8a71b08"
+                    name: "Organic Urea Fertilizer"
+                    description: "A high-nitrogen organic fertilizer suitable for all crops."
+                    brand: "FarmFresh Organics"
+                    sellerId: "6724b111a1a8c3a5e8a71b09"
+                    categoryId: "6724b111a1a8c3a5e8a71b07"
+                    attributes: ["Weight"]
+                    rating:
+                      average: 4.5
+                      count: 120
+                    baseImages:
+                      - fileId: "img_123456"
+                        url: "https://cdn.yourcompany.com/images/img_123456.jpg"
+                        altText: "Front view of Organic Urea Fertilizer"
+                    isActive: true
+                    createdAt: "2024-10-01T12:00:00Z"
+                    updatedAt: "2024-10-05T15:30:00Z"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+  put:
+    tags: [Products]
+    summary: Update product blueprint by ID
+    description: >
+      Updates an existing product blueprint. Requires a seller or admin role.
+      Handles multipart/form-data for image uploads. JSON fields like 'attributes'
+      must be sent as strings.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product to update.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            # This points to the exact shape of the incoming data.
+            $ref: "../schemas/product.yaml#/CreateProductRequest"
+    responses:
+      "200":
+        description: Product updated successfully.
+        content:
+          application/json:
+            schema:
+              # This points to the exact shape of the success response.
+              $ref: "../schemas/common.yaml#/ProductResponse"
+            example:
+              success:
+                summary: Example of a successful product update
+                value:
+                  success: true
+                  message: Product updated successfully.
+                  data:
+                    _id: "6724b111a1a8c3a5e8a71b08"
+                    name: "Organic Urea Fertilizer - Updated"
+                    description: "An updated description for the organic fertilizer."
+                    brand: "FarmFresh Organics"
+                    sellerId: "6724b111a1a8c3a5e8a71b09"
+                    categoryId: "6724b111a1a8c3a5e8a71b07"
+                    attributes: ["Weight", "Formulation"]
+                    rating:
+                      average: 4.5
+                      count: 120
+                    baseImages:
+                      - fileId: "img_123456"
+                        url: "https://cdn.yourcompany.com/images/img_123456.jpg"
+                        altText: "Front view of Organic Urea Fertilizer"
+                      - fileId: "img_789012"
+                        url: "https://cdn.yourcompany.com/images/img_789012.jpg"
+                        altText: "Side view of Organic Urea Fertilizer"
+                    isActive: true
+                    createdAt: "2024-10-01T12:00:00Z"
+                    updatedAt: "2024-10-10T10:00:00Z"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+  delete:
+    tags: [Products]
+    summary: Delete product blueprint by ID
+    description: >
+      Deletes a product blueprint by its ID. Requires a seller or admin role.
+      Note: This is a soft delete; the product can be reactivated later.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product to delete.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+    responses:
+      "200":
+        description: Product deleted successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+            example:
+              success:
+                summary: Example of a successful product deletion
+                value:
+                  success: true
+                  message: "Product deleted successfully."
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+productImageById:
+  get:
+    tags: [Products]
+    summary: Get product image by file ID
+    description: >
+      Retrieves a specific image of a product by its file ID. Publicly accessible.
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+      - name: fileId
+        in: path
+        required: true
+        description: The file ID of the image to retrieve.
+        schema:
+          type: string
+          example: "img_123456"
+    responses:
+      "200":
+        description: Image retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ImageResponse"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+  put:
+    tags: [Products]
+    summary: Update product image by file ID
+    description: >
+      Updates a specific image of a product by its file ID. Requires a seller or admin role.
+      Handles multipart/form-data for image upload.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+      - name: fileId
+        in: path
+        required: true
+        description: The file ID of the image to update.
+        schema:
+          type: string
+          example: "img_123456"
+    requestBody:
+      required: true
+      content:
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              image:
+                type: string
+                format: binary
+                description: The new image file to upload.
+    responses:
+      "200":
+        description: Image updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ImageResponse"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+  delete:
+    tags: [Products]
+    summary: Delete product image by file ID
+    description: >
+      Deletes a specific image of a product by its file ID. Requires a seller or admin role.
+      Note: This is a soft delete; the image can be re-uploaded later.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+      - name: fileId
+        in: path
+        required: true
+        description: The file ID of the image to delete.
+        schema:
+          type: string
+          example: "img_123456"
+    responses:
+      "200":
+        description: Image deleted successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+            example:
+              success:
+                summary: Example of a successful image deletion
+                value:
+                  success: true
+                  message: "Product image deleted successfully."
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+enableProduct:
+  post:
+    tags: [Products]
+    summary: Enable a product blueprint
+    description: >
+      Enables a product blueprint, making it active and available for use.
+      Requires a seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product to enable.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+    responses:
+      "200":
+        description: Product enabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+            example:
+              success:
+                summary: Example of a successful product enablement
+                value:
+                  success: true
+                  message: "Product enabled successfully."
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+disableProduct:
+  post:
+    tags: [Products]
+    summary: Disable a product blueprint
+    description: >
+      Disables a product blueprint, making it inactive and unavailable for use.
+      Requires a seller or admin role.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        description: The ObjectId of the product to disable.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b08"
+    responses:
+      "200":
+        description: Product disabled successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+            example:
+              success:
+                summary: Example of a successful product disablement
+                value:
+                  success: true
+                  message: "Product disabled successfully."
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "403":
+        $ref: "../schemas/common.yaml#/responses/Forbidden"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+getAllProducts:
+  get:
+    tags: [Products]
+    summary: Get all product blueprints
+    description: >
+      Retrieves a list of all product blueprints. Supports pagination and filtering.
+      Publicly accessible.
+    parameters:
+      - name: page
+        in: query
+        required: false
+        description: The page number for pagination (default is 1).
+        schema:
+          type: integer
+          example: 1
+      - name: limit
+        in: query
+        required: false
+        description: The number of items per page (default is 10).
+        schema:
+          type: integer
+          example: 10
+      - name: categoryId
+        in: query
+        required: false
+        description: Filter products by category ID.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b07"
+      - name: sellerId
+        in: query
+        required: false
+        description: Filter products by seller ID.
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b09"
+      - name: isActive
+        in: query
+        required: false
+        description: Filter products by active status (true or false).
+        schema:
+          type: boolean
+          example: true
+    responses:
+      "200":
+        description: Products retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ProductsListResponse"
+            example:
+              success:
+                summary: Example of a successful products retrieval
+                value:
+                  success: true
+                  products:
+                    - _id: "6724b111a1a8c3a5e8a71b08"
+                      name: "Organic Urea Fertilizer"
+                      description: "A high-quality organic fertilizer for sustainable farming."
+                      brand: "FarmFresh Organics"
+                      sellerId: "6724b111a1a8c3a5e8a71b09"
+                      categoryId: "6724b111a1a8c3a5e8a71b07"
+                      attributes: ["Weight", "Formulation"]
+                      rating:
+                        average: 4.5
+                        count: 120
+                      baseImages:
+                        - fileId: "img_123456"
+                          url: "https://cdn.yourcompany.com/images/img_123456.jpg"
+                          altText: "Front view of Organic Urea Fertilizer"
+                        - fileId: "img_789012"
+                          url: "https://cdn.yourcompany.com/images/img_789012.jpg"
+                          altText: "Side view of Organic Urea Fertilizer"
+                  meta:
+                    page: 1
+                    limit: 10
+                    total: 42
+                    totalPages: 5
+                    hasNextPage: true
+                    hasPrevPage: false
+                  count: 10
+    "400":
+      $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+    "500":
+      $ref: "../schemas/common.yaml#/responses/InternalServerError"

@@ -1,0 +1,212 @@
+[
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f01" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d01" },
+    "batchNumber": "BATCH-S25U-1",
+    "stock": 50,
+    "price": { "amount": 124999, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-01T00:00:00Z" } },
+    "hsnCode": "851712",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-12T10:10:00Z" },
+    "updatedAt": { "$date": "2025-10-12T10:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f02" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d02" },
+    "batchNumber": "BATCH-S25U-2",
+    "stock": 30,
+    "price": { "amount": 134999, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-01T00:00:00Z" } },
+    "hsnCode": "851712",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-12T10:10:00Z" },
+    "updatedAt": { "$date": "2025-10-12T10:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f03" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d03" },
+    "batchNumber": "BATCH-MBP-1",
+    "stock": 25,
+    "price": { "amount": 249900, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-08-15T00:00:00Z" } },
+    "hsnCode": "847130",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T11:10:00Z" },
+    "updatedAt": { "$date": "2025-10-11T11:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f04" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d04" },
+    "batchNumber": "BATCH-MBP-2",
+    "stock": 15,
+    "price": { "amount": 289900, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-08-15T00:00:00Z" } },
+    "hsnCode": "847130",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T11:10:00Z" },
+    "updatedAt": { "$date": "2025-10-11T11:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f05" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d05" },
+    "batchNumber": "BATCH-TSHIRT-1",
+    "stock": 100,
+    "price": { "amount": 499, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-07-01T00:00:00Z" } },
+    "hsnCode": "610910",
+    "gstPercentage": 5,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-10T09:10:00Z" },
+    "updatedAt": { "$date": "2025-10-10T09:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f06" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d05" },
+    "batchNumber": "BATCH-TSHIRT-2",
+    "stock": 100,
+    "price": { "amount": 499, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-01T00:00:00Z" } },
+    "hsnCode": "610910",
+    "gstPercentage": 5,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-10T09:10:00Z" },
+    "updatedAt": { "$date": "2025-10-10T09:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f07" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d06" },
+    "batchNumber": "BATCH-TSHIRT-3",
+    "stock": 150,
+    "price": { "amount": 499, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-01T00:00:00Z" } },
+    "hsnCode": "610910",
+    "gstPercentage": 5,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-10T09:10:00Z" },
+    "updatedAt": { "$date": "2025-10-10T09:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f08" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d07" },
+    "batchNumber": "BATCH-BOOK-1",
+    "stock": 80,
+    "price": { "amount": 350, "currency": "INR" },
+
+    "manufacturingDetails": {},
+    "hsnCode": "490110",
+    "gstPercentage": 0,
+    "isActive": true,
+    "createdAt": { "$date": "2025-09-15T14:10:00Z" },
+    "updatedAt": { "$date": "2025-09-15T14:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f09" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d08" },
+    "batchNumber": "BATCH-BOOK-2",
+    "stock": 40,
+    "price": { "amount": 799, "currency": "INR" },
+
+    "manufacturingDetails": {},
+    "hsnCode": "490110",
+    "gstPercentage": 0,
+    "isActive": true,
+    "createdAt": { "$date": "2025-09-15T14:10:00Z" },
+    "updatedAt": { "$date": "2025-09-15T14:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f10" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d09" },
+    "batchNumber": "BATCH-MIXER-1",
+    "stock": 60,
+    "price": { "amount": 3200, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-06-01T00:00:00Z" } },
+    "hsnCode": "850940",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-01T18:10:00Z" },
+    "updatedAt": { "$date": "2025-10-01T18:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f11" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d10" },
+    "batchNumber": "BATCH-IP17-1",
+    "stock": 0,
+    "price": { "amount": 149900, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-10T00:00:00Z" } },
+    "hsnCode": "851712",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-12T12:10:00Z" },
+    "updatedAt": { "$date": "2025-10-12T12:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f12" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d11" },
+    "batchNumber": "BATCH-DRESS-1",
+    "stock": 75,
+    "price": { "amount": 1499, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-08-01T00:00:00Z" } },
+    "hsnCode": "620442",
+    "gstPercentage": 5,
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-05T10:10:00Z" },
+    "updatedAt": { "$date": "2025-10-05T10:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f13" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d12" },
+    "batchNumber": "BATCH-XPS-1",
+    "stock": 20,
+    "price": { "amount": 179990, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-09-01T00:00:00Z" } },
+    "hsnCode": "847130",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-09-20T16:10:00Z" },
+    "updatedAt": { "$date": "2025-09-20T16:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f14" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d13" },
+    "batchNumber": "BATCH-WCP-1",
+    "stock": 100,
+    "price": { "amount": 2999, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-07-15T00:00:00Z" } },
+    "hsnCode": "850440",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-08-10T10:10:00Z" },
+    "updatedAt": { "$date": "2025-08-10T10:10:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724f111a1a8c3a5e8a71f15" },
+    "variantId": { "$oid": "6724d111a1a8c3a5e8a71d14" },
+    "batchNumber": "BATCH-SHOES-1",
+    "stock": 60,
+    "price": { "amount": 2499, "currency": "INR" },
+
+    "manufacturingDetails": { "mfgDate": { "$date": "2025-06-01T00:00:00Z" } },
+    "hsnCode": "640351",
+    "gstPercentage": 18,
+    "isActive": true,
+    "createdAt": { "$date": "2025-07-22T10:10:00Z" },
+    "updatedAt": { "$date": "2025-07-22T10:10:00Z" }
+  }
+]

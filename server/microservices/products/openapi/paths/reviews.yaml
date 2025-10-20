@@ -1,0 +1,170 @@
+# Review API paths
+createReview:
+  post:
+    tags: [Reviews]
+    summary: Create a new review
+    description: >
+      Creates a new review for a product. Requires authentication.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/review.yaml#/CreateReviewRequest"
+    responses:
+      "201":
+        description: Review created successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ReviewResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+reviewById:
+  get:
+    tags: [Reviews]
+    summary: Get review by ID
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Review ID
+    responses:
+      "200":
+        description: Review found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ReviewResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  put:
+    tags: [Reviews]
+    summary: Update review by ID
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Review ID
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/review.yaml#/UpdateReviewRequest"
+    responses:
+      "200":
+        description: Review updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ReviewResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+  delete:
+    tags: [Reviews]
+    summary: Delete review by ID
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Review ID
+    responses:
+      "200":
+        description: Review deleted successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/MessageResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "403": { $ref: "../schemas/common.yaml#/responses/Forbidden" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+getReviewsByProduct:
+  get:
+    tags: [Reviews]
+    summary: Get reviews for a product
+    description: Returns a paginated list of reviews for the given product ID.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: path
+        name: productId
+        required: true
+        schema:
+          type: string
+          format: objectid
+        description: Product ID whose reviews are returned
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Items per page
+    responses:
+      "200":
+        description: List of reviews for product
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ReviewsListResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "404": { $ref: "../schemas/common.yaml#/responses/NotFound" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }
+getAllReviews:
+  get:
+    tags: [Reviews]
+    summary: Get all reviews
+    description: Returns a paginated list of all reviews.
+    security:
+      - BearerAuth: []
+    parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: limit
+        schema:
+          type: integer
+        description: Items per page
+    responses:
+      "200":
+        description: List of reviews
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ReviewsListResponse"
+      "400": { $ref: "../schemas/common.yaml#/responses/InvalidRequest" }
+      "401": { $ref: "../schemas/common.yaml#/responses/Unauthorized" }
+      "500": { $ref: "../schemas/common.yaml#/responses/InternalServerError" }

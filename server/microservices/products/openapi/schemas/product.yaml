@@ -1,0 +1,59 @@
+# Schema for the data a user sends to CREATE a product
+CreateProductRequest:
+  type: object
+  required: [name, description, categoryId, attributes, baseImages]
+  properties:
+    name:
+      type: string
+      description: The name of the product. Must be unique per seller.
+      example: "Organic Urea Fertilizer"
+    description:
+      type: string
+      description: A detailed description of the product.
+      example: "A high-nitrogen organic fertilizer suitable for all crops."
+    brand:
+      type: string
+      example: "FarmFresh Organics"
+    categoryId:
+      type: string
+      format: objectid
+      description: The ObjectId of the product's category.
+      example: "6724b111a1a8c3a5e8a71b07"
+    attributes:
+      type: string
+      description: "A JSON array of strings defining the variant attributes, sent as a string. e.g., '[\"Weight\", \"Formulation\"]'"
+      example: "[\"Weight\"]"
+    baseImages:
+      type: array
+      description: An array of image files for the product.
+      items:
+        type: string
+        format: binary
+
+# Schema for the full Product object as it is RETURNED by the API
+Product:
+  type: object
+  properties:
+    _id: { type: string, format: objectid }
+    name: { type: string }
+    description: { type: string }
+    brand: { type: string }
+    sellerId: { type: string, format: objectid }
+    categoryId: { type: string, format: objectid }
+    attributes: { type: array, items: { type: string } }
+    rating:
+      type: object
+      properties:
+        average: { type: number, default: 0 }
+        count: { type: number, default: 0 }
+    baseImages:
+      type: array
+      items:
+        type: object
+        properties:
+          fileId: { type: string }
+          url: { type: string }
+          altText: { type: string }
+    isActive: { type: boolean }
+    createdAt: { type: string, format: date-time }
+    updatedAt: { type: string, format: date-time }

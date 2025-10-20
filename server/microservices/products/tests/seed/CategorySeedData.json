@@ -1,0 +1,122 @@
+[
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b12" },
+    "name": "Electronics",
+    "description": "Gadgets, devices, and accessories.",
+    "parentCategory": null,
+    "ancestors": [],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b13" },
+    "name": "Books",
+    "description": "Printed and digital books.",
+    "parentCategory": null,
+    "ancestors": [],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b14" },
+    "name": "Home & Kitchen",
+    "description": "Appliances and decor for your home.",
+    "parentCategory": null,
+    "ancestors": [],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b15" },
+    "name": "Fashion",
+    "description": "Apparel, shoes, and accessories.",
+    "parentCategory": null,
+    "ancestors": [],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b16" },
+    "name": "Mobiles & Accessories",
+    "description": "Smartphones, chargers, and cases.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b12" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b12" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b17" },
+    "name": "Laptops",
+    "description": "Notebooks and ultrabooks.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b12" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b12" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b18" },
+    "name": "Smartphones",
+    "description": "Latest smartphones from top brands.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b16" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b12" }, { "$oid": "6724b334a1a8c3a5e8a71b16" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b19" },
+    "name": "Men's Fashion",
+    "description": "Clothing and accessories for men.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b15" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b15" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b1a" },
+    "name": "Women's Fashion",
+    "description": "Clothing and accessories for women.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b15" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b15" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b1b" },
+    "name": "Kitchen Appliances",
+    "description": "Mixers, blenders, and more.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b14" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b14" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b1c" },
+    "name": "Fiction",
+    "description": "Novels and stories.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b13" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b13" }],
+    "isActive": true,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  },
+  {
+    "_id": { "$oid": "6724b334a1a8c3a5e8a71b1d" },
+    "name": "T-Shirts",
+    "description": "T-shirts for men.",
+    "parentCategory": { "$oid": "6724b334a1a8c3a5e8a71b19" },
+    "ancestors": [{ "$oid": "6724b334a1a8c3a5e8a71b15" }, { "$oid": "6724b334a1a8c3a5e8a71b19" }],
+    "isActive": false,
+    "createdAt": { "$date": "2025-10-11T15:30:00Z" },
+    "updatedAt": { "$date": "2025-10-11T15:30:00Z" }
+  }
+]
