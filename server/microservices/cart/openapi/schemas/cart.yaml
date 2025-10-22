@@ -1,7 +1,7 @@
 # Schema for adding an item to cart
 AddCartItemRequest:
   type: object
-  required: [variantId, quantity]
+  required: [variantId]
   properties:
     variantId:
       type: string
@@ -11,7 +11,9 @@ AddCartItemRequest:
     quantity:
       type: integer
       minimum: 1
-      description: The quantity of the item to add
+      maximum: 999
+      default: 1
+      description: The quantity of the item to add. Defaults to 1 if not provided.
       example: 2
 
 # Schema for updating cart item quantity

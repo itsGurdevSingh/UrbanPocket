@@ -42,6 +42,7 @@ addItemToCart:
     description: >
       Adds a new item to the cart or updates the quantity if the item already exists.
       Creates a new cart if one doesn't exist for the user.
+      If quantity is not provided, defaults to 1.
     security:
       - BearerAuth: []
     requestBody:
