@@ -1,6 +1,6 @@
-import inventoryItemService from "../services/inventoryItem.service";
-import { ApiError } from "../utils/errors";
-import { ApiResponse } from "../utils/success";
+import inventoryItemService from "../services/inventoryItem.service.js";
+import { ApiError } from "../utils/errors.js";
+import { ApiResponse } from "../utils/success.js";
 
 class inventoryItemController {
   // create inventory item

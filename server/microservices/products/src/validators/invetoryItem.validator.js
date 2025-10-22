@@ -1,5 +1,5 @@
 import { body, param, query } from "express-validator";
-import { handleValidationErrors } from "./utils";
+import { handleValidationErrors } from "./utils.js";
 
 export const createInventoryItemValidation = [
     body('variantId')

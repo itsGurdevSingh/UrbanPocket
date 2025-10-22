@@ -1,0 +1,215 @@
+getCart:
+  get:
+    tags: [Cart]
+    summary: Get user's cart
+    description: >
+      Retrieves the authenticated user's shopping cart with all items.
+      If no cart exists, creates and returns a new empty cart.
+      Cart is always active - order service clears cart on successful order.
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: Cart retrieved successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/CartResponse"
+            example:
+              success: true
+              message: "Cart retrieved successfully."
+              data:
+                _id: "6724b111a1a8c3a5e8a71b08"
+                userId: "6724b111a1a8c3a5e8a71b09"
+                items:
+                  - _id: "6724b111a1a8c3a5e8a71b10"
+                    variantId: "6724b111a1a8c3a5e8a71b11"
+                    quantity: 2
+                  - _id: "6724b111a1a8c3a5e8a71b12"
+                    variantId: "6724b111a1a8c3a5e8a71b13"
+                    quantity: 1
+                createdAt: "2025-10-20T10:00:00Z"
+                updatedAt: "2025-10-20T11:30:00Z"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+
+addItemToCart:
+  post:
+    tags: [Cart]
+    summary: Add item to cart or update quantity
+    description: >
+      Adds a new item to the cart or updates the quantity if the item already exists.
+      Creates a new cart if one doesn't exist for the user.
+      If quantity is not provided, defaults to 1.
+    security:
+      - BearerAuth: []
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/cart.yaml#/AddCartItemRequest"
+    responses:
+      "200":
+        description: Item added/updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/CartResponse"
+            example:
+              success: true
+              message: "Item added to cart successfully."
+              data:
+                _id: "6724b111a1a8c3a5e8a71b08"
+                userId: "6724b111a1a8c3a5e8a71b09"
+                items:
+                  - _id: "6724b111a1a8c3a5e8a71b10"
+                    variantId: "6724b111a1a8c3a5e8a71b11"
+                    quantity: 3
+                createdAt: "2025-10-20T10:00:00Z"
+                updatedAt: "2025-10-20T11:35:00Z"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "404":
+        description: Variant not found
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/ErrorResponse"
+            example:
+              success: false
+              error:
+                code: "VARIANT_NOT_FOUND"
+                message: "The specified product variant does not exist."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+
+updateCartItem:
+  patch:
+    tags: [Cart]
+    summary: Update cart item quantity
+    description: >
+      Updates the quantity of a specific item in the cart.
+      If quantity is set to 0, the item is removed from the cart.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        description: The ID of the cart item to update
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b10"
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/cart.yaml#/UpdateCartItemRequest"
+    responses:
+      "200":
+        description: Cart item updated successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/CartResponse"
+            example:
+              success: true
+              message: "Cart item updated successfully."
+              data:
+                _id: "6724b111a1a8c3a5e8a71b08"
+                userId: "6724b111a1a8c3a5e8a71b09"
+                items:
+                  - _id: "6724b111a1a8c3a5e8a71b10"
+                    variantId: "6724b111a1a8c3a5e8a71b11"
+                    quantity: 5
+                createdAt: "2025-10-20T10:00:00Z"
+                updatedAt: "2025-10-20T11:40:00Z"
+      "400":
+        $ref: "../schemas/common.yaml#/responses/InvalidRequest"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+  delete:
+    tags: [Cart]
+    summary: Remove item from cart
+    description: >
+      Removes a specific item from the user's cart.
+    security:
+      - BearerAuth: []
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        description: The ID of the cart item to remove
+        schema:
+          type: string
+          format: objectid
+          example: "6724b111a1a8c3a5e8a71b10"
+    responses:
+      "200":
+        description: Item removed successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/CartResponse"
+            example:
+              success: true
+              message: "Item removed from cart successfully."
+              data:
+                _id: "6724b111a1a8c3a5e8a71b08"
+                userId: "6724b111a1a8c3a5e8a71b09"
+                items:
+                  - _id: "6724b111a1a8c3a5e8a71b12"
+                    variantId: "6724b111a1a8c3a5e8a71b13"
+                    quantity: 1
+                createdAt: "2025-10-20T10:00:00Z"
+                updatedAt: "2025-10-20T11:45:00Z"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"
+
+clearCart:
+  delete:
+    tags: [Cart]
+    summary: Clear all items from cart
+    description: >
+      Removes all items from the user's cart.
+      Order service calls this endpoint after successful order placement.
+    security:
+      - BearerAuth: []
+    responses:
+      "200":
+        description: Cart cleared successfully.
+        content:
+          application/json:
+            schema:
+              $ref: "../schemas/common.yaml#/CartResponse"
+            example:
+              success: true
+              message: "Cart cleared successfully."
+              data:
+                _id: "6724b111a1a8c3a5e8a71b08"
+                userId: "6724b111a1a8c3a5e8a71b09"
+                items: []
+                createdAt: "2025-10-20T10:00:00Z"
+                updatedAt: "2025-10-20T11:50:00Z"
+      "401":
+        $ref: "../schemas/common.yaml#/responses/Unauthorized"
+      "404":
+        $ref: "../schemas/common.yaml#/responses/NotFound"
+      "500":
+        $ref: "../schemas/common.yaml#/responses/InternalServerError"

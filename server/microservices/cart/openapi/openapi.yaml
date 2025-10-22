@@ -1,0 +1,49 @@
+﻿openapi: 3.0.0
+info:
+  title: Cart Service API
+  version: 1.0.0
+  description: Manages shopping cart operations for authenticated users, including adding items, updating quantities, and cart lifecycle management.
+  contact:
+    name: API Support
+    email: dev-team@yourcompany.com
+
+servers:
+  - url: http://localhost:3002
+    description: Local Development Server
+  - url: https://api.yourcompany.com/cart
+    description: Production Server
+
+tags:
+  - name: Cart
+    description: Operations for managing user shopping carts.
+  - name: Health
+    description: Service health checks.
+
+paths:
+  # Health Check
+  /health:
+    $ref: "./paths/health.yaml#/healthCheck"
+
+  # Cart Operations
+  /api/cart:
+    $ref: "./paths/cart.yaml#/getCart"
+  /api/cart/items:
+    $ref: "./paths/cart.yaml#/addItemToCart"
+  /api/cart/items/{itemId}:
+    $ref: "./paths/cart.yaml#/updateCartItem"
+  /api/cart/clear:
+    $ref: "./paths/cart.yaml#/clearCart"
+
+components:
+  schemas:
+    # ============================================================================
+    # All schemas are centrally managed and imported from schemas/index.yaml
+    # This single reference imports all organized schemas for better maintainability
+    # ============================================================================
+    $ref: "./schemas/index.yaml"
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access Token provided by the Auth service."

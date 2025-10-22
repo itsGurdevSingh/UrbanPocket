@@ -1,5 +1,5 @@
 {
-  "name": "products-microservice",
+  "name": "microservice-boilerplate",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -11,13 +11,13 @@
   },
   "keywords": [
     "microservice",
-    "product",
+    "boilerplate",
     "express",
     "mongodb"
   ],
   "author": "",
   "license": "ISC",
-  "description": "product microservices ",
+  "description": "Boilerplate for microservices with common configurations and utilities",
   "dependencies": {
     "axios": "^1.12.2",
     "bcryptjs": "^3.0.2",
@@ -27,11 +27,9 @@
     "express": "^5.1.0",
     "express-rate-limit": "^8.1.0",
     "express-validator": "^7.2.1",
-    "imagekit": "^6.0.0",
     "ioredis": "^5.7.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.1",
-    "multer": "^2.0.2",
     "winston": "^3.17.0"
   },
   "devDependencies": {
