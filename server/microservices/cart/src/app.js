@@ -5,6 +5,7 @@ import { errorHandler } from './middlewares/errorHandler.js';
 import { globalRateLimiter } from './middlewares/rateLimiter.js';
 import { ApiResponse } from './utils/success.js';
 import { ApiError } from './utils/errors.js';
+import cartRouter from './routers/cart.router.js';
 
 const app = express();
 
@@ -36,8 +37,7 @@ app.use(cookieParser());
 app.use(globalRateLimiter);
 
 // Routes
-// TODO: Add your routes here
-// app.use('/api/', yourRouter);
+app.use('/api/cart', cartRouter);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
