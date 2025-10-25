@@ -1,0 +1,10 @@
+# Schema index file
+# TODO: Import and organize all schemas here
+
+# Example structure:
+# Order:
+#   $ref: "./order.yaml#/Order"
+# CreateOrderRequest:
+#   $ref: "./order.yaml#/CreateOrderRequest"
+# ErrorResponse:
+#   $ref: "./common.yaml#/ErrorResponse"

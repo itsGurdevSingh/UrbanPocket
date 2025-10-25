@@ -1,0 +1,56 @@
+# TODO: Define order schemas here
+# Follow the structure from cart service
+
+# Example structure:
+# CreateOrderRequest:
+#   type: object
+#   required: [items, shippingAddress]
+#   properties:
+#     items:
+#       type: array
+#       items:
+#         $ref: "#/OrderItemInput"
+#     shippingAddress:
+#       $ref: "#/ShippingAddress"
+#     paymentMethod:
+#       type: string
+#       enum: [card, cash, wallet]
+#
+# OrderItemInput:
+#   type: object
+#   required: [variantId, quantity, price]
+#   properties:
+#     variantId:
+#       type: string
+#       format: objectid
+#     quantity:
+#       type: integer
+#       minimum: 1
+#     price:
+#       type: number
+#       minimum: 0
+#
+# Order:
+#   type: object
+#   properties:
+#     _id:
+#       type: string
+#       format: objectid
+#     userId:
+#       type: string
+#       format: objectid
+#     items:
+#       type: array
+#       items:
+#         $ref: "#/OrderItem"
+#     status:
+#       type: string
+#       enum: [pending, confirmed, processing, shipped, delivered, cancelled]
+#     totalAmount:
+#       type: number
+#     createdAt:
+#       type: string
+#       format: date-time
+#     updatedAt:
+#       type: string
+#       format: date-time

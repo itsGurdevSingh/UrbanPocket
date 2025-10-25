@@ -1,0 +1,153 @@
+# Common response schemas (copied from cart service for consistency)
+
+# The envelope for ANY successful response.
+BaseSuccessResponse:
+  type: object
+  required: [success]
+  properties:
+    success:
+      type: boolean
+      description: "Always 'true' for a successful response."
+      example: true
+    message:
+      type: string
+      description: A human-friendly success message.
+      example: "Operation completed successfully."
+
+# The envelope for ANY error response.
+ErrorResponse:
+  type: object
+  required: [success, error]
+  properties:
+    success:
+      type: boolean
+      description: "Always 'false' for an error response."
+      example: false
+    error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: "A unique, machine-readable code for this specific error."
+          example: "ORDER_NOT_FOUND"
+        message:
+          type: string
+          description: "A human-readable message explaining the error."
+          example: "The order with the specified ID does not exist."
+        details:
+          nullable: true
+          description: "Optional extra info. For validation, often an array of field errors."
+          oneOf:
+            - type: array
+              items:
+                type: object
+                properties:
+                  field: { type: string, example: "quantity" }
+                  message:
+                    { type: string, example: "Quantity must be at least 1." }
+            - type: object
+            - type: string
+        errorId:
+          type: string
+          description: "A unique identifier for this error instance."
+          example: "550e8400-e29b-41d4-a716-446655440000"
+    stack:
+      type: string
+      nullable: true
+      description: Present only in non-production environments for debugging.
+
+# TODO: Add order-specific response schemas
+# OrderResponse:
+#   allOf:
+#     - $ref: "#/BaseSuccessResponse"
+#     - type: object
+#       properties:
+#         data:
+#           $ref: "../schemas/order.yaml#/Order"
+
+# --- Composed Error Responses ---
+
+responses:
+  Unauthorized:
+    description: Unauthorized - The user is not authenticated.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          UnauthorizedAccess:
+            summary: Example of an authentication error
+            value:
+              success: false
+              error:
+                code: "UNAUTHORIZED"
+                message: "Authentication token is missing or invalid."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+
+  Forbidden:
+    description: Forbidden - The user does not have the required role.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ForbiddenAccess:
+            summary: Example of a forbidden error
+            value:
+              success: false
+              error:
+                code: "FORBIDDEN"
+                message: "You do not have permission to perform this action."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+
+  NotFound:
+    description: The requested resource was not found.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ResourceNotFound:
+            summary: Example of a not found error
+            value:
+              success: false
+              error:
+                code: "RESOURCE_NOT_FOUND"
+                message: "The resource with the specified ID does not exist."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+
+  InvalidRequest:
+    description: Validation Error - The request is invalid.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          ValidationError:
+            summary: Example of a validation error
+            value:
+              success: false
+              error:
+                code: "VALIDATION_ERROR"
+                message: "One or more fields are invalid."
+                details:
+                  - field: "quantity"
+                    message: "Quantity must be at least 1."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"
+
+  InternalServerError:
+    description: An unexpected error occurred on the server.
+    content:
+      application/json:
+        schema:
+          $ref: "#/ErrorResponse"
+        examples:
+          UnknownError:
+            summary: Example of an unknown server error
+            value:
+              success: false
+              error:
+                code: "INTERNAL_SERVER_ERROR"
+                message: "An unexpected error occurred. Please try again later."
+                errorId: "550e8400-e29b-41d4-a716-446655440000"

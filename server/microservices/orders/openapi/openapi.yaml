@@ -1,0 +1,43 @@
+openapi: 3.0.0
+info:
+  title: Order Service API
+  version: 1.0.0
+  description: Manages order operations for authenticated users, including order creation, tracking, and management.
+  contact:
+    name: API Support
+    email: dev-team@yourcompany.com
+
+servers:
+  - url: http://localhost:3003
+    description: Local Development Server
+  - url: https://api.yourcompany.com/orders
+    description: Production Server
+
+tags:
+  - name: Orders
+    description: Operations for managing user orders
+  - name: Health
+    description: Service health checks
+
+paths:
+  # Health Check
+  /health:
+    $ref: "./paths/health.yaml#/healthCheck"
+
+  # TODO: Add order endpoints
+  # /api/orders:
+  #   $ref: "./paths/orders.yaml#/createOrder"
+  # /api/orders/{orderId}:
+  #   $ref: "./paths/orders.yaml#/getOrder"
+
+components:
+  schemas:
+    # TODO: Import schemas from schemas/index.yaml
+    # $ref: "./schemas/index.yaml"
+    pass: {}
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "Access Token provided by the Auth service."
