@@ -51,9 +51,9 @@ describe('GET /api/auth/getAddresses', () => {
           .set('Cookie', [`accessToken=${accessToken}`]);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body.address.length).toBe(2);
+        expect(res.body.data.length).toBe(2);
         // Use toEqual because the returned objects will have _id, which toMatchObject ignores
-        expect(res.body.address).toEqual(
+        expect(res.body.data).toEqual(
           expect.arrayContaining([
             expect.objectContaining(addresses[0]),
             expect.objectContaining(addresses[1])
@@ -86,7 +86,7 @@ describe('GET /api/auth/getAddresses', () => {
           .set('Cookie', [`accessToken=${accessToken}`]);
           
         expect(res.statusCode).toBe(200);
-        expect(res.body.address).toEqual([]);
+        expect(res.body.data).toEqual([]);
       });
     });
   });

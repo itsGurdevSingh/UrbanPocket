@@ -1,0 +1,324 @@
+# ============================================================================
+# Common Response Schemas
+# ============================================================================
+# Defines base response envelopes and standard error responses
+# All API responses should extend BaseSuccessResponse or use ErrorResponse
+
+# Base Success Response Envelope
+BaseSuccessResponse:
+  type: object
+  required:
+    - success
+  properties:
+    success:
+      type: boolean
+      example: true
+      description: "Indicates the request was successful"
+    message:
+      type: string
+      example: "Operation completed successfully."
+      description: "Human-readable success message"
+
+# Error Response Envelope
+ErrorResponse:
+  type: object
+  required:
+    - success
+    - message
+    - error
+  properties:
+    success:
+      type: boolean
+      example: false
+      description: "Indicates the request failed"
+    message:
+      type: string
+      example: "An error occurred"
+      description: "Human-readable error message"
+    error:
+      type: object
+      required:
+        - code
+        - message
+        - errorId
+      properties:
+        code:
+          type: string
+          description: "Machine-readable error code"
+          example: "INVALID_CREDENTIALS"
+        message:
+          type: string
+          description: "Detailed error message"
+          example: "Invalid username or password"
+        details:
+          nullable: true
+          description: "Additional error details"
+          example: null
+        errorId:
+          type: string
+          description: "Unique error identifier for debugging"
+          example: "err_1k2j3l4abc123"
+
+# Validation Error Response
+ValidationErrorResponse:
+  type: object
+  required:
+    - success
+    - message
+    - error
+  properties:
+    success:
+      type: boolean
+      example: false
+    message:
+      type: string
+      example: "Validation failed"
+    error:
+      type: object
+      required:
+        - code
+        - message
+        - errorId
+      properties:
+        code:
+          type: string
+          enum: ["VALIDATION_ERROR"]
+          example: "VALIDATION_ERROR"
+        message:
+          type: string
+          example: "Request validation failed"
+        details:
+          type: array
+          description: "Array of validation error details"
+          items:
+            type: object
+            properties:
+              msg:
+                type: string
+                description: "Validation error message"
+                example: "Username must be at least 3 characters long"
+              param:
+                type: string
+                description: "Parameter that failed validation"
+                example: "username"
+              location:
+                type: string
+                description: "Location of the parameter"
+                enum: ["body", "query", "params", "cookies", "headers"]
+                example: "body"
+              value:
+                description: "Value that caused the validation error"
+                example: "ab"
+        errorId:
+          type: string
+          description: "Unique error identifier for debugging"
+          example: "err_1k2j3l4abc123"
+
+# ============================================================================
+# Composed Response Types
+# ============================================================================
+
+# User Registration/Login Response
+UserResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: "User's unique identifier"
+              example: "507f1f77bcf86cd799439011"
+            username:
+              type: string
+              example: "johndoe"
+            email:
+              type: string
+              format: email
+              example: "john.doe@example.com"
+            role:
+              type: string
+              enum: ["user", "seller", "admin"]
+              example: "user"
+
+# User Profile Response
+UserProfileResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "./user.yaml#/UserPublicProfile"
+
+# Single Address Response
+AddressResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          $ref: "./address.yaml#/Address"
+
+# Multiple Addresses Response
+AddressesListResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            addresses:
+              type: array
+              items:
+                $ref: "./address.yaml#/Address"
+              example: []
+
+# Generic Message Response (for logout, delete operations)
+MessageResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          nullable: true
+          example: null
+
+# Token Refresh Response
+TokenRefreshResponse:
+  allOf:
+    - $ref: "#/BaseSuccessResponse"
+    - type: object
+      properties:
+        data:
+          type: object
+          properties:
+            accessToken:
+              type: string
+              description: "New access token (also set in httpOnly cookie)"
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# Health Check Response
+HealthCheckResponse:
+  type: object
+  properties:
+    status:
+      type: string
+      example: "OK"
+      description: "Service health status"
+    message:
+      type: string
+      example: "Auth service is running"
+      description: "Service status message"
+    timestamp:
+      type: string
+      format: date-time
+      example: "2024-01-15T12:00:00Z"
+      description: "Current server timestamp"
+
+# ============================================================================
+# Standard Error Responses
+# ============================================================================
+
+# 400 Bad Request
+BadRequestError:
+  description: "Bad Request - Invalid input or validation failed"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ValidationErrorResponse"
+      example:
+        success: false
+        message: "Validation failed"
+        error:
+          code: "VALIDATION_ERROR"
+          message: "Request validation failed"
+          details:
+            - msg: "Username must be at least 3 characters long"
+              param: "username"
+              location: "body"
+              value: "ab"
+          errorId: "err_1k2j3l4abc123"
+
+# 401 Unauthorized
+UnauthorizedError:
+  description: "Unauthorized - Invalid or missing authentication token"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ErrorResponse"
+      example:
+        success: false
+        message: "Invalid credentials"
+        error:
+          code: "INVALID_CREDENTIALS"
+          message: "Invalid username or password"
+          details: null
+          errorId: "err_2k3j4l5bcd234"
+
+# 403 Forbidden
+ForbiddenError:
+  description: "Forbidden - Insufficient permissions"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ErrorResponse"
+      example:
+        success: false
+        message: "Access forbidden"
+        error:
+          code: "FORBIDDEN"
+          message: "You don't have permission to access this resource"
+          details: null
+          errorId: "err_3k4j5l6cde345"
+
+# 404 Not Found
+NotFoundError:
+  description: "Not Found - Resource doesn't exist"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ErrorResponse"
+      example:
+        success: false
+        message: "Resource not found"
+        error:
+          code: "NOT_FOUND"
+          message: "The requested resource was not found"
+          details: null
+          errorId: "err_4k5j6l7def456"
+
+# 409 Conflict
+ConflictError:
+  description: "Conflict - Resource already exists"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ErrorResponse"
+      example:
+        success: false
+        message: "Resource already exists"
+        error:
+          code: "ALREADY_EXISTS"
+          message: "A user with this email already exists"
+          details: null
+          errorId: "err_5k6j7l8efg567"
+
+# 500 Internal Server Error
+InternalServerError:
+  description: "Internal Server Error - Something went wrong on the server"
+  content:
+    application/json:
+      schema:
+        $ref: "#/ErrorResponse"
+      example:
+        success: false
+        message: "Internal server error"
+        error:
+          code: "INTERNAL_ERROR"
+          message: "An unexpected error occurred"
+          details: null
+          errorId: "err_6k7j8l9fgh678"

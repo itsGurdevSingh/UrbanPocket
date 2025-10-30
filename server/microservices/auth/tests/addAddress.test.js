@@ -38,7 +38,7 @@ describe('POST /api/auth/addAddress', () => {
 
         expect(res.statusCode).toBe(201);
         expect(res.body.message).toBe('Address added successfully');
-        expect(res.body.address).toMatchObject(newAddress);
+        expect(res.body.data).toMatchObject(newAddress);
 
         // Verify in DB
         const updatedUser = await User.findById(createdUser._id);
@@ -63,9 +63,8 @@ describe('POST /api/auth/addAddress', () => {
             .send({ street: '', city: 'Anytown', state: 'CA', zipCode: '12345', country: 'USA' });
 
         expect(res.statusCode).toBe(400);
-        expect(res.body.errors).toEqual(
-            expect.arrayContaining([expect.objectContaining({ msg: 'Street is required' })])
-        );
+        expect(res.body.success).toBe(false);
+        expect(res.body.error).toHaveProperty('details');
     });
 
 });

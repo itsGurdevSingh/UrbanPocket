@@ -29,10 +29,10 @@ describe('Read routes: /api/auth/me, /api/auth/health, /api/auth/protected', () 
             .set('Cookie', [`accessToken=${accessToken}`]);
 
         expect(res.statusCode).toBe(200);
-        expect(res.body).toHaveProperty('user');
-        expect(res.body.user).toHaveProperty('id');
-        expect(res.body.user).toHaveProperty('username', createdUser.username);
-        expect(res.body.user).toHaveProperty('email', createdUser.contactInfo.email);
+        expect(res.body).toHaveProperty('data');
+        expect(res.body.data).toHaveProperty('id');
+        expect(res.body.data).toHaveProperty('username', createdUser.username);
+        expect(res.body.data).toHaveProperty('email', createdUser.contactInfo.email);
     });
 
     it('GET /api/auth/me should return 401 for unauthenticated user', async () => {
@@ -41,7 +41,7 @@ describe('Read routes: /api/auth/me, /api/auth/health, /api/auth/protected', () 
             .set('Cookie', ['accessToken=invalidtoken']);
 
         expect(res.statusCode).toBe(401);
-        expect(res.body).toHaveProperty('status', 'error');
+        expect(res.body.success).toBe(false);
     });
 
     it('GET /api/auth/health should return 200 OK', async () => {
@@ -57,7 +57,7 @@ describe('Read routes: /api/auth/me, /api/auth/health, /api/auth/protected', () 
 
         expect(res.statusCode).toBe(200);
         expect(res.body).toHaveProperty('message');
-        expect(res.body).toHaveProperty('user');
+        expect(res.body).toHaveProperty('data');
     });
 
     it('GET /api/auth/protected should return 401 for unauthenticated user', async () => {

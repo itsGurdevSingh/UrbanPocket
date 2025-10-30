@@ -35,6 +35,7 @@ describe('POST /api/auth/login', () => {
 
     // 1. Check for a successful response
     expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('Logged in successfully');
 
     // 2. Verify that the cookies were set in the response headers
@@ -87,7 +88,7 @@ describe('POST /api/auth/login', () => {
       });
 
     expect(response.statusCode).toBe(401);
-    expect(response.body.status).toBe('error');
+    expect(response.body.success).toBe(false);
     expect(response.body.message).toBe('Invalid credentials');
   });
 

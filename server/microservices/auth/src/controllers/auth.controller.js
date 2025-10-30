@@ -1,5 +1,7 @@
 import getConfig from '../config/config_keys.js';
 import authService from '../services/authService.js';
+import { ApiResponse } from '../utils/success.js';
+import { ApiError } from '../utils/errors.js';
 
 
 
@@ -21,15 +23,12 @@ const registerUser = async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
 
-    res.status(201).json({
-      message: 'User registered successfully',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
-    });
+    res.status(201).json(new ApiResponse({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    }, 'User registered successfully'));
   } catch (error) {
     // Pass error to the global error handler
     next(error);
@@ -52,15 +51,12 @@ const loginUser = async (req, res, next) => {
       secure: getConfig('nodeEnv') === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    res.status(200).json({
-      message: 'Logged in successfully',
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        role: user.role
-      }
-    });
+    res.status(200).json(new ApiResponse({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      role: user.role
+    }, 'Logged in successfully'));
   } catch (error) {
 
     // remove cookies if any error occurs
@@ -87,7 +83,7 @@ const logoutUser = async (req, res) => {
   res.cookie('refreshToken', '', { httpOnly: true, sameSite: 'strict', maxAge: 0, path: '/' });
 
   // Send response
-  res.status(200).json({ message: 'Logged out successfully' });
+  res.status(200).json(new ApiResponse(null, 'Logged out successfully'));
 };
 
 const refreshToken = async (req, res, next) => {
@@ -106,7 +102,7 @@ const refreshToken = async (req, res, next) => {
       secure: getConfig('nodeEnv') === 'production',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    res.status(200).json({ message: 'Tokens refreshed successfully' });
+    res.status(200).json(new ApiResponse(null, 'Tokens refreshed successfully'));
   } catch (error) {
     // Clear cookies if refresh fails
     res.clearCookie('accessToken');
@@ -121,18 +117,15 @@ const getUserProfile = async (req, res, next) => {
     const user = await authService.getUserById(userId);
 
     if (!user) {
-      const { ApiError } = await import('../utils/errors.js');
       throw new ApiError('User not found', { statusCode: 404, code: 'USER_NOT_FOUND' });
     }
-    res.status(200).json({
-      user: {
-        id: user._id,
-        username: user.username,
-        fullName: user.fullName,
-        email: user.contactInfo.email,
-        role: user.role
-      }
-    });
+    res.status(200).json(new ApiResponse({
+      id: user._id,
+      username: user.username,
+      fullName: user.fullName,
+      email: user.contactInfo.email,
+      role: user.role
+    }, 'User profile fetched successfully'));
   } catch (error) {
     next(error);
   }
@@ -142,9 +135,7 @@ const getUserAddresses = async (req, res, next) => {
   try {
     const userId = req.user.id;
     const addresses = await authService.getAddressesByUserId(userId);
-    res.status(200).json({
-      address: addresses || []
-    });
+    res.status(200).json(new ApiResponse(addresses || [], 'Addresses fetched successfully'));
   } catch (error) {
     next(error);
   }
@@ -154,17 +145,13 @@ const addAddress = async (req, res, next) => {
   try {
     const address = req.body;
     const userId = req.user.id;
-    const newAddress = await authService.addAddress(userId, address)
+    const newAddress = await authService.addAddress(userId, address);
 
-    res.status(201).json({
-      message: 'Address added successfully',
-      address: newAddress
-    })
-
+    res.status(201).json(new ApiResponse(newAddress, 'Address added successfully'));
   } catch (error) {
-    next(error)
+    next(error);
   }
-}
+};
 
 const deleteAddress = async (req, res, next) => {
   try {
@@ -173,9 +160,7 @@ const deleteAddress = async (req, res, next) => {
 
     await authService.deleteAddress(userId, addressId);
 
-    res.status(200).json({
-      message: 'Address deleted successfully'
-    });
+    res.status(200).json(new ApiResponse(null, 'Address deleted successfully'));
   } catch (error) {
     next(error);
   }
@@ -186,12 +171,8 @@ const updateAddress = async (req, res, next) => {
     const { addressId, addressData } = req.body;
     const userId = req.user.id;
     const updatedAddress = await authService.updateAddress(userId, addressId, addressData);
-    res.status(200).json({
-      message: 'Address updated successfully',
-      address: updatedAddress
-    });
-  }
-  catch (error) {
+    res.status(200).json(new ApiResponse(updatedAddress, 'Address updated successfully'));
+  } catch (error) {
     next(error);
   }
 };

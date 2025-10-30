@@ -1,3 +1,9 @@
+# ============================================================================
+# User Schemas
+# ============================================================================
+# Defines user-related data structures
+
+# User Registration Request
 UserRegistration:
   type: object
   required:
@@ -8,6 +14,7 @@ UserRegistration:
     username:
       type: string
       minLength: 3
+      maxLength: 50
       description: "Unique username, minimum 3 characters"
       example: "johndoe"
     email:
@@ -22,6 +29,7 @@ UserRegistration:
       description: "Password with minimum 8 characters"
       example: "strongPassword123"
 
+# User Login Request
 UserLoginRequest:
   type: object
   required:
@@ -38,6 +46,7 @@ UserLoginRequest:
       description: "User password"
       example: "strongPassword123"
 
+# User Public Profile (full details)
 UserPublicProfile:
   type: object
   properties:
@@ -48,6 +57,7 @@ UserPublicProfile:
     username:
       type: string
       example: "johndoe"
+      description: "Unique username"
     fullName:
       type: string
       nullable: true
@@ -63,129 +73,37 @@ UserPublicProfile:
       enum: ["user", "seller", "admin"]
       default: "user"
       example: "user"
+      description: "User role in the system"
+    createdAt:
+      type: string
+      format: date-time
+      description: "Account creation timestamp"
+      example: "2024-01-15T12:00:00Z"
+    updatedAt:
+      type: string
+      format: date-time
+      description: "Last update timestamp"
+      example: "2024-01-15T12:00:00Z"
 
-UserResponse:
+# User Basic Info (returned on registration/login)
+UserBasicInfo:
   type: object
   properties:
-    message:
+    id:
       type: string
-      examples:
-        registration: "User registered successfully"
-        login: "Logged in successfully"
-    user:
-      $ref: "#/UserPublicProfile"
-
-Address:
-  type: object
-  properties:
-    _id:
+      description: "User's unique identifier"
+      example: "507f1f77bcf86cd799439011"
+    username:
       type: string
-      description: "MongoDB ObjectId for the address"
-      example: "507f1f77bcf86cd799439012"
-    street:
+      example: "johndoe"
+      description: "Unique username"
+    email:
       type: string
-      description: "Street address"
-      example: "123 Main Street"
-    city:
+      format: email
+      example: "john.doe@example.com"
+      description: "User's email"
+    role:
       type: string
-      description: "City name"
-      example: "New York"
-    state:
-      type: string
-      description: "State or province"
-      example: "NY"
-    country:
-      type: string
-      description: "Country name"
-      example: "USA"
-    zipCode:
-      type: string
-      description: "Postal/ZIP code"
-      example: "10001"
-
-AddressRequest:
-  type: object
-  required:
-    - street
-    - city
-    - state
-    - country
-    - zipCode
-  properties:
-    street:
-      type: string
-      description: "Street address (required)"
-      example: "123 Main Street"
-    city:
-      type: string
-      description: "City name (required)"
-      example: "New York"
-    state:
-      type: string
-      description: "State or province (required)"
-      example: "NY"
-    country:
-      type: string
-      description: "Country name (required)"
-      example: "USA"
-    zipCode:
-      type: string
-      description: "Postal/ZIP code (required)"
-      example: "10001"
-
-AddressResponse:
-  type: object
-  properties:
-    message:
-      type: string
-      examples:
-        add: "Address added successfully"
-        update: "Address updated successfully"
-    address:
-      $ref: "#/Address"
-
-UpdateAddressRequest:
-  type: object
-  required:
-    - addressId
-    - addressData
-  properties:
-    addressId:
-      type: string
-      description: "MongoDB ObjectId of the address to update"
-      example: "507f1f77bcf86cd799439012"
-    addressData:
-      type: object
-      description: "Address data to update (all fields optional)"
-      properties:
-        street:
-          type: string
-          description: "Street address"
-          example: "456 Oak Avenue"
-        city:
-          type: string
-          description: "City name"
-          example: "Boston"
-        state:
-          type: string
-          description: "State or province"
-          example: "MA"
-        country:
-          type: string
-          description: "Country name"
-          example: "USA"
-        zipCode:
-          type: string
-          description: "Postal/ZIP code"
-          example: "02101"
-
-DeleteAddressRequest:
-  type: object
-  required:
-    - addressId
-  properties:
-    addressId:
-      type: string
-      description: "MongoDB ObjectId of the address to delete"
-      pattern: "^[0-9a-fA-F]{24}$"
-      example: "507f1f77bcf86cd799439012"
+      enum: ["user", "seller", "admin"]
+      example: "user"
+      description: "User role in the system"

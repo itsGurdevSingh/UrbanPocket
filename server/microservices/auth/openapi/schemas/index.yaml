@@ -1,0 +1,99 @@
+﻿# ============================================================================
+# Central Schema Index
+# ============================================================================
+# This file acts as the single source of truth for all API schemas.
+# Schemas are organized in logical order for better UI presentation.
+# ============================================================================
+
+# ============================================================================
+# 1. USER SCHEMAS
+# ============================================================================
+
+# User Entity
+UserPublicProfile:
+  $ref: "./user.yaml#/UserPublicProfile"
+
+UserBasicInfo:
+  $ref: "./user.yaml#/UserBasicInfo"
+
+# User Request Schemas
+UserRegistration:
+  $ref: "./user.yaml#/UserRegistration"
+
+UserLoginRequest:
+  $ref: "./user.yaml#/UserLoginRequest"
+
+# User Response Envelopes
+UserResponse:
+  $ref: "./common.yaml#/UserResponse"
+
+UserProfileResponse:
+  $ref: "./common.yaml#/UserProfileResponse"
+
+# ============================================================================
+# 2. ADDRESS SCHEMAS
+# ============================================================================
+
+# Address Entity
+Address:
+  $ref: "./address.yaml#/Address"
+
+# Address Request Schemas
+AddressCreateRequest:
+  $ref: "./address.yaml#/CreateAddressRequest"
+
+AddressUpdateRequest:
+  $ref: "./address.yaml#/UpdateAddressRequest"
+
+AddressDeleteRequest:
+  $ref: "./address.yaml#/DeleteAddressRequest"
+
+# Address Response Envelopes
+AddressResponse:
+  $ref: "./common.yaml#/AddressResponse"
+
+AddressesListResponse:
+  $ref: "./common.yaml#/AddressesListResponse"
+
+# ============================================================================
+# 3. COMMON SCHEMAS & RESPONSES
+# ============================================================================
+
+# Base Response Wrappers
+BaseSuccessResponse:
+  $ref: "./common.yaml#/BaseSuccessResponse"
+
+ErrorResponse:
+  $ref: "./common.yaml#/ErrorResponse"
+
+# Generic Responses
+HealthCheckResponse:
+  $ref: "./common.yaml#/HealthCheckResponse"
+
+MessageResponse:
+  $ref: "./common.yaml#/MessageResponse"
+
+ValidationErrorResponse:
+  $ref: "./common.yaml#/ValidationErrorResponse"
+
+# ============================================================================
+# 4. STANDARD ERROR RESPONSES
+# ============================================================================
+
+BadRequestError:
+  $ref: "./common.yaml#/BadRequestError"
+
+UnauthorizedError:
+  $ref: "./common.yaml#/UnauthorizedError"
+
+ForbiddenError:
+  $ref: "./common.yaml#/ForbiddenError"
+
+NotFoundError:
+  $ref: "./common.yaml#/NotFoundError"
+
+ConflictError:
+  $ref: "./common.yaml#/ConflictError"
+
+InternalServerError:
+  $ref: "./common.yaml#/InternalServerError"

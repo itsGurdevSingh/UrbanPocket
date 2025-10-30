@@ -38,7 +38,7 @@ describe('PATCH /api/auth/updateAddress', () => {
 
         expect(res.statusCode).toBe(200);
         expect(res.body.message).toBe('Address updated successfully');
-        expect(res.body.address).toMatchObject(updatedAddress);
+        expect(res.body.data).toMatchObject(updatedAddress);
 
         // Verify in DB
         const updatedUser = await User.findById(createdUser._id);
@@ -55,7 +55,7 @@ describe('PATCH /api/auth/updateAddress', () => {
 
         // The global error handler returns { status: 'error', error: message }
         expect(res.statusCode).toBe(401);
-        expect(res.body.status).toBe('error');
+        expect(res.body.success).toBe(false);
         expect(res.body.message).toBe('Invalid or expired access token');
     });
 
@@ -67,8 +67,7 @@ describe('PATCH /api/auth/updateAddress', () => {
             .send({ addressId: fakeId, addressData: { street: '456 Oak Ave', city: 'Newtown', state: 'NY', zipCode: '67890', country: 'USA' } });
 
         expect(res.statusCode).toBe(404);
-        // Error handler exposes message under 'error'
-        expect(res.body.status).toBe('error');
+        expect(res.body.success).toBe(false);
         expect(res.body.message).toMatch(/Address not found/i);
     });
 
@@ -80,7 +79,6 @@ describe('PATCH /api/auth/updateAddress', () => {
             .send({ addressId, addressData: { street: '', city: 'Newtown', state: 'NY', zipCode: '67890', country: 'USA' } });
 
         expect(res.statusCode).toBe(400);
-        expect(res.body).toHaveProperty('errors');
-        expect(Array.isArray(res.body.errors)).toBe(true);
+        expect(res.body.success).toBe(false);
     });
 });

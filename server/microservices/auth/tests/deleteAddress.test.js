@@ -50,7 +50,7 @@ describe('DELETE /api/auth/deleteAddress', () => {
             .send({ addressId });
 
         expect(res.statusCode).toBe(401);
-        expect(res.body.status).toBe('error');
+        expect(res.body.success).toBe(false);
         expect(res.body.message).toBe('Invalid or expired access token');
     });
 
@@ -62,7 +62,7 @@ describe('DELETE /api/auth/deleteAddress', () => {
             .send({ addressId: fakeId });
 
         expect(res.statusCode).toBe(404);
-        expect(res.body.status).toBe('error');
+        expect(res.body.success).toBe(false);
         expect(res.body.message).toMatch(/Address not found/i);
     });
 
@@ -73,7 +73,7 @@ describe('DELETE /api/auth/deleteAddress', () => {
             .send({});
 
         expect(res.statusCode).toBe(400);
-        expect(res.body).toHaveProperty('errors');
-        expect(Array.isArray(res.body.errors)).toBe(true);
+        expect(res.body.success).toBe(false);
+        expect(Array.isArray(res.body.error.details)).toBe(true);
     });
 });

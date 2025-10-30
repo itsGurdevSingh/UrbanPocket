@@ -57,7 +57,7 @@ describe('POST /api/auth/refresh-token', () => {
       .send();
 
     expect(res.statusCode).toBe(401);
-    expect(res.body.status).toBe('error');
+    expect(res.body.success).toBe(false);
     expect(res.body.message).toContain('Could not refresh tokens');
   });
 
@@ -80,7 +80,7 @@ describe('POST /api/auth/refresh-token', () => {
       .send();
 
     expect(res.statusCode).toBe(401);
-    expect(res.body.status).toBe('error');
+    expect(res.body.success).toBe(false);
     expect(res.body.message).toContain('Could not refresh tokens');
   });
 });
