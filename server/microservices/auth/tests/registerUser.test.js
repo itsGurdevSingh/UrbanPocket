@@ -14,7 +14,9 @@ describe('POST /api/auth/register', () => {
     };
     const response = await request(app).post('/api/auth/register').send(newUser);
     expect(response.statusCode).toBe(201);
-    expect(response.body.user.email).toBe(newUser.email);
+    expect(response.body.success).toBe(true);
+    expect(response.body.data.email).toBe(newUser.email);
+    expect(response.body.message).toBe('User registered successfully');
 
     // Verify that the user is actually saved in the database
     const savedUser = await User.findOne({ 'contactInfo.email': newUser.email });
@@ -60,7 +62,7 @@ describe('POST /api/auth/register', () => {
       password: 'password123'
     };
     await User.create({
-      username:existingUser.username,
+      username: existingUser.username,
       contactInfo: { email: existingUser.email },
       password: existingUser.password
     });

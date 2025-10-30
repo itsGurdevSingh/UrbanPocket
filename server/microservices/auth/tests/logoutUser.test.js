@@ -47,6 +47,7 @@ describe('POST /api/auth/logout', () => {
 
     // Assert: Check the HTTP response.
     expect(response.statusCode).toBe(200);
+    expect(response.body.success).toBe(true);
     expect(response.body.message).toBe('Logged out successfully');
 
     // Assert: Check that cookies are cleared.
@@ -57,7 +58,7 @@ describe('POST /api/auth/logout', () => {
     //implement sha 256 hashing here for token before checking in redis
     const hashedAccessToken = tokenHash(accessToken);
     const hashedRefreshToken = tokenHash(refreshToken);
-    
+
     // Assert: Check that tokens are blacklisted in Redis.
     const isAccessBlacklisted = await redisClient.get(`bl_${hashedAccessToken}`);
     const isRefreshBlacklisted = await redisClient.get(`bl_${hashedRefreshToken}`);
