@@ -21,18 +21,15 @@ export const errorHandler = (error, req, res, next) => {
 
   // Response: expose stack only in non-production environments
   const responsePayload = {
-    status: 'error',
-    code: normalized.code,
+    success: false,
     message: normalized.message,
-    error: normalized.message, // backward compatibility
-    details: normalized.details || null,
-    errorId,
+    error: {
+      code: normalized.code,
+      message: normalized.message,
+      details: normalized.details || null,
+      errorId,
+    }
   };
-
-  // add errors for validation-style payloads for backward compatibility
-  if (Array.isArray(normalized.details)) {
-    responsePayload.errors = normalized.details;
-  }
 
   if (process.env.NODE_ENV !== 'production') {
     responsePayload.stack = error.stack;

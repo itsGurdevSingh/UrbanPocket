@@ -192,6 +192,17 @@ const getAddressesByUserId = async (userId) => {
     return addresses || [];
 }
 
+// get address by addressId and userId 
+const getAddressById = async (userId, addressId) => {
+    try {
+        const address = await authRepository.findAddressById(userId, addressId);
+        return address;
+    } catch (error) {
+        throw(new ApiError('Address not found', { statusCode: 404, code: 'ADDRESS_NOT_FOUND' }));
+    }
+
+}
+
 const deleteAddress = async (userId, addressId) => {
 
     const user = await authRepository.deleteAddress(userId, addressId);

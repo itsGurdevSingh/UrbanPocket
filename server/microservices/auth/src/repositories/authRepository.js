@@ -80,6 +80,12 @@ const findAddressesByUserId = async (userId) => {
   return user ? user.addresses : [];
 }
 
+const findAddressById = async (userId, addressId) => {
+  // Projection to get only the matched address
+  const address = await userModel.findOne({ _id: userId, 'addresses._id': addressId }, { 'addresses.$': 1 });
+  return address;
+};
+
 const deleteAddress = async (userId, addressId) => {
   const user = await userModel.findById(userId);
 
@@ -133,6 +139,7 @@ export default {
   findUserForLogin,
   addAddress,
   findAddressesByUserId,
+  findAddressById,
   deleteAddress,
   updateAddress
 };

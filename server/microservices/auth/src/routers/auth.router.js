@@ -2,6 +2,7 @@ import express from 'express';
 import { validateUpdateAddress, validateAddAddress, validateLogin, validateRefreshToken, validateRegistration, validateDeleteAddress } from '../validators/authValidator.js'; // <-- Import the validators
 import { loginUser, logoutUser, registerUser, refreshToken, getUserProfile, getUserAddresses, addAddress, deleteAddress, updateAddress } from '../controllers/auth.controller.js';
 import { authenticateUser } from '../middlewares/authentication.middleware.js';
+import { ApiResponse } from '../utils/success.js';
 
 
 const router = express.Router();
@@ -25,12 +26,12 @@ router.patch('/updateAddress', authenticateUser, validateUpdateAddress, updateAd
 
 // Health check route
 router.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', message: 'Auth service is running' });
+    res.status(200).json(new ApiResponse({ status: 'OK' }, 'Health check passed'));
 });
 
 // dummy route to test protected routes
 router.get('/protected', authenticateUser, (req, res) => {
-    res.status(200).json({ message: 'You have accessed a protected route', user: req.user });
+    res.status(200).json( new ApiResponse({ user: req.user }, 'You have accessed a protected route') );
 });
 
 export default router;
