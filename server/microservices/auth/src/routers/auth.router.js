@@ -17,6 +17,11 @@ router.post('/refresh-token', validateRefreshToken, refreshToken);
 router.get('/me', authenticateUser, getUserProfile);
 router.get('/verify', authenticateUser, getUserProfile);
 
+// verify api for otherr microservices to verify token and get user info 
+// its same as /me route but kept for clarity
+router.get('/verify', authenticateUser, getUserProfile);
+
+
 // address routes
 router.get('/getAddresses', authenticateUser, getUserAddresses);
 router.post('/addAddress',  authenticateUser, validateAddAddress,addAddress);
