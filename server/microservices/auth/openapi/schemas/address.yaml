@@ -1,0 +1,128 @@
+﻿# ============================================================================
+# Address Entity Schema
+# ============================================================================
+
+Address:
+  type: object
+  required:
+    - street
+    - city
+    - state
+    - country
+    - zipCode
+  properties:
+    _id:
+      type: string
+      description: MongoDB ObjectId for the address
+      example: "507f1f77bcf86cd799439012"
+    street:
+      type: string
+      description: Street address
+      example: "123 Main Street"
+      minLength: 1
+    city:
+      type: string
+      description: City name
+      example: "New York"
+      minLength: 1
+    state:
+      type: string
+      description: State or province
+      example: "NY"
+      minLength: 1
+    country:
+      type: string
+      description: Country name
+      example: "USA"
+      minLength: 1
+    zipCode:
+      type: string
+      description: Postal/ZIP code
+      example: "10001"
+      minLength: 1
+
+# ============================================================================
+# Address Request Schemas
+# ============================================================================
+
+CreateAddressRequest:
+  type: object
+  required:
+    - street
+    - city
+    - state
+    - country
+    - zipCode
+  properties:
+    street:
+      type: string
+      description: Street address
+      example: "123 Main Street"
+      minLength: 1
+    city:
+      type: string
+      description: City name
+      example: "New York"
+      minLength: 1
+    state:
+      type: string
+      description: State or province
+      example: "NY"
+      minLength: 1
+    country:
+      type: string
+      description: Country name
+      example: "USA"
+      minLength: 1
+    zipCode:
+      type: string
+      description: Postal/ZIP code
+      example: "10001"
+      minLength: 1
+
+UpdateAddressRequest:
+  type: object
+  required:
+    - addressId
+  properties:
+    addressId:
+      type: string
+      description: MongoDB ObjectId of the address to update
+      pattern: "^[0-9a-fA-F]{24}$"
+      example: "507f1f77bcf86cd799439012"
+    street:
+      type: string
+      description: Street address (optional)
+      example: "456 Oak Avenue"
+      minLength: 1
+    city:
+      type: string
+      description: City name (optional)
+      example: "Boston"
+      minLength: 1
+    state:
+      type: string
+      description: State or province (optional)
+      example: "MA"
+      minLength: 1
+    country:
+      type: string
+      description: Country name (optional)
+      example: "USA"
+      minLength: 1
+    zipCode:
+      type: string
+      description: Postal/ZIP code (optional)
+      example: "02101"
+      minLength: 1
+
+DeleteAddressRequest:
+  type: object
+  required:
+    - addressId
+  properties:
+    addressId:
+      type: string
+      description: MongoDB ObjectId of the address to delete
+      pattern: "^[0-9a-fA-F]{24}$"
+      example: "507f1f77bcf86cd799439012"

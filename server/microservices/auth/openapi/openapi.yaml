@@ -2,11 +2,54 @@ openapi: 3.0.0
 info:
   title: Authentication Service API
   version: 1.0.0
-  description: API for user authentication, registration, address management, and profile operations.
+  description: |
+    RESTful API for user authentication, registration, and profile management in the UrbanPocket e-commerce platform.
+
+    ## Features
+    - User registration and authentication
+    - JWT-based token management with refresh tokens
+    - Cookie-based session management
+    - User profile management
+    - Address CRUD operations
+
+    ## Authentication
+    This API uses JWT (JSON Web Tokens) for authentication. Tokens are provided in two ways:
+    - **HttpOnly Cookies**: Primary method for web applications (accessToken and refreshToken)
+    - **Bearer Token**: Alternative method for mobile/API clients
+
+    ## Response Format
+    All API responses follow a consistent structure:
+
+    **Success Response:**
+    ```json
+    {
+      "success": true,
+      "message": "Operation completed successfully",
+      "data": { ... }
+    }
+    ```
+
+    **Error Response:**
+    ```json
+    {
+      "success": false,
+      "message": "Error message",
+      "error": {
+        "code": "ERROR_CODE",
+        "message": "Detailed error message",
+        "details": null,
+        "errorId": "unique-error-id"
+      }
+    }
+    ```
+
   contact:
     name: UrbanPocket API Support
     url: https://urbanpocket.com/support
     email: support@urbanpocket.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
 
 servers:
   - url: http://localhost:3001
@@ -14,643 +57,56 @@ servers:
   - url: https://api.urbanpocket.com
     description: Production server
 
+tags:
+  - name: Authentication
+    description: User authentication and token management endpoints
+  - name: User Profile
+    description: User profile retrieval and management
+  - name: Address Management
+    description: CRUD operations for user addresses
+  - name: System
+    description: Health checks and system endpoints
+
 paths:
-  # Authentication routes
   /api/auth/register:
-    post:
-      summary: Register a new user
-      description: Creates a new user account with username, email, and password. Sets httpOnly cookies for authentication tokens.
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserRegistration"
-      responses:
-        "201":
-          description: User registered successfully
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserResponse"
-        "400":
-          description: Validation failed - Invalid input data
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "409":
-          description: Conflict - User already exists (duplicate username or email)
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1register"
   /api/auth/login:
-    post:
-      summary: Log in a user
-      description: Authenticates user with username/email and password. Sets httpOnly cookies for authentication tokens.
-      tags: [Authentication]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserLoginRequest"
-      responses:
-        "200":
-          description: Login successful
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserResponse"
-        "400":
-          description: Validation failed - Missing required fields
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized - Invalid credentials
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1login"
   /api/auth/logout:
-    post:
-      summary: Log out a user
-      description: Logs out the current user by invalidating tokens and clearing cookies.
-      tags: [Authentication]
-      responses:
-        "200":
-          description: Logout successful
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: "accessToken=; HttpOnly; Path=/; Max-Age=0, refreshToken=; HttpOnly; Path=/; Max-Age=0"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1logout"
   /api/auth/refresh-token:
-    post:
-      summary: Refresh the access token
-      description: Refreshes the access token using the refresh token from cookies.
-      tags: [Authentication]
-      responses:
-        "200":
-          description: Tokens refreshed successfully
-          headers:
-            Set-Cookie:
-              schema:
-                type: string
-                example: "accessToken=jwt-token; HttpOnly; Path=/; Max-Age=900, refreshToken=jwt-token; HttpOnly; Path=/; Max-Age=604800"
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Validation failed - Missing refresh token in cookies
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized - Invalid or expired refresh token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1refresh-token"
   /api/auth/me:
-    get:
-      summary: Get current user's profile
-      description: Retrieves the profile information of the currently authenticated user.
-      tags: [User Profile]
-      security:
-        - cookieAuth: []
-      responses:
-        "200":
-          description: Profile retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  user:
-                    $ref: "#/components/schemas/UserPublicProfile"
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: User not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1me"
   /api/auth/getAddresses:
-    get:
-      summary: Get user's addresses
-      description: Retrieves all addresses associated with the authenticated user.
-      tags: [Address Management]
-      security:
-        - cookieAuth: []
-      responses:
-        "200":
-          description: Addresses retrieved successfully
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  address:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/Address"
-                    example: []
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1getAddresses"
   /api/auth/addAddress:
-    post:
-      summary: Add a new address
-      description: Adds a new address to the authenticated user's profile.
-      tags: [Address Management]
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AddressRequest"
-      responses:
-        "201":
-          description: Address added successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AddressResponse"
-        "400":
-          description: Validation failed - Invalid address data
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
-  /api/auth/deleteAddress:
-    delete:
-      summary: Delete an address
-      description: Deletes a specific address from the authenticated user's profile.
-      tags: [Address Management]
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/DeleteAddressRequest"
-      responses:
-        "200":
-          description: Address deleted successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/SuccessResponse"
-        "400":
-          description: Validation failed - Invalid or missing address ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Address not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1addAddress"
   /api/auth/updateAddress:
-    patch:
-      summary: Update an address
-      description: Updates a specific address in the authenticated user's profile.
-      tags: [Address Management]
-      security:
-        - cookieAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateAddressRequest"
-      responses:
-        "200":
-          description: Address updated successfully
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/AddressResponse"
-        "400":
-          description: Validation failed - Invalid address data or ID
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ValidationErrorResponse"
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-        "404":
-          description: Address not found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1updateAddress"
+  /api/auth/deleteAddress:
+    $ref: "./paths/auth.yaml#/~1api~1auth~1deleteAddress"
   /api/auth/health:
-    get:
-      summary: Health check endpoint
-      description: Returns the health status of the authentication service.
-      tags: [System]
-      responses:
-        "200":
-          description: Service is running
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  status:
-                    type: string
-                    example: "OK"
-                  message:
-                    type: string
-                    example: "Auth service is running"
-
+    $ref: "./paths/auth.yaml#/~1api~1auth~1health"
   /api/auth/protected:
-    get:
-      summary: Test protected route
-      description: A test endpoint to verify authentication is working correctly.
-      tags: [System]
-      security:
-        - cookieAuth: []
-      responses:
-        "200":
-          description: Successfully accessed protected route
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: "You have accessed a protected route"
-                  user:
-                    $ref: "#/components/schemas/UserPublicProfile"
-        "401":
-          description: Unauthorized - Invalid or missing access token
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/ErrorResponse"
+    $ref: "./paths/auth.yaml#/~1api~1auth~1protected"
 
 components:
   schemas:
-    # User schemas
-    UserRegistration:
-      type: object
-      required:
-        - username
-        - email
-        - password
-      properties:
-        username:
-          type: string
-          minLength: 3
-          description: "Unique username, minimum 3 characters"
-          example: "johndoe"
-        email:
-          type: string
-          format: email
-          description: "Valid email address"
-          example: "john.doe@example.com"
-        password:
-          type: string
-          format: password
-          minLength: 8
-          description: "Password with minimum 8 characters"
-          example: "strongPassword123"
-
-    UserLoginRequest:
-      type: object
-      required:
-        - identifier
-        - password
-      properties:
-        identifier:
-          type: string
-          description: "Username or email address"
-          example: "johndoe"
-        password:
-          type: string
-          format: password
-          description: "User password"
-          example: "strongPassword123"
-
-    UserPublicProfile:
-      type: object
-      properties:
-        id:
-          type: string
-          description: "MongoDB ObjectId"
-          example: "507f1f77bcf86cd799439011"
-        username:
-          type: string
-          example: "johndoe"
-        fullName:
-          type: string
-          nullable: true
-          description: "User's full name from personalInfo.fullName"
-          example: "John Doe"
-        email:
-          type: string
-          format: email
-          description: "User's email from contactInfo.email"
-          example: "john.doe@example.com"
-        role:
-          type: string
-          enum: ["user", "seller", "admin"]
-          default: "user"
-          example: "user"
-
-    UserResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "User registered successfully"
-        user:
-          $ref: "#/components/schemas/UserPublicProfile"
-
-    Address:
-      type: object
-      properties:
-        _id:
-          type: string
-          description: "MongoDB ObjectId for the address"
-          example: "507f1f77bcf86cd799439012"
-        street:
-          type: string
-          description: "Street address"
-          example: "123 Main Street"
-        city:
-          type: string
-          description: "City name"
-          example: "New York"
-        state:
-          type: string
-          description: "State or province"
-          example: "NY"
-        country:
-          type: string
-          description: "Country name"
-          example: "USA"
-        zipCode:
-          type: string
-          description: "Postal/ZIP code"
-          example: "10001"
-
-    AddressRequest:
-      type: object
-      required:
-        - street
-        - city
-        - state
-        - country
-        - zipCode
-      properties:
-        street:
-          type: string
-          description: "Street address (required)"
-          example: "123 Main Street"
-        city:
-          type: string
-          description: "City name (required)"
-          example: "New York"
-        state:
-          type: string
-          description: "State or province (required)"
-          example: "NY"
-        country:
-          type: string
-          description: "Country name (required)"
-          example: "USA"
-        zipCode:
-          type: string
-          description: "Postal/ZIP code (required)"
-          example: "10001"
-
-    AddressResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "Address added successfully"
-        address:
-          $ref: "#/components/schemas/Address"
-
-    UpdateAddressRequest:
-      type: object
-      required:
-        - addressId
-        - addressData
-      properties:
-        addressId:
-          type: string
-          description: "MongoDB ObjectId of the address to update"
-          example: "507f1f77bcf86cd799439012"
-        addressData:
-          type: object
-          description: "Address data to update (all fields optional)"
-          properties:
-            street:
-              type: string
-              description: "Street address"
-              example: "456 Oak Avenue"
-            city:
-              type: string
-              description: "City name"
-              example: "Boston"
-            state:
-              type: string
-              description: "State or province"
-              example: "MA"
-            country:
-              type: string
-              description: "Country name"
-              example: "USA"
-            zipCode:
-              type: string
-              description: "Postal/ZIP code"
-              example: "02101"
-
-    DeleteAddressRequest:
-      type: object
-      required:
-        - addressId
-      properties:
-        addressId:
-          type: string
-          description: "MongoDB ObjectId of the address to delete"
-          pattern: "^[0-9a-fA-F]{24}$"
-          example: "507f1f77bcf86cd799439012"
-
-    # Error schemas
-    ErrorResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: ["error"]
-          example: "error"
-        code:
-          type: string
-          description: "Machine-readable error code"
-          example: "INVALID_CREDENTIALS"
-        message:
-          type: string
-          description: "Human-readable error message"
-          example: "Invalid username or password"
-        error:
-          type: string
-          description: "Error message (backward compatibility)"
-          example: "Invalid username or password"
-        details:
-          type: object
-          nullable: true
-          description: "Additional error details"
-          example: null
-        errorId:
-          type: string
-          description: "Unique error identifier for tracing"
-          example: "1k2j3l4-abc123"
-        stack:
-          type: string
-          description: "Error stack trace (only in development)"
-          example: "Error: Invalid credentials\n    at authService.authenticateUser..."
-
-    ValidationErrorResponse:
-      type: object
-      properties:
-        status:
-          type: string
-          enum: ["error"]
-          example: "error"
-        code:
-          type: string
-          enum: ["VALIDATION_ERROR"]
-          example: "VALIDATION_ERROR"
-        message:
-          type: string
-          example: "Validation failed"
-        error:
-          type: string
-          description: "Error message (backward compatibility)"
-          example: "Validation failed"
-        details:
-          type: array
-          description: "Array of validation error details"
-          items:
-            type: object
-            properties:
-              msg:
-                type: string
-                description: "Validation error message"
-                example: "Username must be at least 3 characters long"
-              param:
-                type: string
-                description: "Parameter that failed validation"
-                example: "username"
-              location:
-                type: string
-                description: "Location of the parameter"
-                enum: ["body", "query", "params", "cookies", "headers"]
-                example: "body"
-              value:
-                description: "Value that caused the validation error"
-                example: "ab"
-        errors:
-          type: array
-          description: "Array of validation errors (backward compatibility)"
-          items:
-            type: object
-            properties:
-              msg:
-                type: string
-                example: "Username must be at least 3 characters long"
-              param:
-                type: string
-                example: "username"
-              location:
-                type: string
-                example: "body"
-              value:
-                example: "ab"
-        errorId:
-          type: string
-          description: "Unique error identifier for tracing"
-          example: "1k2j3l4-abc123"
-        stack:
-          type: string
-          description: "Error stack trace (only in development)"
-          example: "Error: Validation failed..."
-
-    SuccessResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "Logged out successfully"
+    # ============================================================================
+    # All schemas are centrally managed and imported from schemas/index.yaml
+    # This single reference imports all organized schemas for better maintainability
+    # ============================================================================
+    $ref: "./schemas/index.yaml"
 
   securitySchemes:
-    cookieAuth:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: "JWT Access Token in Authorization header (e.g., 'Bearer <token>')"
+
+    CookieAuth:
       type: apiKey
       in: cookie
       name: accessToken
