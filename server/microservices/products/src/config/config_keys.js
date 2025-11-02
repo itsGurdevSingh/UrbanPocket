@@ -9,6 +9,7 @@ const config = {
     jwtRefreshSecret: process.env.JWT_REFRESH_SECRET,
     nodeEnv: process.env.NODE_ENV || "development",
     port: process.env.PRODUCT_SERVICE_PORT || 3001,
+    grpcPort: process.env.GRPC_PORT || "50053",
 
     // Redis setup
     REDIS_HOST: process.env.REDIS_HOST,
@@ -33,7 +34,7 @@ Object.freeze(config);
  * @throws {ApiError} If key is not found
  */
 const getConfig = (key) => {
-    
+
     if (!(key in config)) {
         throw new ApiError(
             `Configuration key '${key}' not found`,

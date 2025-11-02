@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package product;
+
+service ProductService {
+  rpc GetVariantDetails (GetVariantDetailsRequest) returns (GetVariantDetailsResponse);
+}
+
+message GetVariantDetailsRequest {
+  string variantId = 1;
+}
+
+message GetVariantDetailsResponse {
+  bool success = 1;
+  Variant variant = 2;
+  string message = 3;
+  Error error = 4;
+}
+
+message Variant {
+  string id = 1;
+  string productId = 2;
+  string sku = 3;
+  map<string, string> options = 4;
+  Price price = 5;
+  int32 stock = 6;
+  string baseUnit = 7;
+  repeated VariantImage variantImages = 8;
+  bool isActive = 9;
+}
+
+message Price {
+  double amount = 1;
+  string currency = 2;
+}
+
+message VariantImage {
+  string url = 1;
+  string altText = 2;
+  string fileId = 3;
+}
+
+message Error {
+  string code = 1;
+  string message = 2;
+  repeated string details = 3;
+}
