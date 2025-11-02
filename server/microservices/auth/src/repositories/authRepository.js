@@ -81,8 +81,26 @@ const findAddressesByUserId = async (userId) => {
 }
 
 const findAddressById = async (userId, addressId) => {
-  // Projection to get only the matched address
-  const address = await userModel.findOne({ _id: userId, 'addresses._id': addressId }, { 'addresses.$': 1 });
+
+  // Fetch user by userId
+  const user = await userModel.findById(userId);
+
+  // Check if user exists
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+  // Find the address by addressId
+  const address = user.addresses.id(addressId);
+  // Check if address exists
+  if (!address) {
+    const error = new Error("Address not found"); 
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Return the found address
   return address;
 };
 

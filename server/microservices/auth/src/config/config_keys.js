@@ -14,6 +14,9 @@ const config = {
     REDIS_HOST: process.env.REDIS_HOST,
     REDIS_PORT: process.env.REDIS_PORT,
     REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+
+    // gRPC setup
+    grpcPort: process.env.GRPC_PORT || "50052",
 };
 
 Object.freeze(config);

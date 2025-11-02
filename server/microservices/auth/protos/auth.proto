@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package auth;
+
+service AuthService {
+  // Get a specific address for a user
+  rpc GetAddress (GetAddressRequest) returns (GetAddressResponse);
+}
+
+// Request message for GetAddress
+message GetAddressRequest {
+  string userId = 1;
+  string addressId = 2;
+}
+
+// Response message for GetAddress
+message GetAddressResponse {
+  bool success = 1;
+  Address address = 2;
+  string message = 3;
+  Error error = 4;
+}
+
+// Address message based on the addressSchema
+message Address {
+  string id = 1;
+  string street = 2;
+  string city = 3;
+  string state = 4;
+  string country = 5;
+  string zipCode = 6;
+}
+
+// Error message for error handling
+message Error {
+  string code = 1;
+  string message = 2;
+  repeated string details = 3;
+}
