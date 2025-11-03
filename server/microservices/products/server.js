@@ -3,6 +3,7 @@ import connectToDb from './src/db/db.js';
 import getConfig from './src/config/config_keys.js';
 import logger from './src/utils/logger.js';
 import { startGrpcServer, stopGrpcServer } from './src/grpc/server/index.js';
+import { startWorkers, stopWorkers } from './src/workers/index.js';
 
 const PORT = getConfig('port');
 const GRPC_PORT = getConfig('grpcPort') || '50053';
@@ -24,6 +25,9 @@ const startServer = async () => {
         await startGrpcServer(GRPC_PORT);
         logger.info(`gRPC server started on port ${GRPC_PORT}`);
 
+        await startWorkers();
+        logger.info('Background workers started successfully');
+
     } catch (error) {
         logger.error('Failed to start server:', { error });
         process.exit(1);
@@ -43,6 +47,10 @@ const shutdown = async (signal) => {
 
     // Close gRPC server
     await stopGrpcServer();
+
+    await stopWorkers();
+
+    logger.info('Shutdown complete, exiting process.');
 
     process.exit(0);
 };

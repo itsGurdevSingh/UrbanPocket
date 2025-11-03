@@ -102,4 +102,9 @@ export const ProductGrpcService = {
             });
         }
     }
+
+    /*reserve stock for a variant
+     * @param {Object} call - gRPC call object containing request data
+     * @param {object} send resopnse with reserve id 
+     */
 };
