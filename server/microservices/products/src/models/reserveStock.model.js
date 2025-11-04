@@ -26,6 +26,10 @@ const reserveStockSchema = new mongoose.Schema({
                 required: true,
                 min: 1,
             },
+            price: {
+                amount: { type: Number, required: true, min: 0 },
+                currency: { type: String, required: true, default: 'INR' },
+            }
         },
     ],
 
