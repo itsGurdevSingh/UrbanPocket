@@ -13,6 +13,15 @@ const reserveStockSchema = new mongoose.Schema({
         min: 1,
     },
 
+    // Order ID or reservation ID from the order service
+    reservationId: {
+        type: String,
+        required: true,
+        index: true,
+        unique: true, // Prevent duplicate reservations for same order
+        trim: true,
+    },
+
     // get details of each inventory entry being reserved
     inventoryEntries: [
         {

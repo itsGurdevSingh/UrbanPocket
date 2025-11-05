@@ -10,22 +10,14 @@ class ReservationService {
      */
     async reserveStock(data) {
         try {
-            const { variantId, quantity } = data;
+            const { variantId, quantity, reservationId} = data;
             // Reserve stock using FEFO logic
-            const reservation = await reservationRepository.createReservation(variantId, quantity, reservation);
+            const reservation = await reservationRepository.createReservation(variantId, quantity, reservationId);
 
-            return {
-                success: true,
-                reserveId: reservation._id.toString(),
-                message: 'Stock reserved successfully'
-            };
+            return reservation;
         }
         catch (err) {
-            return {
-                success: false,
-                reserveId: null,
-                message: 'Error reserving stock: ' + err.message
-            };
+            throw new ApiError('RESERVATION_FAILED', 'Error reserving stock: ' + err.message);
         }
     }
 
@@ -64,15 +56,10 @@ class ReservationService {
             //after stock is released delete the reservation
             await reservation.deleteOne();
 
-            return {
-                success: true,
-                message: 'Reserved stock released successfully'
-            };
+            // structure response by contoller or grpc function.
+            return true;
         } catch (err) {
-            return {
-                success: false,
-                message: 'Error releasing reserved stock: ' + err.message
-            };
+            throw new ApiError('RELEASE_FAILED', 'Error releasing reserved stock: ' + err.message);
         }
     }
 }

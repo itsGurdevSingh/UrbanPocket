@@ -7,7 +7,7 @@ class ReservationRepository {
     constructor() {
         this.model = ReserveStock;
     }
-    async createReservation(variantId, quantity,reservaionId) {
+    async createReservation(variantId, quantity, reservationId) {
 
         //check if stock is available
         const variant = await variantRepository.findById(variantId);
