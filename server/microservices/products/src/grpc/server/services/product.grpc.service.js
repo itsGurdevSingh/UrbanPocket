@@ -1,6 +1,7 @@
 import * as grpc from '@grpc/grpc-js';
 import variantRepository from '../../../repositories/variant.repository.js';
 import logger from '../../../utils/logger.js';
+import reservationRepository from '../../../repositories/reservation.repository.js';
 
 export const ProductGrpcService = {
     /**
@@ -101,10 +102,117 @@ export const ProductGrpcService = {
                 message: err.message || 'Internal server error'
             });
         }
-    }
+    },
 
     /*reserve stock for a variant
      * @param {Object} call - gRPC call object containing request data
      * @param {object} send resopnse with reserve id 
      */
+    reserveStock: async (call, callback) => {
+        try {
+            const { variantId, quantity, reservationId } = call.request;
+
+            logger.info(`[gRPC] ReserveStock called - variantId: ${variantId}, quantity: ${quantity}, reservationId: ${reservationId}`);
+
+            // Validate inputs
+            if (!variantId) {
+                logger.error('[gRPC] ReserveStock validation error: variantId is required');
+                return callback(null, {
+                    success: false,
+                    reserveId: '',
+                    message: 'Reservation failed',
+                    error: {
+                        code: 'INVALID_ARGUMENT',
+                        message: 'variantId is required',
+                        details: ['variantId parameter is missing']
+                    }
+                });
+            }
+
+            if (!quantity || quantity <= 0) {
+                logger.error('[gRPC] ReserveStock validation error: quantity must be positive');
+                return callback(null, {
+                    success: false,
+                    reserveId: '',
+                    message: 'Reservation failed',
+                    error: {
+                        code: 'INVALID_ARGUMENT',
+                        message: 'quantity must be a positive integer',
+                        details: [`Invalid quantity: ${quantity}`]
+                    }
+                });
+            }
+
+            if (!reservationId) {
+                logger.error('[gRPC] ReserveStock validation error: reservationId is required');
+                return callback(null, {
+                    success: false,
+                    reserveId: '',
+                    message: 'Reservation failed',
+                    error: {
+                        code: 'INVALID_ARGUMENT',
+                        message: 'reservationId is required',
+                        details: ['reservationId parameter is missing']
+                    }
+                });
+            }
+
+            // Reserve stock using FEFO logic
+            const reservation = await reservationRepository.createReservation(variantId, quantity, reservationId);
+
+            logger.info(`[gRPC] ReserveStock successful - reserveId: ${reservation._id}, reservationId: ${reservationId}`);
+
+            return callback(null, {
+                success: true,
+                reserveId: reservation._id.toString(),
+                message: 'Stock reserved successfully',
+                error: null
+            });
+        } catch (err) {
+            logger.error(`[gRPC] ReserveStock error: ${err.message}`, { error: err });
+
+            // Handle insufficient stock error
+            if (err.message && err.message.includes('INSUFFICIENT_STOCK')) {
+                return callback(null, {
+                    success: false,
+                    reserveId: '',
+                    message: 'Insufficient stock',
+                    error: {
+                        code: 'INSUFFICIENT_STOCK',
+                        message: err.message,
+                        details: []
+                    }
+                });
+            }
+
+            // Handle Variant not found error
+            if (err.message && err.message.includes('Variant not found')) {
+                return callback(null, {
+                    success: false,
+                    reserveId: '',
+                    message: 'Variant not found',
+                    error: {
+                        code: 'NOT_FOUND',
+                        message: err.message,
+                        details: [`No variant found with ID: ${call.request.variantId}`]
+                    }
+                });
+            }
+
+            // Handle CastError (invalid ObjectId format)
+            if (err.name === 'CastError' || (err.message && err.message.includes('Cast to ObjectId failed'))) {
+                return callback({
+                    code: grpc.status.INVALID_ARGUMENT,
+                    message: err.message
+                });
+            }
+
+            // Handle other errors
+            return callback({
+                code: grpc.status.INTERNAL,
+                message: 'Error reserving stock: ' + err.message
+            });
+        }
+    }
+
 };

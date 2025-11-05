@@ -4,6 +4,8 @@ package product;
 
 service ProductService {
   rpc GetVariantDetails (GetVariantDetailsRequest) returns (GetVariantDetailsResponse);
+
+  rpc ReserveStock (ReserveStockRequest) returns (ReserveStockResponse);
 }
 
 message GetVariantDetailsRequest {
@@ -38,6 +40,18 @@ message VariantImage {
   string url = 1;
   string altText = 2;
   string fileId = 3;
+}
+
+message ReserveStockRequest {
+  string variantId = 1;
+  int32 quantity = 2;
+  string reservationId = 3;
+}
+message ReserveStockResponse {
+  bool success = 1;
+  string reserveId = 2;
+  string message = 3;
+  Error error = 4;
 }
 
 message Error {
