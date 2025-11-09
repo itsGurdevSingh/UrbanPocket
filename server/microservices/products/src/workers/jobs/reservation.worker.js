@@ -1,6 +1,7 @@
 import ReserveStock from '../../models/reserveStock.model.js';
 import Inventory from '../../models/inventory.model.js';
 import { logger } from '../../utils/logger.js';
+import reservationService from '../../services/reservation.service.js';
 
 /**
  * Finds and processes all expired stock reservations.
@@ -25,17 +26,9 @@ export const handleExpiredReservations = async () => {
     logger.warn(`Reservation ${reservation._id} expired at ${reservation.expiresAt}. Releasing stock.`);
     
     try {
-      // 2a. Release the stock
-      const stockReleasePromises = reservation.inventoryEntries.map((entry) => {
-        return Inventory.findByIdAndUpdate(entry.inventoryId, {
-          $inc: { stock: entry.quantity },
-        });
-      });
-      await Promise.all(stockReleasePromises);
+      // Release the reserved stock back to inventory      
+      await reservationService.releaseReservedStock({ reserveId: reservation._id });
 
-      // 2b. After stock is released, delete the reservation
-      await reservation.deleteOne();
-      
       logger.info(`Stock released and reservation ${reservation._id} deleted.`);
       
     } catch (error) {

@@ -2,6 +2,7 @@ import * as grpc from '@grpc/grpc-js';
 import variantRepository from '../../../repositories/variant.repository.js';
 import logger from '../../../utils/logger.js';
 import reservationRepository from '../../../repositories/reservation.repository.js';
+import reservationService from '../../../services/reservation.service.js';
 
 export const ProductGrpcService = {
     /**
@@ -158,7 +159,7 @@ export const ProductGrpcService = {
             }
 
             // Reserve stock using FEFO logic
-            const reservation = await reservationRepository.createReservation(variantId, quantity, reservationId);
+            const reservation = await reservationService.reserveStock({ variantId, quantity, reservationId });
 
             logger.info(`[gRPC] ReserveStock successful - reserveId: ${reservation._id}, reservationId: ${reservationId}`);
 
@@ -169,49 +170,187 @@ export const ProductGrpcService = {
                 error: null
             });
         } catch (err) {
-            logger.error(`[gRPC] ReserveStock error: ${err.message}`, { error: err });
+            logger.error(`[gRPC] ReserveStock error: ${err.code || 'UNKNOWN'}`, { error: err });
 
-            // Handle insufficient stock error
-            if (err.message && err.message.includes('INSUFFICIENT_STOCK')) {
+            // Check if it's an ApiError with a code property
+            const errorCode = err.code || err.name;
+
+            // Handle different error codes
+            switch (errorCode) {
+                case 'INSUFFICIENT_STOCK':
+                    return callback(null, {
+                        success: false,
+                        reserveId: '',
+                        message: 'Insufficient stock',
+                        error: {
+                            code: 'INSUFFICIENT_STOCK',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'NOT_FOUND':
+                    return callback(null, {
+                        success: false,
+                        reserveId: '',
+                        message: 'Variant not found',
+                        error: {
+                            code: 'NOT_FOUND',
+                            message: err.message,
+                            details: [`No variant found with ID: ${call.request.variantId}`]
+                        }
+                    });
+
+                case 'INVALID_REQUEST':
+                case 'INVALID_INPUT':
+                    return callback(null, {
+                        success: false,
+                        reserveId: '',
+                        message: 'Invalid request',
+                        error: {
+                            code: 'INVALID_ARGUMENT',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'STOCK_DEDUCTION_FAILED':
+                    return callback(null, {
+                        success: false,
+                        reserveId: '',
+                        message: 'Failed to deduct stock',
+                        error: {
+                            code: 'INTERNAL',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'RESERVATION_FAILED':
+                    return callback(null, {
+                        success: false,
+                        reserveId: '',
+                        message: 'Failed to create reservation',
+                        error: {
+                            code: 'INTERNAL',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'CastError':
+                    return callback({
+                        code: grpc.status.INVALID_ARGUMENT,
+                        message: 'Invalid ID format: ' + err.message
+                    });
+
+                default:
+                    // Handle unknown errors
+                    logger.error('[gRPC] ReserveStock unexpected error', { error: err });
+                    return callback({
+                        code: grpc.status.INTERNAL,
+                        message: 'Error reserving stock: ' + err.message
+                    });
+            }
+        }
+    },
+
+    /**
+     * Release reserved stock - Translator between gRPC and service logic
+     * @param {Object} call - gRPC call object containing request data
+     * @param {Function} callback - Callback function to send response
+     */
+    ReleaseReservedStock: async (call, callback) => {
+        try {
+            const { reserveId, reservationId } = call.request;
+
+            logger.info(`[gRPC] ReleaseReservedStock called - reserveId: ${reserveId}, reservationId: ${reservationId}`);
+
+            // Validate inputs - at least one must be provided
+            if (!reserveId && !reservationId) {
+                logger.error('[gRPC] ReleaseReservedStock validation error: Either reserveId or reservationId must be provided');
                 return callback(null, {
                     success: false,
-                    reserveId: '',
-                    message: 'Insufficient stock',
+                    message: 'Release failed',
                     error: {
-                        code: 'INSUFFICIENT_STOCK',
-                        message: err.message,
-                        details: []
+                        code: 'INVALID_ARGUMENT',
+                        message: 'Either reserveId or reservationId must be provided',
+                        details: ['Both reserveId and reservationId are missing']
                     }
                 });
             }
 
-            // Handle Variant not found error
-            if (err.message && err.message.includes('Variant not found')) {
-                return callback(null, {
-                    success: false,
-                    reserveId: '',
-                    message: 'Variant not found',
-                    error: {
-                        code: 'NOT_FOUND',
-                        message: err.message,
-                        details: [`No variant found with ID: ${call.request.variantId}`]
-                    }
-                });
-            }
-
-            // Handle CastError (invalid ObjectId format)
-            if (err.name === 'CastError' || (err.message && err.message.includes('Cast to ObjectId failed'))) {
-                return callback({
-                    code: grpc.status.INVALID_ARGUMENT,
-                    message: err.message
-                });
-            }
-
-            // Handle other errors
-            return callback({
-                code: grpc.status.INTERNAL,
-                message: 'Error reserving stock: ' + err.message
+            // Call the reservation service with the data
+            const result = await reservationService.releaseReservedStock({
+                reserveId,
+                reservationId
             });
+
+            logger.info(`[gRPC] ReleaseReservedStock successful - reserveId: ${reserveId}, reservationId: ${reservationId}`);
+
+            return callback(null, {
+                success: true,
+                message: 'Reserved stock released successfully',
+                error: null
+            });
+
+        } catch (err) {
+            logger.error(`[gRPC] ReleaseReservedStock error: ${err.code || 'UNKNOWN'}`, { error: err });
+
+            // Check if it's an ApiError with a code property
+            const errorCode = err.code || err.name;
+
+            // Handle different error codes
+            switch (errorCode) {
+                case 'NOT_FOUND':
+                    return callback(null, {
+                        success: false,
+                        message: 'Reservation not found',
+                        error: {
+                            code: 'NOT_FOUND',
+                            message: err.message,
+                            details: ['Reservation not found with provided ID']
+                        }
+                    });
+
+                case 'INVALID_REQUEST':
+                case 'INVALID_INPUT':
+                    return callback(null, {
+                        success: false,
+                        message: 'Invalid request',
+                        error: {
+                            code: 'INVALID_ARGUMENT',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'RELEASE_FAILED':
+                case 'STOCK_ADDITION_FAILED':
+                    return callback(null, {
+                        success: false,
+                        message: 'Failed to release reserved stock',
+                        error: {
+                            code: 'INTERNAL',
+                            message: err.message,
+                            details: []
+                        }
+                    });
+
+                case 'CastError':
+                    return callback({
+                        code: grpc.status.INVALID_ARGUMENT,
+                        message: 'Invalid ID format: ' + err.message
+                    });
+
+                default:
+                    // Handle unknown errors
+                    logger.error('[gRPC] ReleaseReservedStock unexpected error', { error: err });
+                    return callback({
+                        code: grpc.status.INTERNAL,
+                        message: 'Error releasing reserved stock: ' + err.message
+                    });
+            }
         }
     }
 
