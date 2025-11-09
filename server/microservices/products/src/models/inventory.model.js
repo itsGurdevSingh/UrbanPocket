@@ -48,7 +48,7 @@ const inventorySchema = new mongoose.Schema({
 // A compound index to ensure each batch for a variant is unique.
 // We make it a sparse index to allow multiple null/undefined batchNumbers.
 inventorySchema.index(
-  { variantId: 1, batchNumber: 1 }, 
+  { variantId: 1, batchNumber: 1 },
   { unique: true, sparse: true }
 );
 
@@ -63,9 +63,10 @@ inventorySchema.index(
 inventorySchema.post('save', async function (doc, next) {
   try {
     const ProductVariant = mongoose.model('ProductVariant');
-    // Atomically add the new stock to the parent variant.
+    // Only add stock if the item is active
+    const stockToAdd = doc.isActive ? doc.stock : 0;
     await ProductVariant.findByIdAndUpdate(doc.variantId, {
-      $inc: { stock: doc.stock },
+      $inc: { stock: stockToAdd },
     });
     next();
   } catch (error) {
@@ -89,61 +90,87 @@ inventorySchema.pre('findOneAndUpdate', async function (next) {
 });
 
 // 2b. 'post' hook: Compare the original doc to the new doc.
-inventorySchema.post('findOneAndUpdate', async function (doc, next) {
+// 'result' is the DOCUMENT *after* the update (if { new: true }), or the old doc otherwise.
+// Since we can't rely on 'result' being the new doc, we fetch it manually.
+inventorySchema.post('findOneAndUpdate', async function (result, next) {
   try {
+    // --------------------------------------------------------------------
+    // The pre-hook failed or the doc was not found. Do nothing.
+    // --------------------------------------------------------------------
     if (!this._originalDoc) {
-      // No original doc found (e.g., upsert=true).
-      // Or it's a new doc, which 'save' hook will handle.
       return next();
     }
-    
-    // Get the doc as it is *after* the update.
-    // 'doc' is passed by Mongoose, but it's the *updated* doc.
-    const newStock = doc.stock;
-    const newVariant = doc.variantId;
+
+    // --- Fetch the updated document manually since result might be old doc ---
+    const updatedDoc = await this.model.findOne(this.getQuery());
+
+    if (!updatedDoc) {
+      // Document was deleted or doesn't exist after update
+      return next();
+    }
+
+    // --- We have the original doc and the new (updatedDoc) doc. Compare. ---
+    const newStock = updatedDoc.stock;
+    const newVariant = updatedDoc.variantId;
+    const newIsActive = updatedDoc.isActive;
 
     const originalStock = this._originalDoc.stock;
     const originalVariant = this._originalDoc.variantId;
-    
+    const originalIsActive = this._originalDoc.isActive;
+
     const ProductVariant = mongoose.model('ProductVariant');
 
     if (originalVariant.toString() === newVariant.toString()) {
       // --- Case A: The variantId DID NOT change ---
-      // We only need to update one variant with the *difference* in stock.
-      const stockDifference = newStock - originalStock;
+      const oldEffectiveStock = originalIsActive ? originalStock : 0;
+      const newEffectiveStock = newIsActive ? newStock : 0;
+      const stockDifference = newEffectiveStock - oldEffectiveStock;
+
       if (stockDifference !== 0) {
         await ProductVariant.findByIdAndUpdate(newVariant, {
           $inc: { stock: stockDifference },
         });
       }
     } else {
-      // --- Case B: The variantId CHANGED (e.g., batch re-assigned) ---
-      // We must update *both* variants atomically.
-      const updateOriginalVariant = ProductVariant.findByIdAndUpdate(originalVariant, {
-        $inc: { stock: -originalStock }, // Remove old stock from old variant
-      });
-      const updateNewVariant = ProductVariant.findByIdAndUpdate(newVariant, {
-        $inc: { stock: newStock }, // Add new stock to new variant
-      });
-      await Promise.all([updateOriginalVariant, updateNewVariant]);
+      // --- Case B: The variantId CHANGED ---
+      const oldEffectiveStock = originalIsActive ? originalStock : 0;
+      const newEffectiveStock = newIsActive ? newStock : 0;
+
+      // This is a critical transaction, run them in parallel
+      await Promise.all([
+        ProductVariant.findByIdAndUpdate(originalVariant, {
+          $inc: { stock: -oldEffectiveStock }, // Remove from old
+        }),
+        ProductVariant.findByIdAndUpdate(newVariant, {
+          $inc: { stock: newEffectiveStock }, // Add to new
+        }),
+      ]);
     }
+
+    // --- Success ---
     next();
+
   } catch (error) {
+    // --- CRITICAL FAILURE ---
+    // If the hook fails, we MUST pass the error.
+    // This will bubble up to the user. This is a GOOD thing.
+    // It tells them the operation failed and data is safe.
+    console.error('CRITICAL: inventorySchema.post(findOneAndUpdate) hook failed:', error);
     next(error);
   }
 });
 
-
-// DOMINO 3: After an inventory item is DELETED (`.findOneAndDelete()`)
+// DOMINO 3: After an inventory item is DELETED (`.findOneAndDelete()` or `.findByIdAndDelete()`)
 // This is a QUERY middleware.
 inventorySchema.post('findOneAndDelete', async function (doc, next) {
   try {
     // 'doc' is the document that was deleted.
     if (doc) {
       const ProductVariant = mongoose.model('ProductVariant');
-      // Atomically subtract the deleted stock from the parent.
+      // Only subtract stock if the item was active
+      const stockToSubtract = doc.isActive ? doc.stock : 0;
       await ProductVariant.findByIdAndUpdate(doc.variantId, {
-        $inc: { stock: -doc.stock },
+        $inc: { stock: -stockToSubtract },
       });
     }
     next();
@@ -151,79 +178,6 @@ inventorySchema.post('findOneAndDelete', async function (doc, next) {
     next(error);
   }
 });
-
-// --- FEFO Static Method ---
-
-/**
- * Finds and returns the specific inventory batches needed to fulfill a
- * required quantity, using FEFO (First-Expiring, First-Out) logic.
- *
- * @param {string} variantId - The ID of the variant to reserve.
- * @param {number} requiredQuantity - The total quantity needed.
- * @returns {Promise<Array<{inventoryId: string, quantity: number, price: object, location: object}>>} An array of batches to reserve.
- * @throws {Error} If the total available stock is insufficient.
- */
-inventorySchema.statics.findFefoBatchesForReservation = async function (
-  variantId,
-  requiredQuantity
-) {
-  let quantityToFulfill = requiredQuantity;
-  const batchesToReserve = [];
-
-  const inventoryCursor = this.aggregate([
-    {
-      $match: {
-        variantId: new mongoose.Types.ObjectId(variantId),
-        isActive: true,
-        stock: { $gt: 0 },
-      },
-    },
-    {
-      $addFields: {
-        // Use the actual expiration date for sorting
-        expiresAt: "$manufacturingDetails.expDate",
-        // Create a sort field to put items *with* an expiry date first
-        hasExpiry: { $ne: ["$manufacturingDetails.expDate", null] },
-      },
-    },
-    {
-      $sort: {
-        hasExpiry: -1,  // true (has expiry) comes before false (no expiry)
-        expiresAt: 1, // Earliest expiration date first
-        createdAt: 1, // Oldest stock first as a fallback
-      },
-    },
-  ]);
-
-  for await (const batch of inventoryCursor) {
-    if (quantityToFulfill <= 0) {
-      break; 
-    }
-    const quantityFromThisBatch = Math.min(batch.stock, quantityToFulfill);
-    batchesToReserve.push({
-      inventoryId: batch._id,
-      quantity: quantityFromThisBatch,
-      price: batch.price, // Also return price for the snapshot
-      // location: batch.location, // Also return location for the pick list
-    });
-
-    // Reduce the remaining quantity to fulfill from inventory batch
-    this.findByIdAndUpdate(batch._id, {
-      $inc: { stock: -quantityFromThisBatch },
-    }).exec();
-
-    quantityToFulfill -= quantityFromThisBatch;
-  }
-
-  if (quantityToFulfill > 0) {
-    throw new Error(
-      `Insufficient stock for variant ${variantId}. Required: ${requiredQuantity}, Found: ${
-        requiredQuantity - quantityToFulfill
-      }`
-    );
-  }
-  return batchesToReserve;
-};
 
 
 const InventoryItem = mongoose.model('InventoryItem', inventorySchema);
