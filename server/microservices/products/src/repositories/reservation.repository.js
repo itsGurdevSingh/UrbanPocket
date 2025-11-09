@@ -1,30 +1,54 @@
+import mongoose from 'mongoose';
 import ReserveStock from '../models/reserveStock.model.js';
 import InventoryItem from '../models/inventory.model.js';
 import { ApiError } from '../utils/errors.js';
 import variantRepository from './variant.repository.js';
+import logger from '../utils/logger.js';
 
 class ReservationRepository {
     constructor() {
         this.model = ReserveStock;
     }
-    async createReservation(variantId, quantity, reservationId) {
 
-        //check if stock is available
-        const variant = await variantRepository.findById(variantId);
-        if (!variant || variant.stock < quantity) {
-            throw new ApiError('INSUFFICIENT_STOCK', `Insufficient stock for variant ${variantId}. Requested: ${quantity}, Available: ${variant ? variant.stock : 0}`);
+    async createReservation(data, externalsession) {
+
+        const { variantId, quantity, batches, reservationId } = data;
+
+        let session = externalsession;
+        let shouldManageSession = false;
+
+        if (!externalsession) {
+            session = await mongoose.startSession();
+            session.startTransaction();
+            shouldManageSession = true;
         }
 
-        //get expire first inventory to match the quantity
-        const batches = await InventoryItem.findFefoBatchesForReservation(variantId, quantity);
+        try {
+            const reservation = new this.model({
+                variantId,
+                totalQuantity: quantity,
+                inventoryEntries: batches,
+                reservationId
+            });
 
-        const reservation = new this.model({
-            variantId,
-            totalQuantity: quantity,
-            inventoryEntries: batches,
-            reservationId
-        });
-        return await reservation.save();
+            // Save with session
+            const savedReservation = await reservation.save({ session });
+
+            if (shouldManageSession) {
+                await session.commitTransaction();
+            }
+
+            return savedReservation;
+        } catch (error) {
+            if (shouldManageSession && session.inTransaction()) {
+                await session.abortTransaction();
+            }
+            throw error;
+        } finally {
+            if (shouldManageSession) {
+                session.endSession();
+            }
+        }
     }
 
     async getReservationById(reservationId) {
