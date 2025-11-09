@@ -6,6 +6,8 @@ service ProductService {
   rpc GetVariantDetails (GetVariantDetailsRequest) returns (GetVariantDetailsResponse);
 
   rpc ReserveStock (ReserveStockRequest) returns (ReserveStockResponse);
+
+  rpc ReleaseReservedStock (ReleaseReservedStockRequest) returns (ReleaseReservedStockResponse);
 }
 
 message GetVariantDetailsRequest {
@@ -52,6 +54,17 @@ message ReserveStockResponse {
   string reserveId = 2;
   string message = 3;
   Error error = 4;
+}
+
+message ReleaseReservedStockRequest {
+  string reserveId = 1;
+  string reservationId = 2;
+}
+
+message ReleaseReservedStockResponse {
+  bool success = 1;
+  string message = 2;
+  Error error = 3;
 }
 
 message Error {

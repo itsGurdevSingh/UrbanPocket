@@ -32,6 +32,7 @@ function createGrpcServer() {
     server.addService(proto.ProductService.service, {
       GetVariantDetails: ProductGrpcService.GetVariantDetails,
       ReserveStock: ProductGrpcService.reserveStock,
+      ReleaseReservedStock: ProductGrpcService.ReleaseReservedStock,
     });
 
     logger.info('[gRPC] Server created successfully');
