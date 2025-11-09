@@ -34,12 +34,7 @@ class ReservationService {
 
             if (!findBatches || findBatches.length === 0) {
                 throw new ApiError('INSUFFICIENT_STOCK', `Not enough stock batches available for variant ${variantId}`);
-            }            git add server/microservices/products/src/models/inventory.model.js
-            git commit -m "feat(inventory-model): robust hooks and respect item active state" `
-              -m "Make hooks resilient and correct stock math:" `
-              -m "- Post-save only increments variant stock when inventory item is active" `
-              -m "- Post-findOneAndUpdate fetches updated doc, computes effective stock delta using isActive, and updates both variants if variantId changed" `
-              -m "- Post-findOneAndDelete subtracts only active stock and bubbles hook errors (so failing hooks surface to caller)"
+            }
 
             session.startTransaction();
             // deduct stock from inventory batches
