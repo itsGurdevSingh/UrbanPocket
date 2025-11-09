@@ -1,26 +1,32 @@
 import mongoose from 'mongoose';
 import InventoryItem from "../models/inventory.model.js";
+import { ApiError } from '../utils/errors.js';
+import logger from '../utils/logger.js';
 
 class InventoryItemRepository {
 
+    constructor() {
+        this.model = InventoryItem;
+    }
+
     async create(data) {
-        return InventoryItem.create(data);
+        return this.model.create(data);
     }
 
     async findById(id) {
-        return InventoryItem.findById(id);
+        return this.model.findById(id);
     }
 
     async findByVariantId(variantId) {
-        return InventoryItem.find({ variantId });
+        return this.model.find({ variantId });
     }
 
     async update(id, data) {
-        return InventoryItem.findByIdAndUpdate(id, data, { new: true });
+        return this.model.findByIdAndUpdate(id, data, { new: true });
     }
 
     async delete(id) {
-        return InventoryItem.findByIdAndDelete(id);
+        return this.model.findByIdAndDelete(id);
     }
 
     /**
@@ -60,13 +66,24 @@ class InventoryItemRepository {
         }
 
         // Filter by stock availability
-        if (filters.inStock !== undefined) {
-            const inStock = filters.inStock === 'true' || filters.inStock === true;
-            if (inStock) {
-                initialMatch.stock = { $gt: 0 };
-            } else {
-                initialMatch.stock = { $lte: 0 };
-            }
+        const stockFilter = {};
+        if (filters.inStock === 'true' || filters.inStock === true) {
+            stockFilter.$gt = 0;
+        } else if (filters.inStock === 'false' || filters.inStock === false) {
+            stockFilter.$lte = 0;
+        }
+
+        if (filters.minStock !== undefined) {
+            // This will correctly overwrite $gt: 0 with $gte: 50 (or whatever)
+            stockFilter.$gte = Number(filters.minStock);
+        }
+        if (filters.maxStock !== undefined) {
+            stockFilter.$lte = Number(filters.maxStock);
+        }
+
+        // Only add the stock filter to the match if it has keys
+        if (Object.keys(stockFilter).length > 0) {
+            initialMatch.stock = stockFilter;
         }
 
         // Price range filters
@@ -79,26 +96,6 @@ class InventoryItemRepository {
                 initialMatch['price.amount'].$lte = Number(filters.maxPrice);
             }
         }
-
-        // Stock range filters
-        if (filters.minStock !== undefined) {
-            if (!initialMatch.stock) {
-                initialMatch.stock = {};
-            }
-            if (typeof initialMatch.stock === 'object' && !initialMatch.stock.$gt) {
-                initialMatch.stock.$gte = Number(filters.minStock);
-            }
-        }
-
-        if (filters.maxStock !== undefined) {
-            if (!initialMatch.stock) {
-                initialMatch.stock = {};
-            }
-            if (typeof initialMatch.stock === 'object') {
-                initialMatch.stock.$lte = Number(filters.maxStock);
-            }
-        }
-
         // Manufacturing date filters
         if (filters.mfgDateFrom || filters.mfgDateTo) {
             initialMatch['manufacturingDetails.mfgDate'] = {};
@@ -111,21 +108,23 @@ class InventoryItemRepository {
         }
 
         // Expiration date filters
-        if (filters.expDateFrom || filters.expDateTo) {
-            initialMatch['manufacturingDetails.expDate'] = {};
-            if (filters.expDateFrom) {
-                initialMatch['manufacturingDetails.expDate'].$gte = new Date(filters.expDateFrom);
-            }
-            if (filters.expDateTo) {
-                initialMatch['manufacturingDetails.expDate'].$lte = new Date(filters.expDateTo);
-            }
+        const expDateFilter = {};
+        if (filters.expDateFrom) {
+            expDateFilter.$gte = new Date(filters.expDateFrom);
+        }
+        if (filters.expDateTo) {
+            expDateFilter.$lte = new Date(filters.expDateTo);
         }
 
-        // Filter expired items (exp date < today)
+        // Add the 'excludeExpired' logic
         if (filters.excludeExpired === 'true' || filters.excludeExpired === true) {
-            initialMatch['manufacturingDetails.expDate'] = {
-                $gte: new Date()
-            };
+            // This sets or overwrites $gte with the *later* date, which is correct
+            // e.g., if $gte was 'yesterday' this changes it to 'today'.
+            expDateFilter.$gte = new Date();
+        }
+
+        if (Object.keys(expDateFilter).length > 0) {
+            initialMatch['manufacturingDetails.expDate'] = expDateFilter;
         }
 
         pipeline.push({ $match: initialMatch });
@@ -282,9 +281,200 @@ class InventoryItemRepository {
         // ----------------------------------------------------------------------------------
         // EXECUTION
         // ----------------------------------------------------------------------------------
-        const results = await InventoryItem.aggregate(pipeline);
+        const results = await this.model.aggregate(pipeline);
 
         return results[0] || { items: [], total: 0 };
+    }
+
+    async findFefoBatches(variantId, requiredQuantity) {
+        let quantityToFulfill = requiredQuantity;
+        const batchesToReserve = [];
+
+        const inventoryCursor = this.model.aggregate([
+            {
+                $match: {
+                    variantId: new mongoose.Types.ObjectId(variantId),
+                    isActive: true,
+                    stock: { $gt: 0 },
+                },
+            },
+            {
+                $addFields: {
+                    // Use the actual expiration date for sorting
+                    expiresAt: "$manufacturingDetails.expDate",
+                    // Create a sort field to put items *with* an expiry date first
+                    hasExpiry: { $ne: ["$manufacturingDetails.expDate", null] },
+                },
+            },
+            {
+                $sort: {
+                    hasExpiry: -1,  // true (has expiry) comes before false (no expiry)
+                    expiresAt: 1, // Earliest expiration date first
+                    createdAt: 1, // Oldest stock first as a fallback
+                },
+            },
+        ]);
+
+        for await (const batch of inventoryCursor) {
+            if (quantityToFulfill <= 0) {
+                break;
+            }
+            const quantityFromThisBatch = Math.min(batch.stock, quantityToFulfill);
+            batchesToReserve.push({
+                inventoryId: batch._id,
+                quantity: quantityFromThisBatch,
+                price: batch.price, // Also return price for the snapshot
+                // location: batch.location, // Also return location for the pick list
+            });
+
+            quantityToFulfill -= quantityFromThisBatch;
+        }
+
+        if (quantityToFulfill > 0) {
+            throw new Error(
+                `Insufficient stock for variant ${variantId}. Required: ${requiredQuantity}, Found: ${requiredQuantity - quantityToFulfill
+                }`
+            );
+        }
+        return batchesToReserve;
+    };
+
+    // delete stock from multiple batches atomically for resevation
+    async deductStockFromBatches(batches, variantId, externalSession = null) {
+        if (!Array.isArray(batches) || batches.length === 0) {
+            throw new ApiError('INVALID_INPUT', 'Batches array is empty or invalid.');
+        }
+
+        if (!variantId) {
+            throw new ApiError('INVALID_INPUT', 'variantId is required.');
+        }
+
+        // get mongo session
+        let session = externalSession;
+
+        // if independent session is ture then create new session
+        if (!externalSession) {
+            session = await this.model.startSession();
+        }
+
+        try {
+
+            // start transaction
+            if (!externalSession) {
+            session.startTransaction();
+            }
+
+            const bulkOps = batches.map(batch => ({
+                updateOne: {
+                    filter: { _id: batch.inventoryId, stock: { $gte: batch.quantity } },
+                    update: { $inc: { stock: -batch.quantity } }
+                }
+            }));
+            const result = await this.model.bulkWrite(bulkOps, { session });
+
+            if (result.matchedCount !== batches.length) {
+                throw new ApiError('STOCK_DEDUCTION_FAILED', 'Failed to deduct stock for some inventory items.');
+            }
+
+            // 2. Manually do the hook's job
+            // The hooks didn't run with bulkWrite, so we do it ourselves.
+            const totalDeducted = batches.reduce((acc, batch) => acc + batch.quantity, 0);
+
+            await mongoose.model('ProductVariant').findByIdAndUpdate(
+                variantId,
+                { $inc: { stock: -totalDeducted } },
+                { session } // Run this update *inside the same transaction*
+            );
+
+            // commit transaction
+            if (!externalSession) {
+            await session.commitTransaction();
+            }
+
+        } catch (error) {
+
+            // abort transaction
+            if (!externalSession) {
+            await session.abortTransaction();
+            }
+            if (error instanceof ApiError) {
+                logger.error('Stock deduction failed during transaction.', { error });
+                throw error;
+            }
+
+            logger.error('Unexpected error during stock deduction.', { error });
+            throw new ApiError('STOCK_DEDUCTION_FAILED', 'Failed to deduct stock for some inventory items.');
+        } finally {
+            // end session
+            if (!externalSession) {
+            session.endSession();
+            }
+        }
+
+    }
+
+    // add stock back to a specific batch 
+    // externalSession indicates whether to use its own session or an external one by 
+    //      -- default our parent will handle session because we ahve to delete reservation after adding stock back.
+    async addStockToBatch(batches, variantId, externalSession = null) {
+        if (!Array.isArray(batches) || batches.length === 0) {
+            throw new ApiError('INVALID_INPUT', 'Batches array is empty or invalid.');
+        }
+
+        if (!variantId) {
+            throw new ApiError('INVALID_INPUT', 'variantId is required.');
+        }
+
+        let session = externalSession;
+        // if independent session is ture then create new session
+        if (!externalSession) {
+            session = await this.model.startSession();
+        }
+
+        try {
+            // start transaction
+            if (!externalSession) {
+                session.startTransaction();
+            }
+            const bulkOps = batches.map(batch => ({
+                updateOne: {
+                    filter: { _id: batch.inventoryId },
+                    update: { $inc: { stock: batch.quantity } }
+                }
+            }));
+            const result = await this.model.bulkWrite(bulkOps, { session });
+            if (result.matchedCount !== batches.length) {
+                throw new ApiError('STOCK_ADDITION_FAILED', 'Failed to add stock for some inventory items.');
+            }
+
+            // 2. Manually do the hook's job
+            const totalAdded = batches.reduce((acc, batch) => acc + batch.quantity, 0);
+            await mongoose.model('ProductVariant').findByIdAndUpdate(
+                variantId,
+                { $inc: { stock: totalAdded } },
+                { session } // Run inside the same transaction
+            );
+            // commit transaction
+            if (!externalSession) {
+                await session.commitTransaction();
+            }
+        } catch (error) {
+            // abort transaction
+            if (!externalSession) {
+                await session.abortTransaction();
+            }
+            if (error instanceof ApiError) {
+                logger.error('Stock addition failed during transaction.', { error });
+                throw error;
+            }
+            logger.error('Unexpected error during stock addition.', { error });
+            throw new ApiError('STOCK_ADDITION_FAILED', 'Failed to add stock for some inventory items.');
+        } finally {
+            // end session
+            if (!externalSession) {
+                session.endSession();
+            }
+        }
     }
 
 };
